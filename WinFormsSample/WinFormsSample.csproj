@@ -88,11 +88,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\lib\TobiiGazeConfig32.dll">
+    <Content Include="..\TobiiGazeSdk\TobiiGazeConfig32.dll">
       <Link>TobiiGazeConfig32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\lib\TobiiGazeCore32.dll">
+    <Content Include="..\TobiiGazeSdk\TobiiGazeCore32.dll">
       <Link>TobiiGazeCore32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

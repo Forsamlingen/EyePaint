@@ -16,6 +16,8 @@
         private ImageFactory imageFactory;
         private bool useMouse;
         private Timer paint;
+        private Color currentColor;
+        private readonly Color DEFAULT_COLOR = Color.RoyalBlue;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -38,6 +40,8 @@
             imageFactory = new ImageFactory(width, height);
             treeFactory = new TreeFactory();
 
+            currentColor = DEFAULT_COLOR;
+
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 10;
             paint.Enabled = false;
@@ -56,6 +60,18 @@
             {
                 case Keys.Space:
                     OnGreenButtonDown(sender, eventArgs); // Simulate event.
+                    break;
+                case Keys.Back:
+                    OnRedButtonDown(sender, eventArgs);
+                    break;
+                case Keys.R:
+                    currentColor = Color.Red;
+                    break;
+                case Keys.G:
+                    currentColor = Color.Green;
+                    break;
+                case Keys.B:
+                    currentColor = Color.Blue;
                     break;
                 default:
                     break;
@@ -77,8 +93,7 @@
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
             gazeFixed = true;
-            var color = Color.Black; //TODO Add support for color selection.
-            treeFactory.CreateTree(PointToClient(_gazePoint), color);
+            treeFactory.CreateTree(PointToClient(_gazePoint), currentColor);
             paint.Enabled = true;
         }
 
@@ -91,12 +106,12 @@
 
         private void OnRedButtonDown(object sender, EventArgs eventArgs)
         {
-            //TODO
+            imageFactory.Undo();
         }
 
         private void OnRedButtonUp(object sender, EventArgs eventArgs)
         {
-            //TODO
+            //TODO Define button behaviour.
         }
 
         private void OnMove(object sender, EventArgs eventArgs)

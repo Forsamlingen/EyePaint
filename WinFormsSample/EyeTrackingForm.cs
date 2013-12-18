@@ -8,8 +8,8 @@
 
     struct Line
     {
-        public Pen pen; //TODO Shouldn't be public.
-        public List<Point> points;
+        public readonly Pen pen;
+        public readonly List<Point> points;
 
         public Line(Pen pen)
         {

@@ -11,6 +11,7 @@
     {
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
+        private bool gazeFixed;
         private TreeFactory treeFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
@@ -25,7 +26,7 @@
             Move += OnMove;
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
-            MouseMove += OnMouseMove;
+            MouseClick += OnMouseClick;
 
             _eyeTrackingEngine = eyeTrackingEngine;
             _eyeTrackingEngine.StateChanged += StateChanged;
@@ -41,6 +42,12 @@
             paint.Interval = 10;
             paint.Enabled = false;
             paint.Tick += new EventHandler((object sender, System.EventArgs e) => { treeFactory.ExpandTree(); Invalidate(); });
+        }
+
+        private void OnMouseClick(object sender, MouseEventArgs e)
+        {
+            if (useMouse && !gazeFixed)
+                _gazePoint = new Point(e.X, e.Y);
         }
 
         private void OnKeyDown(object sender, KeyEventArgs eventArgs)
@@ -69,6 +76,7 @@
 
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
+            gazeFixed = true;
             var color = Color.Black; //TODO Add support for color selection.
             treeFactory.CreateTree(PointToClient(_gazePoint), color);
             paint.Enabled = true;
@@ -77,6 +85,7 @@
 
         private void OnGreenButtonUp(object sender, EventArgs eventArgs)
         {
+            gazeFixed = false;
             paint.Enabled = false;
         }
 
@@ -111,14 +120,9 @@
 
         private void GazePoint(object sender, GazePointEventArgs gazePointEventArgs)
         {
-            //TODO Noise reduction.
-            _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
-        {
-            if (useMouse)
-                _gazePoint = new Point(mouseEventArgs.X, mouseEventArgs.Y);
+            //TODO Add noise reduction and calibration.
+            if (!gazeFixed)
+                _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
         }
 
         private void OnShown(object sender, EventArgs eventArgs)

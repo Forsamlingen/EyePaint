@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WinFormsSample
+namespace EyePaint
 {
     /// <summary>
     /// TODO: Update summary.

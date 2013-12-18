@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using Tobii.Gaze.Core;
 
-namespace WinFormsSample
+namespace EyePaint
 {
     public static class Program
     {

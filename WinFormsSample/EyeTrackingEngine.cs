@@ -1,4 +1,4 @@
-﻿namespace WinFormsSample
+﻿namespace EyePaint
 {
     using System;
     using System.Collections.Generic;

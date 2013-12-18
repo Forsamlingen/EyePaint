@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Drawing;
 
 namespace WinFormsSample
 {
+    // Generates tree graphs.
     interface Model
     {
-        // Grafer
+        Point point;
     }
 
+    // Rasterizes graphs into bitmaps.
     interface View
     {
         // Givet graf skapa bitmap.
+        Bitmap rasterizeTree(Tree tree);
     }
 
+    // Handles user input. Main program.
     interface Controller
     {
-        // Givet knapptryck, skriv ut bitmap, m.m. Huvudprogrammet.
+   
     }
 }

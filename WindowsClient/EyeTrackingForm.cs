@@ -19,7 +19,7 @@
         }
     }
 
-    public partial class WinFormsSample : Form
+    public partial class EyeTrackingForm : Form
     {
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
@@ -35,7 +35,7 @@
         //void OnRedButtonDown(object sender, EventArgs e);
         //void OnRedButtonUp(object sender, EventArgs e);
 
-        public WinFormsSample(EyeTrackingEngine eyeTrackingEngine)
+        public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
         {
             InitializeComponent();
             Shown += OnShown;

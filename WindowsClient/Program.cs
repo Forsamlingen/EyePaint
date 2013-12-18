@@ -21,7 +21,7 @@ namespace EyePaint
             {
                 using (_eyeTrackingEngine = new EyeTrackingEngine())
                 {
-                    Application.Run(new WinFormsSample(_eyeTrackingEngine));
+                    Application.Run(new EyeTrackingForm(_eyeTrackingEngine));
                 }
             }
             catch (EyeTrackerException e)

@@ -1,6 +1,6 @@
 ﻿namespace EyePaint
 {
-    partial class WinFormsSample
+    partial class EyeTrackingForm
     {
         /// <summary>
         /// Required designer variable.

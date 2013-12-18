@@ -8,13 +8,14 @@ namespace WinFormsSample
     // Generates tree graphs.
     interface Model
     {
-        Point point;
+        Point currentPoint;
+        List<Tree> components;
+        Tree generateTree(Point root);
     }
 
     // Rasterizes graphs into bitmaps.
     interface View
     {
-        // Givet graf skapa bitmap.
         Bitmap rasterizeTree(Tree tree);
     }
 

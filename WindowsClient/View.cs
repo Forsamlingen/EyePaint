@@ -8,22 +8,30 @@ namespace EyePaint
 {
     class ImageFactory
     {
-        private Image currentImage;
+        private Image image;
+        private Pen pen;
 
-        public ImageFactory()
+        public ImageFactory(int width, int height)
         {
-            currentImage = new Bitmap(200, 200);
+            image = new Bitmap(width, height);
+            pen = new Pen(Brushes.DeepSkyBlue, 10);
         }
 
-        public Image rasterizeTrees(IEnumerable<Tree> components)
+        public Image RasterizeTrees(Stack<Tree> trees) // TODO Is a set of trees really neccessary?
         {
-            foreach (var component in components)
-            {
-            //TODO
+            Graphics g = Graphics.FromImage(image);
+
+            while (trees.Count > 0) {
+                var tree = trees.Pop();
+                //pen.Color = component.color; TODO
+                int x = tree.points[0].X;
+                int y = tree.points[0].Y;
+                g.DrawEllipse(pen, x - 10, y - 10, 20, 20);
             }
 
+            g.Dispose(); // TODO Use using() {} instead.
 
-            return currentImage;
+            return image;
         }
     }
 }

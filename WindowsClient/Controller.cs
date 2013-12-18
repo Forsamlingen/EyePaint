@@ -13,9 +13,8 @@
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
         private TreeFactory treeFactory;
         private ImageFactory imageFactory;
-        private bool draw;
         private bool useMouse;
-        Stopwatch stopwatch; //TODO
+        private Timer paint;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -33,10 +32,15 @@
             _eyeTrackingEngine.GazePoint += GazePoint;
             _eyeTrackingEngine.Initialize();
 
-            stopwatch = new Stopwatch();
+            int height = Screen.GetWorkingArea(this).Height;
+            int width = Screen.GetWorkingArea(this).Width;
+            imageFactory = new ImageFactory(width, height);
             treeFactory = new TreeFactory();
-            imageFactory = new ImageFactory();
-            draw = false;
+
+            paint = new System.Windows.Forms.Timer();
+            paint.Interval = 10;
+            paint.Enabled = false;
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { treeFactory.ExpandTree(); Invalidate(); });
         }
 
         private void OnKeyDown(object sender, KeyEventArgs eventArgs)
@@ -44,7 +48,7 @@
             switch (eventArgs.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonDown(sender, eventArgs);
+                    OnGreenButtonDown(sender, eventArgs); // Simulate event.
                     break;
                 default:
                     break;
@@ -56,7 +60,7 @@
             switch (eventArgs.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonUp(sender, eventArgs);
+                    OnGreenButtonUp(sender, eventArgs); // Simulate event.
                     break;
                 default:
                     break;
@@ -65,21 +69,15 @@
 
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
-            draw = true;
-            var local = PointToClient(_gazePoint); //TODO Neccessary?
             var color = Color.Black; //TODO Add support for color selection.
-            treeFactory.createTree(local, color);
-
-            while (true) //TODO
-            {
-                treeFactory.expandTree();
-                Invalidate();
-            }
+            treeFactory.CreateTree(PointToClient(_gazePoint), color);
+            paint.Enabled = true;
         }
+
 
         private void OnGreenButtonUp(object sender, EventArgs eventArgs)
         {
-            draw = false;
+            paint.Enabled = false;
         }
 
         private void OnRedButtonDown(object sender, EventArgs eventArgs)
@@ -99,9 +97,16 @@
 
         private void OnPaint(object sender, PaintEventArgs paintEventArgs)
         {
-            IEnumerable<Tree> trees = treeFactory.getTrees();
-            Image image = imageFactory.rasterizeTrees(trees);
-            paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            try
+            {
+                var trees = treeFactory.trees;
+                Image image = imageFactory.RasterizeTrees(trees);
+                paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
         }
 
         private void GazePoint(object sender, GazePointEventArgs gazePointEventArgs)

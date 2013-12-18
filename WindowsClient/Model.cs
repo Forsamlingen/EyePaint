@@ -10,36 +10,33 @@ namespace EyePaint
     struct Tree
     {
         public readonly Color color;
+        public readonly List<Point> points; //TODO This is a temporary data structure that should be replaced with something more tree like.
         public Tree(Point root, Color color)
         {
+            points = new List<Point> { root };
             this.color = color;
         }
     }
 
     class TreeFactory
     {
-        private Stack<Tree> trees;
+        public readonly Stack<Tree> trees;
 
         public TreeFactory()
         {
             trees = new Stack<Tree>();
         }
 
-        public IEnumerable<Tree> getTrees()
-        {
-            return this.trees;
-        }
-
-        public void createTree(Point root, Color color)
+        public void CreateTree(Point root, Color color)
         {
             Tree tree = new Tree(root, color);
-            return;
+            trees.Push(tree);
         }
 
-        public void expandTree()
+        public void ExpandTree()
         {
-            //TODO Add new vertices and edges to the tree on top of the stack whenever this function is called.
-            return;
+            //TODO Add some random new branches and leaves to the top tree on the stack whenever this function is called.
+            //trees.Peek().points.Enqueue(new Point(0, 0)); //TODO Remove this line, this is just a silly test.
         }
     }
 }

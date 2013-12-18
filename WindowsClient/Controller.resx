@@ -117,4 +117,238 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ErrorMessagePanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="EnableMouse.Location" type="System.Drawing.Point, System.Drawing">
+    <value>240, 33</value>
+  </data>
+  <data name="EnableMouse.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="EnableMouse.Size" type="System.Drawing.Size, System.Drawing">
+    <value>126, 26</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="EnableMouse.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="EnableMouse.Text" xml:space="preserve">
+    <value>Use mouse instead</value>
+  </data>
+  <data name="&gt;&gt;EnableMouse.Name" xml:space="preserve">
+    <value>EnableMouse</value>
+  </data>
+  <data name="&gt;&gt;EnableMouse.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableMouse.Parent" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;EnableMouse.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="SuppressErrorMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
+  <data name="SuppressErrorMessage.Location" type="System.Drawing.Point, System.Drawing">
+    <value>606, 10</value>
+  </data>
+  <data name="SuppressErrorMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="SuppressErrorMessage.Size" type="System.Drawing.Size, System.Drawing">
+    <value>23, 21</value>
+  </data>
+  <data name="SuppressErrorMessage.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="SuppressErrorMessage.Text" xml:space="preserve">
+    <value>X</value>
+  </data>
+  <data name="&gt;&gt;SuppressErrorMessage.Name" xml:space="preserve">
+    <value>SuppressErrorMessage</value>
+  </data>
+  <data name="&gt;&gt;SuppressErrorMessage.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SuppressErrorMessage.Parent" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;SuppressErrorMessage.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="Retry.Location" type="System.Drawing.Point, System.Drawing">
+    <value>153, 33</value>
+  </data>
+  <data name="Retry.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="Retry.Size" type="System.Drawing.Size, System.Drawing">
+    <value>60, 26</value>
+  </data>
+  <data name="Retry.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="Retry.Text" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="&gt;&gt;Retry.Name" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="&gt;&gt;Retry.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Retry.Parent" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;Retry.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="Resolve.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 33</value>
+  </data>
+  <data name="Resolve.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="Resolve.Size" type="System.Drawing.Size, System.Drawing">
+    <value>117, 27</value>
+  </data>
+  <data name="Resolve.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="Resolve.Text" xml:space="preserve">
+    <value>Open Control Panel</value>
+  </data>
+  <data name="&gt;&gt;Resolve.Name" xml:space="preserve">
+    <value>Resolve</value>
+  </data>
+  <data name="&gt;&gt;Resolve.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Resolve.Parent" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;Resolve.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="ErrorMessage.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ErrorMessage.Location" type="System.Drawing.Point, System.Drawing">
+    <value>4, 6</value>
+  </data>
+  <data name="ErrorMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 0, 2, 0</value>
+  </data>
+  <data name="ErrorMessage.Size" type="System.Drawing.Size, System.Drawing">
+    <value>228, 13</value>
+  </data>
+  <data name="ErrorMessage.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="ErrorMessage.Text" xml:space="preserve">
+    <value>Tobii Eye Tracking has not been set up for use</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessage.Name" xml:space="preserve">
+    <value>ErrorMessage</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessage.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessage.Parent" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessage.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="ErrorMessagePanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ErrorMessagePanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="ErrorMessagePanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>640, 74</value>
+  </data>
+  <data name="ErrorMessagePanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessagePanel.Name" xml:space="preserve">
+    <value>ErrorMessagePanel</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessagePanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Panel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessagePanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;ErrorMessagePanel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="InfoMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="InfoMessage.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 227</value>
+  </data>
+  <data name="InfoMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 0, 2, 0</value>
+  </data>
+  <data name="InfoMessage.Size" type="System.Drawing.Size, System.Drawing">
+    <value>640, 44</value>
+  </data>
+  <data name="InfoMessage.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="InfoMessage.Text" xml:space="preserve">
+    <value>Connecting...</value>
+  </data>
+  <data name="InfoMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleCenter</value>
+  </data>
+  <data name="&gt;&gt;InfoMessage.Name" xml:space="preserve">
+    <value>InfoMessage</value>
+  </data>
+  <data name="&gt;&gt;InfoMessage.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;InfoMessage.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;InfoMessage.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 13</value>
+  </data>
+  <data name="$this.BackgroundImageLayout" type="System.Windows.Forms.ImageLayout, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>640, 480</value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="$this.MinimumSize" type="System.Drawing.Size, System.Drawing">
+    <value>320, 240</value>
+  </data>
+  <data name="$this.StartPosition" type="System.Windows.Forms.FormStartPosition, System.Windows.Forms">
+    <value>CenterScreen</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>EyePaint</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>EyeTrackingForm</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

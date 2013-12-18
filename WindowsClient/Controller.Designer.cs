@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyeTrackingForm));
             this.ErrorMessagePanel = new System.Windows.Forms.Panel();
             this.EnableMouse = new System.Windows.Forms.Button();
-            this.SuppressErrorMessage = new System.Windows.Forms.Button();
+            this.Exit = new System.Windows.Forms.Button();
             this.Retry = new System.Windows.Forms.Button();
             this.Resolve = new System.Windows.Forms.Button();
             this.ErrorMessage = new System.Windows.Forms.Label();
@@ -42,9 +42,8 @@
             // ErrorMessagePanel
             // 
             resources.ApplyResources(this.ErrorMessagePanel, "ErrorMessagePanel");
-            this.ErrorMessagePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.ErrorMessagePanel.Controls.Add(this.EnableMouse);
-            this.ErrorMessagePanel.Controls.Add(this.SuppressErrorMessage);
+            this.ErrorMessagePanel.Controls.Add(this.Exit);
             this.ErrorMessagePanel.Controls.Add(this.Retry);
             this.ErrorMessagePanel.Controls.Add(this.Resolve);
             this.ErrorMessagePanel.Controls.Add(this.ErrorMessage);
@@ -54,28 +53,32 @@
             // 
             resources.ApplyResources(this.EnableMouse, "EnableMouse");
             this.EnableMouse.Name = "EnableMouse";
-            this.EnableMouse.UseVisualStyleBackColor = true;
+            this.EnableMouse.TabStop = false;
+            this.EnableMouse.UseVisualStyleBackColor = false;
             this.EnableMouse.Click += new System.EventHandler(this.EnableMouseClick);
             // 
-            // SuppressErrorMessage
+            // Exit
             // 
-            resources.ApplyResources(this.SuppressErrorMessage, "SuppressErrorMessage");
-            this.SuppressErrorMessage.Name = "SuppressErrorMessage";
-            this.SuppressErrorMessage.UseVisualStyleBackColor = true;
-            this.SuppressErrorMessage.Click += new System.EventHandler(this.SuppressErrorMessageClick);
+            resources.ApplyResources(this.Exit, "Exit");
+            this.Exit.Name = "Exit";
+            this.Exit.TabStop = false;
+            this.Exit.UseVisualStyleBackColor = false;
+            this.Exit.Click += new System.EventHandler(this.ExitClick);
             // 
             // Retry
             // 
             resources.ApplyResources(this.Retry, "Retry");
             this.Retry.Name = "Retry";
-            this.Retry.UseVisualStyleBackColor = true;
+            this.Retry.TabStop = false;
+            this.Retry.UseVisualStyleBackColor = false;
             this.Retry.Click += new System.EventHandler(this.RetryClick);
             // 
             // Resolve
             // 
             resources.ApplyResources(this.Resolve, "Resolve");
             this.Resolve.Name = "Resolve";
-            this.Resolve.UseVisualStyleBackColor = true;
+            this.Resolve.TabStop = false;
+            this.Resolve.UseVisualStyleBackColor = false;
             this.Resolve.Click += new System.EventHandler(this.OpenControlPanelClick);
             // 
             // ErrorMessage
@@ -106,6 +109,7 @@
             this.ErrorMessagePanel.ResumeLayout(false);
             this.ErrorMessagePanel.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -115,7 +119,7 @@
         private System.Windows.Forms.Button Resolve;
         private System.Windows.Forms.Label ErrorMessage;
         private System.Windows.Forms.Button Retry;
-        private System.Windows.Forms.Button SuppressErrorMessage;
+        private System.Windows.Forms.Button Exit;
         private System.Windows.Forms.Label InfoMessage;
         private System.Windows.Forms.Button EnableMouse;
     }

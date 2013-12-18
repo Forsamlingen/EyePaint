@@ -208,9 +208,9 @@
             _eyeTrackingEngine.Retry();
         }
 
-        private void SuppressErrorMessageClick(object sender, EventArgs e)
+        private void ExitClick(object sender, EventArgs e)
         {
-            ErrorMessagePanel.Visible = false;
+            Environment.Exit(0);
         }
 
         private void WarnIfOutsideEyeTrackingScreenBounds()
@@ -232,7 +232,7 @@
         private void EnableMouseClick(object sender, EventArgs e)
         {
             useMouse = true;
-            ErrorMessagePanel.Visible = false; //TODO Verify that this is the best way to proceed to the painting canvas.
+            ErrorMessagePanel.Visible = false;
         }
     }
 }

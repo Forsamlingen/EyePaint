@@ -117,9 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ErrorMessagePanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ErrorMessagePanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Left, Right</value>
+  <data name="ErrorMessagePanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="EnableMouse.Location" type="System.Drawing.Point, System.Drawing">
@@ -131,7 +135,6 @@
   <data name="EnableMouse.Size" type="System.Drawing.Size, System.Drawing">
     <value>126, 26</value>
   </data>
-  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="EnableMouse.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
@@ -150,34 +153,34 @@
   <data name="&gt;&gt;EnableMouse.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="SuppressErrorMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+  <data name="Exit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
-  <data name="SuppressErrorMessage.Location" type="System.Drawing.Point, System.Drawing">
-    <value>606, 10</value>
+  <data name="Exit.Location" type="System.Drawing.Point, System.Drawing">
+    <value>608, 10</value>
   </data>
-  <data name="SuppressErrorMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="Exit.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
-  <data name="SuppressErrorMessage.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="Exit.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 21</value>
   </data>
-  <data name="SuppressErrorMessage.TabIndex" type="System.Int32, mscorlib">
+  <data name="Exit.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="SuppressErrorMessage.Text" xml:space="preserve">
+  <data name="Exit.Text" xml:space="preserve">
     <value>X</value>
   </data>
-  <data name="&gt;&gt;SuppressErrorMessage.Name" xml:space="preserve">
-    <value>SuppressErrorMessage</value>
+  <data name="&gt;&gt;Exit.Name" xml:space="preserve">
+    <value>Exit</value>
   </data>
-  <data name="&gt;&gt;SuppressErrorMessage.Type" xml:space="preserve">
+  <data name="&gt;&gt;Exit.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;SuppressErrorMessage.Parent" xml:space="preserve">
+  <data name="&gt;&gt;Exit.Parent" xml:space="preserve">
     <value>ErrorMessagePanel</value>
   </data>
-  <data name="&gt;&gt;SuppressErrorMessage.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;Exit.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
   <data name="Retry.Location" type="System.Drawing.Point, System.Drawing">
@@ -264,14 +267,17 @@
   <data name="&gt;&gt;ErrorMessage.ZOrder" xml:space="preserve">
     <value>4</value>
   </data>
+  <data name="ErrorMessagePanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
   <data name="ErrorMessagePanel.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
   <data name="ErrorMessagePanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
+    <value>0, 0, 0, 0</value>
   </data>
   <data name="ErrorMessagePanel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 74</value>
+    <value>640, 480</value>
   </data>
   <data name="ErrorMessagePanel.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>

@@ -107,6 +107,7 @@
         private void OnRedButtonDown(object sender, EventArgs eventArgs)
         {
             imageFactory.Undo();
+            Invalidate();
         }
 
         private void OnRedButtonUp(object sender, EventArgs eventArgs)

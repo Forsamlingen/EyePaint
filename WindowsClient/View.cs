@@ -38,8 +38,11 @@ namespace EyePaint
 
         internal void Undo()
         {
-            //TODO Don't clear entire undo history.
-            image = new Bitmap(image.Width, image.Height);
+            //TODO Don't clear the entire drawing, instead implement an undo history.
+            Graphics g = Graphics.FromImage(image);
+            Region r = new Region();
+            r.MakeInfinite();
+            g.FillRegion(Brushes.White, r);
         }
     }
 }

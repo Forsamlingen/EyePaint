@@ -7,33 +7,16 @@
     using System.Collections.Generic;
     using System.Diagnostics;
 
-    struct Line
-    {
-        public readonly Pen pen;
-        public readonly List<Point> points;
-
-        public Line(Pen pen)
-        {
-            this.pen = pen;
-            this.points = new List<Point>();
-        }
-    }
-
     public partial class EyeTrackingForm : Form
     {
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
-        private Stack<Line> lines; //TODO Should this be a queue?
+        private TreeFactory treeFactory;
+        private ImageFactory imageFactory;
         private bool draw;
         private bool useMouse;
+        Stopwatch stopwatch; //TODO
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
-
-        //TODO
-        Stopwatch stopwatch;
-        //void OnGreenButtonDown(object sender, EventArgs e);
-        //void OnGreenButtonUp(object sender, EventArgs e);
-        //void OnRedButtonDown(object sender, EventArgs e);
-        //void OnRedButtonUp(object sender, EventArgs e);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
         {
@@ -50,74 +33,87 @@
             _eyeTrackingEngine.GazePoint += GazePoint;
             _eyeTrackingEngine.Initialize();
 
-            lines = new Stack<Line>();
+            stopwatch = new Stopwatch();
+            treeFactory = new TreeFactory();
+            imageFactory = new ImageFactory();
             draw = false;
         }
 
         private void OnKeyDown(object sender, KeyEventArgs eventArgs)
         {
-            if (eventArgs.KeyCode == Keys.Space)
+            switch (eventArgs.KeyCode)
             {
-                // Enable drawing.
-                draw = true;
-
-                // Prepare new line to draw.
-                Pen pen = new System.Drawing.Pen(System.Drawing.Color.Black, 3); //TODO Let user select different drawing tools.
-                lines.Push(new Line(pen));
+                case Keys.Space:
+                    OnGreenButtonDown(sender, eventArgs);
+                    break;
+                default:
+                    break;
             }
         }
 
         private void OnKeyUp(object sender, KeyEventArgs eventArgs)
         {
-            if (eventArgs.KeyCode == Keys.Space)
-                draw = false;
+            switch (eventArgs.KeyCode)
+            {
+                case Keys.Space:
+                    OnGreenButtonUp(sender, eventArgs);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnGreenButtonDown(object sender, EventArgs eventArgs)
+        {
+            draw = true;
+            var local = PointToClient(_gazePoint); //TODO Neccessary?
+            var color = Color.Black; //TODO Add support for color selection.
+            treeFactory.createTree(local, color);
+
+            while (true) //TODO
+            {
+                treeFactory.expandTree();
+                Invalidate();
+            }
+        }
+
+        private void OnGreenButtonUp(object sender, EventArgs eventArgs)
+        {
+            draw = false;
+        }
+
+        private void OnRedButtonDown(object sender, EventArgs eventArgs)
+        {
+            //TODO
+        }
+
+        private void OnRedButtonUp(object sender, EventArgs eventArgs)
+        {
+            //TODO
         }
 
         private void OnMove(object sender, EventArgs eventArgs)
         {
-            WarnIfOutsideEyeTrackingScreenBounds();
+            WarnIfOutsideEyeTrackingScreenBounds(); //TODO Neccessary?
         }
 
         private void OnPaint(object sender, PaintEventArgs paintEventArgs)
         {
-            // Get current eye position.
-            var local = PointToClient(_gazePoint);
-
-            // Mark current eye position.
-            paintEventArgs.Graphics.FillEllipse(Brushes.Black, local.X - 25, local.Y - 25, 20, 20); //TODO Remove?
-
-            // Store where the user is looking.
-            if (draw) try
-                {
-                    Line currentLine = lines.Peek(); //TODO Figure out of currentLine is copied or just a reference?
-                    currentLine.points.Add(local);
-                }
-                catch (InvalidOperationException e)
-                {
-                    //TODO Could not draw. What should we do here?
-                }
-
-            // Render drawing.
-            foreach (Line line in lines)
-                //if (line.points.Count > 1) //TODO Remove?
-                paintEventArgs.Graphics.DrawCurve(line.pen, line.points.ToArray());
+            IEnumerable<Tree> trees = treeFactory.getTrees();
+            Image image = imageFactory.rasterizeTrees(trees);
+            paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
         }
 
         private void GazePoint(object sender, GazePointEventArgs gazePointEventArgs)
         {
+            //TODO Noise reduction.
             _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
-            Invalidate();
         }
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
+        private void OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
             if (useMouse)
-            {
-                _gazePoint = new Point(e.X, e.Y);
-                Invalidate(); //TODO Maybe only force rerendering if painting has changed? Might make for uneven performance though.
-
-                //Console.WriteLine("Mouse position: " + _gazePoint.ToString()); //TODO Remove line.
-            }
+                _gazePoint = new Point(mouseEventArgs.X, mouseEventArgs.Y);
         }
 
         private void OnShown(object sender, EventArgs eventArgs)

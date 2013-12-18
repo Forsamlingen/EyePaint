@@ -17,7 +17,7 @@
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
-        private readonly Color DEFAULT_COLOR = Color.RoyalBlue;
+        private readonly Color DEFAULT_COLOR = Color.Blue;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)

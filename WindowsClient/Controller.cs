@@ -35,8 +35,8 @@
             _eyeTrackingEngine.GazePoint += GazePoint;
             _eyeTrackingEngine.Initialize();
 
-            int height = Screen.GetWorkingArea(this).Height;
-            int width = Screen.GetWorkingArea(this).Width;
+            int height = Screen.PrimaryScreen.Bounds.Height;
+            int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
             treeFactory = new TreeFactory();
 

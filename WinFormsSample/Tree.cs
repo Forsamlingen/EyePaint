@@ -7,6 +7,6 @@ namespace WinFormsSample
 {
     class Tree
     {
-        //TODO Implement adjacancy lists, but try to use C# builtin data structures first.
+        //TODO Implement adjacency lists, but try to use C# builtin data structures first.
     }
 }

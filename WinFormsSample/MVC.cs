@@ -22,6 +22,8 @@ namespace WinFormsSample
     // Handles user input. Main program.
     interface Controller
     {
-   
+        //TODO Can the interface require the class constructor to register events?
+        private void OnGreenButtonDown(object sender, EventArgs e);
+        private void OnRedButtonDown(object sender, EventArgs e);
     }
 }

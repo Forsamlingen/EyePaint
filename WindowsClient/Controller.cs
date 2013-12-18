@@ -28,7 +28,7 @@
             Move += OnMove;
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
-            MouseClick += OnMouseClick;
+            MouseMove += OnMouseMove;
 
             _eyeTrackingEngine = eyeTrackingEngine;
             _eyeTrackingEngine.StateChanged += StateChanged;
@@ -48,10 +48,10 @@
             paint.Tick += new EventHandler((object sender, System.EventArgs e) => { treeFactory.ExpandTree(); Invalidate(); });
         }
 
-        private void OnMouseClick(object sender, MouseEventArgs e)
+        private void OnMouseMove(object sender, MouseEventArgs mouseEventsArgs)
         {
             if (useMouse && !gazeFixed)
-                _gazePoint = new Point(e.X, e.Y);
+                _gazePoint = new Point(mouseEventsArgs.X, mouseEventsArgs.Y);
         }
 
         private void OnKeyDown(object sender, KeyEventArgs eventArgs)

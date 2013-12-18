@@ -62,7 +62,7 @@
                     OnGreenButtonDown(sender, eventArgs); // Simulate event.
                     break;
                 case Keys.Back:
-                    OnRedButtonDown(sender, eventArgs);
+                    OnRedButtonDown(sender, eventArgs); // Simulate event.
                     break;
                 case Keys.R:
                     currentColor = Color.Red;
@@ -73,9 +73,18 @@
                 case Keys.B:
                     currentColor = Color.Blue;
                     break;
+                case Keys.Enter:
+                    StorePaintingAsFile();
+                    break;
                 default:
                     break;
             }
+        }
+
+        private void StorePaintingAsFile()
+        {
+            //TODO Call Henrik's IO library.
+            throw new NotImplementedException();
         }
 
         private void OnKeyUp(object sender, KeyEventArgs eventArgs)
@@ -84,6 +93,9 @@
             {
                 case Keys.Space:
                     OnGreenButtonUp(sender, eventArgs); // Simulate event.
+                    break;
+                case Keys.Back:
+                    OnRedButtonUp(sender, eventArgs); // Simulate event.
                     break;
                 default:
                     break;

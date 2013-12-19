@@ -11,8 +11,7 @@
     {
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
-        private bool gazeFixed;
-        private TreeFactory treeFactory;
+        private CloudFactory cloudFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
         private Timer paint;
@@ -38,19 +37,19 @@
             int height = Screen.PrimaryScreen.Bounds.Height;
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
-            treeFactory = new TreeFactory();
+            cloudFactory = new CloudFactory();
 
             currentColor = DEFAULT_COLOR;
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { treeFactory.ExpandTree(); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloud(1); Invalidate(); });
         }
 
         private void OnMouseMove(object sender, MouseEventArgs mouseEventsArgs)
         {
-            if (useMouse && !gazeFixed)
+            if (useMouse)
                 _gazePoint = new Point(mouseEventsArgs.X, mouseEventsArgs.Y);
         }
 
@@ -104,16 +103,14 @@
 
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
-            gazeFixed = true;
             if (!paint.Enabled)
-                treeFactory.CreateTree(PointToClient(_gazePoint), currentColor);
+                cloudFactory.CreateCloud(PointToClient(_gazePoint), currentColor);
             paint.Enabled = true;
         }
 
 
         private void OnGreenButtonUp(object sender, EventArgs eventArgs)
         {
-            gazeFixed = false;
             paint.Enabled = false;
         }
 
@@ -137,8 +134,8 @@
         {
             try
             {
-                var trees = treeFactory.trees;
-                Image image = imageFactory.RasterizeTrees(ref trees);
+                var trees = cloudFactory.clouds;
+                Image image = imageFactory.Rasterize(ref trees);
                 paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)
@@ -150,8 +147,7 @@
         private void GazePoint(object sender, GazePointEventArgs gazePointEventArgs)
         {
             //TODO Add noise reduction and calibration.
-            if (!gazeFixed)
-                _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
+            _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
         }
 
         private void OnShown(object sender, EventArgs eventArgs)

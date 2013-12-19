@@ -24,8 +24,8 @@ namespace EyePaint
             Graphics g = Graphics.FromImage(image);
             var top = clouds.Peek();
 
-            pen.Color = Color.FromArgb(10, top.color.R, top.color.G, top.color.B);
-            pen.Width = (int)Math.Log10(2 * top.radius);
+            pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
+            pen.Width = 2 * top.radius;
 
             foreach (var point in top.points)
                 g.DrawEllipse(

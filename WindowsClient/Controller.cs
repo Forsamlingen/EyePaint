@@ -37,20 +37,23 @@
             int height = Screen.PrimaryScreen.Bounds.Height;
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
-            cloudFactory = new CloudFactory();
+            cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
 
             currentColor = DEFAULT_COLOR;
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloud(1); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowNewest(1); Invalidate(); });
         }
 
         private void OnMouseMove(object sender, MouseEventArgs mouseEventsArgs)
         {
             if (useMouse)
+            {
                 _gazePoint = new Point(mouseEventsArgs.X, mouseEventsArgs.Y);
+                cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+            }
         }
 
         private void OnKeyDown(object sender, KeyEventArgs eventArgs)
@@ -103,8 +106,7 @@
 
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
-            if (!paint.Enabled)
-                cloudFactory.CreateCloud(PointToClient(_gazePoint), currentColor);
+            //TODO Make sure theres a gazepoint to paint with.
             paint.Enabled = true;
         }
 
@@ -148,6 +150,7 @@
         {
             //TODO Add noise reduction and calibration.
             _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
+            cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
         }
 
         private void OnShown(object sender, EventArgs eventArgs)

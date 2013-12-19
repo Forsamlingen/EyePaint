@@ -32,13 +32,13 @@ namespace EyePaint
             randomNumberGenerator = new Random();
         }
 
-        internal void CreateCloud(Point root, Color color)
+        internal void AddNew(Point root, Color color)
         {
             Cloud c = new Cloud(root, color);
             clouds.Push(c);
         }
 
-        internal void GrowCloud(int amount)
+        internal void GrowNewest(int amount)
         {
             var c = clouds.Peek();
             ++c.radius;

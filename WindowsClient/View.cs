@@ -10,26 +10,31 @@ namespace EyePaint
     {
         private Image image;
         private Pen pen;
+        Random rng;
 
         internal ImageFactory(int width, int height)
         {
             image = new Bitmap(width, height);
-            pen = new Pen(Brushes.Black, 10);
+            pen = new Pen(Color.Black, 1);
+            rng = new Random();
         }
 
-        internal Image RasterizeTrees(Stack<Tree> trees) // TODO Is a set of trees really neccessary?
+        internal Image RasterizeTrees(ref Stack<Tree> trees)
         {
             Graphics g = Graphics.FromImage(image);
+            var tree = trees.Peek();
 
-            while (trees.Count > 0) {
-                var tree = trees.Pop();
+            pen.Color = Color.FromArgb(10, tree.color.R, tree.color.G, tree.color.B);
+            pen.Width = (int)Math.Log10(2 * tree.radius);
 
-                pen.Color = tree.color;
-                int x = tree.points[0].X;
-                int y = tree.points[0].Y;
-
-                g.DrawEllipse(pen, x - 10, y - 10, 20, 20);
-            }
+            foreach (var point in tree.points)
+                g.DrawEllipse(
+                    pen,
+                    point.X - (float)rng.NextDouble() * tree.radius,
+                    point.Y - (float)rng.NextDouble() * tree.radius,
+                    pen.Width + (float)rng.Next(-tree.radius, tree.radius),
+                    pen.Width + (float)rng.Next(-tree.radius, tree.radius)
+                  );
 
             g.Dispose(); // TODO Use using() {} instead.
 

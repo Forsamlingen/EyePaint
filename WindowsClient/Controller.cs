@@ -17,7 +17,7 @@
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
-        private readonly Color DEFAULT_COLOR = Color.Blue;
+        private readonly Color DEFAULT_COLOR = Color.Crimson;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -43,7 +43,7 @@
             currentColor = DEFAULT_COLOR;
 
             paint = new System.Windows.Forms.Timer();
-            paint.Interval = 10;
+            paint.Interval = 33;
             paint.Enabled = false;
             paint.Tick += new EventHandler((object sender, System.EventArgs e) => { treeFactory.ExpandTree(); Invalidate(); });
         }
@@ -65,13 +65,13 @@
                     OnRedButtonDown(sender, eventArgs); // Simulate event.
                     break;
                 case Keys.R:
-                    currentColor = Color.Red;
+                    currentColor = Color.Crimson;
                     break;
                 case Keys.G:
-                    currentColor = Color.Green;
+                    currentColor = Color.ForestGreen;
                     break;
                 case Keys.B:
-                    currentColor = Color.Blue;
+                    currentColor = Color.CornflowerBlue;
                     break;
                 case Keys.Enter:
                     StorePaintingAsFile();
@@ -105,7 +105,8 @@
         private void OnGreenButtonDown(object sender, EventArgs eventArgs)
         {
             gazeFixed = true;
-            treeFactory.CreateTree(PointToClient(_gazePoint), currentColor);
+            if (!paint.Enabled)
+                treeFactory.CreateTree(PointToClient(_gazePoint), currentColor);
             paint.Enabled = true;
         }
 
@@ -137,7 +138,7 @@
             try
             {
                 var trees = treeFactory.trees;
-                Image image = imageFactory.RasterizeTrees(trees);
+                Image image = imageFactory.RasterizeTrees(ref trees);
                 paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)

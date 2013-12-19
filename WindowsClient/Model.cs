@@ -7,24 +7,28 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
-    struct Tree
+    class Tree
     {
         internal readonly Color color;
-        internal readonly List<Point> points; //TODO This is a temporary data structure that should be replaced with something more tree like.
+        internal readonly List<Point> points; //TODO This is a temporary data structure that could be replaced with something more tree like.
+        internal int radius; // Naive implementation that could be improved.
         internal Tree(Point root, Color color)
         {
-            points = new List<Point> { root };
+            this.points = new List<Point> { root };
             this.color = color;
+            this.radius = 1;
         }
     }
 
     class TreeFactory
     {
         internal readonly Stack<Tree> trees;
+        Random randomNumberGenerator;
 
         internal TreeFactory()
         {
             trees = new Stack<Tree>();
+            randomNumberGenerator = new Random();
         }
 
         internal void CreateTree(Point root, Color color)
@@ -35,8 +39,11 @@ namespace EyePaint
 
         internal void ExpandTree()
         {
-            //TODO Add some random new branches and leaves to the top tree on the stack whenever this function is called.
-            //trees.Peek().points.Enqueue(new Point(0, 0)); //TODO Remove this line, this is just a silly test.
+            var tree = trees.Peek();
+            int cloud = ++tree.radius;
+            int x = randomNumberGenerator.Next(tree.points[0].X - cloud, tree.points[0].X + cloud);
+            int y = randomNumberGenerator.Next(tree.points[0].Y - cloud, tree.points[0].Y + cloud);
+            tree.points.Add(new Point(x, y));
         }
     }
 }

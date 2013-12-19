@@ -162,7 +162,8 @@
         {
             try
             {
-                Image image = imageFactory.Rasterize(ref cloudFactory.clouds);
+                var model = cloudFactory.clouds;
+                Image image = imageFactory.Rasterize(ref model);
                 e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)

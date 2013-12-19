@@ -28,6 +28,8 @@
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
             MouseMove += OnMouseMove;
+            MouseDown += OnMouseDown;
+            MouseUp += OnMouseUp;
 
             _eyeTrackingEngine = eyeTrackingEngine;
             _eyeTrackingEngine.StateChanged += StateChanged;
@@ -47,24 +49,48 @@
             paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowNewest(1); Invalidate(); });
         }
 
-        private void OnMouseMove(object sender, MouseEventArgs mouseEventsArgs)
+        private void OnMouseUp(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnMouseDown(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (useMouse)
             {
-                _gazePoint = new Point(mouseEventsArgs.X, mouseEventsArgs.Y);
+                _gazePoint = new Point(e.X, e.Y);
                 cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
             }
         }
 
-        private void OnKeyDown(object sender, KeyEventArgs eventArgs)
+        private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            switch (eventArgs.KeyCode)
+            switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonDown(sender, eventArgs); // Simulate event.
+                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
                     break;
                 case Keys.Back:
-                    OnRedButtonDown(sender, eventArgs); // Simulate event.
+                    OnRedButtonDown(sender, e); // Simulate event. TODO Stop doing this.
                     break;
                 case Keys.R:
                     currentColor = Color.Crimson;
@@ -89,56 +115,56 @@
             throw new NotImplementedException();
         }
 
-        private void OnKeyUp(object sender, KeyEventArgs eventArgs)
+        private void OnKeyUp(object sender, KeyEventArgs e)
         {
-            switch (eventArgs.KeyCode)
+            switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonUp(sender, eventArgs); // Simulate event.
+                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
                     break;
                 case Keys.Back:
-                    OnRedButtonUp(sender, eventArgs); // Simulate event.
+                    OnRedButtonUp(sender, e); // Simulate event. TODO Stop doing this.
                     break;
                 default:
                     break;
             }
         }
 
-        private void OnGreenButtonDown(object sender, EventArgs eventArgs)
+        private void OnGreenButtonDown(object sender, EventArgs e)
         {
             //TODO Make sure theres a gazepoint to paint with.
             paint.Enabled = true;
         }
 
 
-        private void OnGreenButtonUp(object sender, EventArgs eventArgs)
+        private void OnGreenButtonUp(object sender, EventArgs e)
         {
             paint.Enabled = false;
         }
 
-        private void OnRedButtonDown(object sender, EventArgs eventArgs)
+        private void OnRedButtonDown(object sender, EventArgs e)
         {
             imageFactory.Undo();
             Invalidate();
         }
 
-        private void OnRedButtonUp(object sender, EventArgs eventArgs)
+        private void OnRedButtonUp(object sender, EventArgs e)
         {
             //TODO Define button behaviour.
         }
 
-        private void OnMove(object sender, EventArgs eventArgs)
+        private void OnMove(object sender, EventArgs e)
         {
             WarnIfOutsideEyeTrackingScreenBounds(); //TODO Neccessary?
         }
 
-        private void OnPaint(object sender, PaintEventArgs paintEventArgs)
+        private void OnPaint(object sender, PaintEventArgs e)
         {
             try
             {
                 var trees = cloudFactory.clouds;
                 Image image = imageFactory.Rasterize(ref trees);
-                paintEventArgs.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)
             {
@@ -146,48 +172,48 @@
             }
         }
 
-        private void GazePoint(object sender, GazePointEventArgs gazePointEventArgs)
+        private void GazePoint(object sender, GazePointEventArgs e)
         {
             //TODO Add noise reduction and calibration.
-            _gazePoint = new Point(gazePointEventArgs.X, gazePointEventArgs.Y);
+            _gazePoint = new Point(e.X, e.Y);
             cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
         }
 
-        private void OnShown(object sender, EventArgs eventArgs)
+        private void OnShown(object sender, EventArgs e)
         {
             WarnIfOutsideEyeTrackingScreenBounds();
             BringToFront();
         }
 
-        private void StateChanged(object sender, EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs)
+        private void StateChanged(object sender, EyeTrackingStateChangedEventArgs e)
         {
             // Forward state change to UI thread
             if (InvokeRequired)
             {
                 var updateStateDelegate = new UpdateStateDelegate(UpdateState);
-                Invoke(updateStateDelegate, new object[] { eyeTrackingStateChangedEventArgs });
+                Invoke(updateStateDelegate, new object[] { e });
             }
             else
             {
-                UpdateState(eyeTrackingStateChangedEventArgs);
+                UpdateState(e);
             }
         }
 
-        private void UpdateState(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs)
+        private void UpdateState(EyeTrackingStateChangedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(eyeTrackingStateChangedEventArgs.ErrorMessage))
+            if (!string.IsNullOrEmpty(e.ErrorMessage))
             {
                 InfoMessage.Visible = false;
                 ErrorMessagePanel.Visible = true;
-                ErrorMessage.Text = eyeTrackingStateChangedEventArgs.ErrorMessage;
-                Resolve.Enabled = eyeTrackingStateChangedEventArgs.CanResolve;
-                Retry.Enabled = eyeTrackingStateChangedEventArgs.CanRetry;
+                ErrorMessage.Text = e.ErrorMessage;
+                Resolve.Enabled = e.CanResolve;
+                Retry.Enabled = e.CanRetry;
                 return;
             }
 
             ErrorMessagePanel.Visible = false;
 
-            if (eyeTrackingStateChangedEventArgs.EyeTrackingState != EyeTrackingState.Tracking)
+            if (e.EyeTrackingState != EyeTrackingState.Tracking)
             {
                 InfoMessage.Visible = true;
                 InfoMessage.Text = "Connecting to eye tracker, please wait...";

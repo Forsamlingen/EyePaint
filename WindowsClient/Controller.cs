@@ -50,6 +50,7 @@
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)
+<<<<<<< HEAD
         {
             switch (e.Button)
             {
@@ -80,6 +81,35 @@
                 _gazePoint = new Point(e.X, e.Y);
                 cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
             }
+=======
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnMouseDown(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (useMouse && !gazeFixed)
+                _gazePoint = new Point(e.X, e.Y);
+>>>>>>> origin/master
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
@@ -162,8 +192,13 @@
         {
             try
             {
+<<<<<<< HEAD
                 var trees = cloudFactory.clouds;
                 Image image = imageFactory.Rasterize(ref trees);
+=======
+                var trees = treeFactory.trees;
+                Image image = imageFactory.RasterizeTrees(ref trees);
+>>>>>>> origin/master
                 e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)
@@ -175,8 +210,13 @@
         private void GazePoint(object sender, GazePointEventArgs e)
         {
             //TODO Add noise reduction and calibration.
+<<<<<<< HEAD
             _gazePoint = new Point(e.X, e.Y);
             cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+=======
+            if (!gazeFixed)
+                _gazePoint = new Point(e.X, e.Y);
+>>>>>>> origin/master
         }
 
         private void OnShown(object sender, EventArgs e)

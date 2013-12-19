@@ -19,21 +19,21 @@ namespace EyePaint
             rng = new Random();
         }
 
-        internal Image RasterizeTrees(ref Stack<Tree> trees)
+        internal Image Rasterize(ref Stack<Cloud> clouds)
         {
             Graphics g = Graphics.FromImage(image);
-            var tree = trees.Peek();
+            var top = clouds.Peek();
 
-            pen.Color = Color.FromArgb(10, tree.color.R, tree.color.G, tree.color.B);
-            pen.Width = (int)Math.Log10(2 * tree.radius);
+            pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
+            pen.Width = 2 * top.radius;
 
-            foreach (var point in tree.points)
+            foreach (var point in top.points)
                 g.DrawEllipse(
                     pen,
-                    point.X - (float)rng.NextDouble() * tree.radius,
-                    point.Y - (float)rng.NextDouble() * tree.radius,
-                    pen.Width + (float)rng.Next(-tree.radius, tree.radius),
-                    pen.Width + (float)rng.Next(-tree.radius, tree.radius)
+                    point.X - (float)rng.NextDouble() * top.radius,
+                    point.Y - (float)rng.NextDouble() * top.radius,
+                    pen.Width + (float)rng.Next(-top.radius, top.radius),
+                    pen.Width + (float)rng.Next(-top.radius, top.radius)
                   );
 
             g.Dispose(); // TODO Use using() {} instead.

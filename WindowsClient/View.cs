@@ -8,14 +8,19 @@ namespace EyePaint
 {
     class ImageFactory
     {
-        private Image image;
+        private Image image, background;
         private Pen pen;
         private Random rng;
 
         internal ImageFactory(int width, int height)
         {
-            image = new Bitmap(width, height);
-            pen = new Pen(Color.Black, 1);
+            background = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(background))
+                g.FillRectangle(Brushes.White, 0, 0, width, height);
+
+            image = new Bitmap(background);
+
+            pen = new Pen(Color.White, 1);
             rng = new Random();
         }
 
@@ -23,7 +28,7 @@ namespace EyePaint
         {
             var top = clouds.Peek(); // Only render latest cloud for performance reasons.
             var radius = top.GetRadius();
-            pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
+            pen.Color = Color.FromArgb(100, top.color.R, top.color.G, top.color.B);
             pen.Width = 2 * radius + rng.Next(10 * radius);
 
             using (Graphics g = Graphics.FromImage(image))
@@ -42,12 +47,12 @@ namespace EyePaint
         internal void Undo()
         {
             //TODO Don't clear the entire drawing, instead implement an undo history.
-            using (Graphics g = Graphics.FromImage(image))
-            {
-                Region r = new Region();
-                r.MakeInfinite();
-                g.FillRegion(Brushes.White, r);
-            }
+            Clear();
+        }
+
+        internal void Clear()
+        {
+            image = new Bitmap(background);
         }
     }
 }

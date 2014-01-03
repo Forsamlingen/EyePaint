@@ -168,7 +168,7 @@
             }
             catch (InvalidOperationException)
             {
-                return;
+                return; //TODO Improve exception handling.
             }
         }
 

@@ -23,17 +23,18 @@ namespace EyePaint
         {
             Graphics g = Graphics.FromImage(image);
             var top = clouds.Peek();
+            var radius = top.GetRadius();
 
             pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
-            pen.Width = 2 * top.radius + rng.Next(10 * top.radius);
+            pen.Width = 2 * radius + rng.Next(10 * radius);
 
             foreach (var point in top.points)
                 g.DrawEllipse(
                     pen,
-                    point.X - (float)rng.NextDouble() * top.radius,
-                    point.Y - (float)rng.NextDouble() * top.radius,
-                    pen.Width + (float)rng.Next(-top.radius, top.radius),
-                    pen.Width + (float)rng.Next(-top.radius, top.radius)
+                    point.X - (float)rng.NextDouble() * radius,
+                    point.Y - (float)rng.NextDouble() * radius,
+                    pen.Width + (float)rng.Next(-radius, radius),
+                    pen.Width + (float)rng.Next(-radius, radius)
                   );
 
             g.Dispose(); // TODO Use using() {} instead.

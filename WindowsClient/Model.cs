@@ -11,7 +11,7 @@ namespace EyePaint
     {
         internal readonly Color color;
         internal readonly List<Point> points;
-        internal int radius;
+        private int radius;
 
         internal Cloud(Point root, Color color)
         {
@@ -19,12 +19,22 @@ namespace EyePaint
             this.color = color;
             this.radius = 1;
         }
+
+        internal void IncreaseRadius()
+        {
+            radius++;
+        }
+
+        internal int GetRadius()
+        {
+            return radius;
+        }
     }
 
     class CloudFactory
     {
         internal readonly Stack<Cloud> clouds;
-        Random randomNumberGenerator;
+        private Random randomNumberGenerator;
 
         internal CloudFactory()
         {
@@ -32,28 +42,28 @@ namespace EyePaint
             randomNumberGenerator = new Random();
         }
 
-        internal void AddNew(Point root, Color color)
+        internal void AddCloud(Point center, Color color)
         {
-            Cloud c = new Cloud(root, color);
+            Cloud c = new Cloud(center, color);
             clouds.Push(c);
         }
 
-        internal void GrowNewest(int amount)
+        internal void GrowCloud(Cloud c, int amount)
         {
-            var c = clouds.Peek();
-            ++c.radius;
+            c.IncreaseRadius();
+            int radius = c.GetRadius();
 
             for (int i = 0; i < amount; i++)
             {
-                int x = randomNumberGenerator.Next(c.points[0].X - c.radius, c.points[0].X + c.radius);
-                int y = randomNumberGenerator.Next(c.points[0].Y - c.radius, c.points[0].Y + c.radius);
-                c.points.Add(new Point(x, y));                
+                int x = randomNumberGenerator.Next(c.points[0].X - radius, c.points[0].X + radius);
+                int y = randomNumberGenerator.Next(c.points[0].Y - radius, c.points[0].Y + radius);
+                c.points.Add(new Point(x, y));
             }
         }
 
-        internal void GrowRandomAmount(int maximum)
+        internal void GrowCloudRandomAmount(Cloud c, int maximum)
         {
-            GrowNewest(randomNumberGenerator.Next(maximum));
+            GrowCloud(c, randomNumberGenerator.Next(maximum));
         }
     }
 }

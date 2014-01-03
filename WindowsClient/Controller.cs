@@ -46,7 +46,7 @@
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowRandomAmount(10); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); Invalidate(); });
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)
@@ -78,7 +78,7 @@
             if (useMouse)
             {
                 _gazePoint = new Point(e.X, e.Y);
-                cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+                cloudFactory.AddCloud(PointToClient(_gazePoint), currentColor);
             }
         }
 
@@ -182,7 +182,7 @@
                 _gazePoint = p1;
 
             //Point point = PointToClient(_gazePoint); TODO Neccessary?
-            cloudFactory.AddNew(_gazePoint, currentColor);
+            cloudFactory.AddCloud(_gazePoint, currentColor);
         }
 
         private void OnShown(object sender, EventArgs e)

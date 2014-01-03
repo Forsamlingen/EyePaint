@@ -10,7 +10,7 @@ namespace EyePaint
     {
         private Image image;
         private Pen pen;
-        Random rng;
+        private Random rng;
 
         internal ImageFactory(int width, int height)
         {

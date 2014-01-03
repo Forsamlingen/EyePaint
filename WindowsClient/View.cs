@@ -21,23 +21,20 @@ namespace EyePaint
 
         internal Image Rasterize(ref Stack<Cloud> clouds)
         {
-            Graphics g = Graphics.FromImage(image);
-            var top = clouds.Peek();
+            var top = clouds.Peek(); // Only render latest cloud for performance reasons.
             var radius = top.GetRadius();
-
             pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
             pen.Width = 2 * radius + rng.Next(10 * radius);
 
-            foreach (var point in top.points)
-                g.DrawEllipse(
-                    pen,
-                    point.X - (float)rng.NextDouble() * radius,
-                    point.Y - (float)rng.NextDouble() * radius,
-                    pen.Width + (float)rng.Next(-radius, radius),
-                    pen.Width + (float)rng.Next(-radius, radius)
-                  );
-
-            g.Dispose(); // TODO Use using() {} instead.
+            using (Graphics g = Graphics.FromImage(image))
+                foreach (var point in top.points)
+                    g.DrawEllipse(
+                        pen,
+                        point.X - (float)rng.NextDouble() * radius,
+                        point.Y - (float)rng.NextDouble() * radius,
+                        pen.Width + (float)rng.Next(-radius, radius),
+                        pen.Width + (float)rng.Next(-radius, radius)
+                      );
 
             return image;
         }
@@ -45,10 +42,12 @@ namespace EyePaint
         internal void Undo()
         {
             //TODO Don't clear the entire drawing, instead implement an undo history.
-            Graphics g = Graphics.FromImage(image);
-            Region r = new Region();
-            r.MakeInfinite();
-            g.FillRegion(Brushes.White, r);
+            using (Graphics g = Graphics.FromImage(image))
+            {
+                Region r = new Region();
+                r.MakeInfinite();
+                g.FillRegion(Brushes.White, r);
+            }
         }
     }
 }

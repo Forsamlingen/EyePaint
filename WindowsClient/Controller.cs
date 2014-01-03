@@ -46,7 +46,7 @@
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowNewest(1); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowRandomAmount(10); Invalidate(); });
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)

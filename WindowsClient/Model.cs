@@ -50,5 +50,10 @@ namespace EyePaint
                 c.points.Add(new Point(x, y));                
             }
         }
+
+        internal void GrowRandomAmount(int maximum)
+        {
+            GrowNewest(randomNumberGenerator.Next(maximum));
+        }
     }
 }

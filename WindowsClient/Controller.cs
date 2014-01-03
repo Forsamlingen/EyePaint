@@ -174,9 +174,15 @@
 
         private void GazePoint(object sender, GazePointEventArgs e)
         {
-            //TODO Add noise reduction and calibration.
-            _gazePoint = new Point(e.X, e.Y);
-            cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+            Point p1 = new Point(e.X, e.Y);
+            Point p2 = _gazePoint; //TODO Is this a reference or does a wasteful copy occur?
+            double distance = Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+            double KEYHOLE = 0; //TODO Make into class field.
+            if (distance > KEYHOLE)
+                _gazePoint = p1;
+
+            //Point point = PointToClient(_gazePoint); TODO Neccessary?
+            cloudFactory.AddNew(_gazePoint, currentColor);
         }
 
         private void OnShown(object sender, EventArgs e)

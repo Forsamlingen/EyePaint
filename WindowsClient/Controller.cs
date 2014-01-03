@@ -11,18 +11,22 @@
     {
         private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
-        private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
+        private Point gazePoint;
+        private bool stableGaze;
         private CloudFactory cloudFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
+        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
+        private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = true;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
         {
             InitializeComponent();
+
             Shown += OnShown;
             Paint += OnPaint;
             Move += OnMove;
@@ -37,18 +41,26 @@
             _eyeTrackingEngine.GazePoint += GazePoint;
             _eyeTrackingEngine.Initialize();
 
+            stableGaze = false;
+            rng = new Random();
+            currentColor = DEFAULT_COLOR;
+
             int height = Screen.PrimaryScreen.Bounds.Height;
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
             cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
 
-            rng = new Random();
-            currentColor = DEFAULT_COLOR;
-
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { 
+                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); 
+                Invalidate(); 
+
+                if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
+                    setRandomPaintTool();
+            });
+
         }
 
         private void startPainting()
@@ -56,9 +68,12 @@
             if (paint.Enabled)
                 return;
 
-            //TODO Make sure theres a gazepoint to paint with.
+            if (!stableGaze)
+                return;
 
-            setRandomPaintTool();
+            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE)
+                setRandomPaintTool();
+
             paint.Enabled = true;
         }
 
@@ -115,8 +130,9 @@
         {
             if (useMouse)
             {
-                _gazePoint = new Point(e.X, e.Y);
-                cloudFactory.AddCloud(PointToClient(_gazePoint), currentColor);
+                gazePoint = new Point(e.X, e.Y);
+                stableGaze = true;
+                cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
             }
         }
 
@@ -180,12 +196,13 @@
 
         private void OnRedButtonUp(object sender, EventArgs e)
         {
-            //TODO Define button behaviour.
+            throw new NotImplementedException();
         }
 
         private void OnMove(object sender, EventArgs e)
         {
             WarnIfOutsideEyeTrackingScreenBounds(); //TODO Neccessary?
+            stableGaze = false; // TODO Neccessary?
         }
 
         private void OnPaint(object sender, PaintEventArgs e)
@@ -209,14 +226,16 @@
         private void GazePoint(object sender, GazePointEventArgs e)
         {
             Point p1 = new Point(e.X, e.Y);
-            Point p2 = _gazePoint; //TODO Is this a reference or does a wasteful copy occur?
+            Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
             double distance = Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
             double KEYHOLE = 0; //TODO Make into class field.
             if (distance > KEYHOLE)
-                _gazePoint = p1;
+                gazePoint = p1;
 
             //Point point = PointToClient(_gazePoint); TODO Neccessary?
-            cloudFactory.AddCloud(_gazePoint, currentColor);
+            cloudFactory.AddCloud(gazePoint, currentColor);
+
+            stableGaze = true;
         }
 
         private void OnShown(object sender, EventArgs e)

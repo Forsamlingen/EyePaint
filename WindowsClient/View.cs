@@ -29,7 +29,7 @@ namespace EyePaint
             Cloud c = model.Peek();
             int radius = c.GetRadius();
             pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
-            int scale = 5;
+            int scale = 10;
             pen.Width = scale * 2 * radius;
 
             using (Graphics g = Graphics.FromImage(image))

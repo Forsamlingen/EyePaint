@@ -49,12 +49,35 @@
             paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); Invalidate(); });
         }
 
+        private void startPainting()
+        {
+            //TODO Make sure theres a gazepoint to paint with.
+            paint.Enabled = true;
+        }
+
+        private void stopPainting()
+        {
+            paint.Enabled = false;
+        }
+
+        private void resetPainting()
+        {
+            imageFactory.Undo();
+            Invalidate();
+        }
+
+        private void storePainting()
+        {
+            //TODO Call Henrik's IO library.
+            throw new NotImplementedException();
+        }
+
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonUp(sender, e);
                     break;
                 default:
                     break;
@@ -66,7 +89,7 @@
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonDown(sender, e);
                     break;
                 default:
                     break;
@@ -87,10 +110,10 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonDown(sender, e);
                     break;
                 case Keys.Back:
-                    OnRedButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    OnRedButtonDown(sender, e);
                     break;
                 case Keys.R:
                     currentColor = Color.Crimson;
@@ -102,17 +125,11 @@
                     currentColor = Color.CornflowerBlue;
                     break;
                 case Keys.Enter:
-                    StorePaintingAsFile();
+                    storePainting();
                     break;
                 default:
                     break;
             }
-        }
-
-        private void StorePaintingAsFile()
-        {
-            //TODO Call Henrik's IO library.
-            throw new NotImplementedException();
         }
 
         private void OnKeyUp(object sender, KeyEventArgs e)
@@ -120,10 +137,10 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonUp(sender, e);
                     break;
                 case Keys.Back:
-                    OnRedButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    OnRedButtonUp(sender, e);
                     break;
                 default:
                     break;
@@ -132,20 +149,18 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            //TODO Make sure theres a gazepoint to paint with.
-            paint.Enabled = true;
+            startPainting();
         }
 
 
         private void OnGreenButtonUp(object sender, EventArgs e)
         {
-            paint.Enabled = false;
+            stopPainting();
         }
 
         private void OnRedButtonDown(object sender, EventArgs e)
         {
-            imageFactory.Undo();
-            Invalidate();
+            resetPainting();
         }
 
         private void OnRedButtonUp(object sender, EventArgs e)

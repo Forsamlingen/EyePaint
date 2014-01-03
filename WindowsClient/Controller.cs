@@ -19,8 +19,8 @@
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
-        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
-        private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = true;
+        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = false;
+        private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)

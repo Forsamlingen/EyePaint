@@ -28,17 +28,18 @@ namespace EyePaint
         {
             Cloud c = model.Peek();
             int radius = c.GetRadius();
-            pen.Color = Color.FromArgb(10, c.color.R, c.color.G, c.color.B);
-            pen.Width = 2 * radius + rng.Next(10 * radius);
+            pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
+            int scale = 5;
+            pen.Width = scale * 2 * radius;
 
             using (Graphics g = Graphics.FromImage(image))
                 foreach (Point point in points)
                     g.DrawEllipse(
                         pen,
-                        point.X - (float)rng.NextDouble() * radius,
-                        point.Y - (float)rng.NextDouble() * radius,
-                        pen.Width + (float)rng.Next(-radius, radius),
-                        pen.Width + (float)rng.Next(-radius, radius)
+                        point.X + radius,
+                        point.Y + radius,
+                        pen.Width,
+                        pen.Width
                       );
 
             return image;

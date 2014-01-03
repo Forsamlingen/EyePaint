@@ -9,6 +9,7 @@
 
     public partial class EyeTrackingForm : Form
     {
+        private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
         private CloudFactory cloudFactory;
@@ -41,17 +42,23 @@
             imageFactory = new ImageFactory(width, height);
             cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
 
+            rng = new Random();
             currentColor = DEFAULT_COLOR;
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 100); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); Invalidate(); });
         }
 
         private void startPainting()
         {
+            if (paint.Enabled)
+                return;
+
             //TODO Make sure theres a gazepoint to paint with.
+
+            setRandomPaintTool();
             paint.Enabled = true;
         }
 
@@ -66,6 +73,12 @@
             Invalidate();
         }
 
+        private void setRandomPaintTool()
+        {
+            //TODO Set more settings randomly than just the tool color.
+            currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
+        }
+
         private void storePainting()
         {
             //TODO Call Henrik's IO library.
@@ -74,26 +87,28 @@
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    OnGreenButtonUp(sender, e);
-                    break;
-                default:
-                    break;
-            }
+            if (useMouse)
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonUp(sender, e);
+                        break;
+                    default:
+                        break;
+                }
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    OnGreenButtonDown(sender, e);
-                    break;
-                default:
-                    break;
-            }
+            if (useMouse)
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonDown(sender, e);
+                        break;
+                    default:
+                        break;
+                }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)

@@ -24,15 +24,15 @@ namespace EyePaint
             rng = new Random();
         }
 
-        internal Image Rasterize(ref Stack<Cloud> clouds)
+        internal Image Rasterize(Stack<Cloud> model, Point[] points)
         {
-            var top = clouds.Peek(); // Only render latest cloud for performance reasons.
-            var radius = top.GetRadius();
-            pen.Color = Color.FromArgb(100, top.color.R, top.color.G, top.color.B);
+            Cloud c = model.Peek();
+            int radius = c.GetRadius();
+            pen.Color = Color.FromArgb(10, c.color.R, c.color.G, c.color.B);
             pen.Width = 2 * radius + rng.Next(10 * radius);
 
             using (Graphics g = Graphics.FromImage(image))
-                foreach (var point in top.points)
+                foreach (Point point in points)
                     g.DrawEllipse(
                         pen,
                         point.X - (float)rng.NextDouble() * radius,

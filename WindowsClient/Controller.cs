@@ -46,7 +46,7 @@
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 100); Invalidate(); });
         }
 
         private void startPainting()
@@ -177,8 +177,12 @@
         {
             try
             {
-                var model = cloudFactory.clouds;
-                Image image = imageFactory.Rasterize(ref model);
+                Point[] points = new Point[cloudFactory.GetQueueLength()];
+                int i = 0;
+                while (cloudFactory.HasQueued())
+                    points[i++] = cloudFactory.GetQueued();
+
+                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
                 e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)

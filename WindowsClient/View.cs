@@ -8,35 +8,39 @@ namespace EyePaint
 {
     class ImageFactory
     {
-        private Image image;
+        private Image image, background;
         private Pen pen;
-        Random rng;
+        private Random rng;
 
         internal ImageFactory(int width, int height)
         {
-            image = new Bitmap(width, height);
-            pen = new Pen(Color.Black, 1);
+            background = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(background))
+                g.FillRectangle(Brushes.White, 0, 0, width, height);
+
+            image = new Bitmap(background);
+
+            pen = new Pen(Color.White, 1);
             rng = new Random();
         }
 
-        internal Image Rasterize(ref Stack<Cloud> clouds)
+        internal Image Rasterize(Stack<Cloud> model, Point[] points)
         {
-            Graphics g = Graphics.FromImage(image);
-            var top = clouds.Peek();
+            Cloud c = model.Peek();
+            int radius = c.GetRadius();
+            pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
+            int scale = 10;
+            pen.Width = scale * 2 * radius;
 
-            pen.Color = Color.FromArgb(150, top.color.R, top.color.G, top.color.B);
-            pen.Width = 2 * top.radius;
-
-            foreach (var point in top.points)
-                g.DrawEllipse(
-                    pen,
-                    point.X - (float)rng.NextDouble() * top.radius,
-                    point.Y - (float)rng.NextDouble() * top.radius,
-                    pen.Width + (float)rng.Next(-top.radius, top.radius),
-                    pen.Width + (float)rng.Next(-top.radius, top.radius)
-                  );
-
-            g.Dispose(); // TODO Use using() {} instead.
+            using (Graphics g = Graphics.FromImage(image))
+                foreach (Point point in points)
+                    g.DrawEllipse(
+                        pen,
+                        point.X + radius,
+                        point.Y + radius,
+                        pen.Width,
+                        pen.Width
+                      );
 
             return image;
         }
@@ -44,10 +48,12 @@ namespace EyePaint
         internal void Undo()
         {
             //TODO Don't clear the entire drawing, instead implement an undo history.
-            Graphics g = Graphics.FromImage(image);
-            Region r = new Region();
-            r.MakeInfinite();
-            g.FillRegion(Brushes.White, r);
+            Clear();
+        }
+
+        internal void Clear()
+        {
+            image = new Bitmap(background);
         }
     }
 }

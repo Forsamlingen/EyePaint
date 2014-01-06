@@ -9,19 +9,24 @@
 
     public partial class EyeTrackingForm : Form
     {
+        private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
-        private Point _gazePoint; //TODO Remove underscore. Silly naming convention with an IDE.
+        private Point gazePoint;
+        private bool stableGaze;
         private CloudFactory cloudFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
+        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = false;
+        private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
         {
             InitializeComponent();
+
             Shown += OnShown;
             Paint += OnPaint;
             Move += OnMove;
@@ -36,49 +41,98 @@
             _eyeTrackingEngine.GazePoint += GazePoint;
             _eyeTrackingEngine.Initialize();
 
+            stableGaze = false;
+            rng = new Random();
+            currentColor = DEFAULT_COLOR;
+
             int height = Screen.PrimaryScreen.Bounds.Height;
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
             cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
 
-            currentColor = DEFAULT_COLOR;
-
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { cloudFactory.GrowNewest(1); Invalidate(); });
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { 
+                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); 
+                Invalidate(); 
+
+                if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
+                    setRandomPaintTool();
+            });
+
+        }
+
+        private void startPainting()
+        {
+            if (paint.Enabled)
+                return;
+
+            if (!stableGaze)
+                return;
+
+            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE)
+                setRandomPaintTool();
+
+            paint.Enabled = true;
+        }
+
+        private void stopPainting()
+        {
+            paint.Enabled = false;
+        }
+
+        private void resetPainting()
+        {
+            imageFactory.Undo();
+            Invalidate();
+        }
+
+        private void setRandomPaintTool()
+        {
+            //TODO Set more settings randomly than just the tool color.
+            currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
+        }
+
+        private void storePainting()
+        {
+            //TODO Call Henrik's IO library.
+            throw new NotImplementedException();
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
-                    break;
-                default:
-                    break;
-            }
+            if (useMouse)
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonUp(sender, e);
+                        break;
+                    default:
+                        break;
+                }
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
-                    break;
-                default:
-                    break;
-            }
+            if (useMouse)
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonDown(sender, e);
+                        break;
+                    default:
+                        break;
+                }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (useMouse)
             {
-                _gazePoint = new Point(e.X, e.Y);
-                cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+                gazePoint = new Point(e.X, e.Y);
+                stableGaze = true;
+                cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
             }
         }
 
@@ -87,10 +141,10 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonDown(sender, e);
                     break;
                 case Keys.Back:
-                    OnRedButtonDown(sender, e); // Simulate event. TODO Stop doing this.
+                    OnRedButtonDown(sender, e);
                     break;
                 case Keys.R:
                     currentColor = Color.Crimson;
@@ -102,17 +156,11 @@
                     currentColor = Color.CornflowerBlue;
                     break;
                 case Keys.Enter:
-                    StorePaintingAsFile();
+                    storePainting();
                     break;
                 default:
                     break;
             }
-        }
-
-        private void StorePaintingAsFile()
-        {
-            //TODO Call Henrik's IO library.
-            throw new NotImplementedException();
         }
 
         private void OnKeyUp(object sender, KeyEventArgs e)
@@ -120,10 +168,10 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    OnGreenButtonUp(sender, e);
                     break;
                 case Keys.Back:
-                    OnRedButtonUp(sender, e); // Simulate event. TODO Stop doing this.
+                    OnRedButtonUp(sender, e);
                     break;
                 default:
                     break;
@@ -132,51 +180,62 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            //TODO Make sure theres a gazepoint to paint with.
-            paint.Enabled = true;
+            startPainting();
         }
 
 
         private void OnGreenButtonUp(object sender, EventArgs e)
         {
-            paint.Enabled = false;
+            stopPainting();
         }
 
         private void OnRedButtonDown(object sender, EventArgs e)
         {
-            imageFactory.Undo();
-            Invalidate();
+            resetPainting();
         }
 
         private void OnRedButtonUp(object sender, EventArgs e)
         {
-            //TODO Define button behaviour.
+            throw new NotImplementedException();
         }
 
         private void OnMove(object sender, EventArgs e)
         {
             WarnIfOutsideEyeTrackingScreenBounds(); //TODO Neccessary?
+            stableGaze = false; // TODO Neccessary?
         }
 
         private void OnPaint(object sender, PaintEventArgs e)
         {
             try
             {
-                var model = cloudFactory.clouds;
-                Image image = imageFactory.Rasterize(ref model);
+                Point[] points = new Point[cloudFactory.GetQueueLength()];
+                int i = 0;
+                while (cloudFactory.HasQueued())
+                    points[i++] = cloudFactory.GetQueued();
+
+                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
                 e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
             }
             catch (InvalidOperationException)
             {
-                return;
+                return; //TODO Improve exception handling.
             }
         }
 
         private void GazePoint(object sender, GazePointEventArgs e)
         {
-            //TODO Add noise reduction and calibration.
-            _gazePoint = new Point(e.X, e.Y);
-            cloudFactory.AddNew(PointToClient(_gazePoint), currentColor);
+            Point p1 = new Point(e.X, e.Y);
+            Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
+            double distance = Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+            double KEYHOLE = 0; //TODO Make into class field.
+            if (distance > KEYHOLE)
+                gazePoint = p1;
+
+            //Point point = PointToClient(_gazePoint); TODO Neccessary?
+            cloudFactory.AddCloud(gazePoint, currentColor);
+
+            stableGaze = true;
         }
 
         private void OnShown(object sender, EventArgs e)

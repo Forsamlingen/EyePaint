@@ -9,18 +9,23 @@
 
     public partial class EyeTrackingForm : Form
     {
+
         private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point gazePoint;
         private bool stableGaze;
         private CloudFactory cloudFactory;
+        private TreeFactory treeFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
+        private bool leftMouseButtonIsSDown = false;
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
-        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = false;
+        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
         private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
+        private  bool treeMode = true;
+        private bool cloudMode = false;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -49,18 +54,36 @@
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
             cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
+            treeFactory = new TreeFactory();
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { 
-                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); 
-                Invalidate(); 
+            paint.Tick += new EventHandler((object sender, System.EventArgs e) => {
+                tick();
+                Invalidate();
 
                 if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
                     setRandomPaintTool();
             });
 
+        }
+
+        private void tick()
+        {
+            if (treeMode)
+            {
+                if (treeFactory.HasQueued())
+                {
+                    treeFactory.growTree();
+                }
+
+            }
+
+            else if (cloudMode)
+            {
+                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10);
+            }
         }
 
         private void startPainting()
@@ -106,6 +129,7 @@
                 switch (e.Button)
                 {
                     case MouseButtons.Left:
+                        leftMouseButtonIsSDown = false;;
                         OnGreenButtonUp(sender, e);
                         break;
                     default:
@@ -119,6 +143,7 @@
                 switch (e.Button)
                 {
                     case MouseButtons.Left:
+                        leftMouseButtonIsSDown = true;
                         OnGreenButtonDown(sender, e);
                         break;
                     default:
@@ -132,7 +157,15 @@
             {
                 gazePoint = new Point(e.X, e.Y);
                 stableGaze = true;
-                cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
+                if (cloudMode)
+                {
+                    cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
+                }
+                else if (treeMode)
+                {
+                    if(leftMouseButtonIsSDown)
+                        treeFactory.AddTree(convertToEP_Point(gazePoint), convertToEP_Color(currentColor));
+                }
             }
         }
 
@@ -207,16 +240,36 @@
 
         private void OnPaint(object sender, PaintEventArgs e)
         {
-            try
+            //TODO switch to switchcase and eventhandling
+            if (cloudMode)
+            {
+                paintCloud(e);
+            }
+            else if(treeMode) {
+                paintTree(e);
+                treeFactory.ClearRenderQueue();
+            }
+        }
+
+        private void paintTree(PaintEventArgs e)
+        {
+            Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
+            e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+        }
+
+        private void paintCloud(PaintEventArgs e) 
+        {
+           try
             {
                 Point[] points = new Point[cloudFactory.GetQueueLength()];
                 int i = 0;
                 while (cloudFactory.HasQueued())
                     points[i++] = cloudFactory.GetQueued();
 
-                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
+                EP_Tree tree =  treeFactory.CreateDefaultTree(new EP_Point(100, 100), new EP_Color(DEFAULT_COLOR.R, DEFAULT_COLOR.G, 255));
+                Image image = imageFactory.RasterizeCloud(cloudFactory.clouds, points, tree); //TODO change back from testmode
                 e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
-            }
+           }
             catch (InvalidOperationException)
             {
                 return; //TODO Improve exception handling.
@@ -225,17 +278,51 @@
 
         private void GazePoint(object sender, GazePointEventArgs e)
         {
-            Point p1 = new Point(e.X, e.Y);
-            Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
-            double distance = Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+            double distance = Math.Sqrt(Math.Pow(gazePoint.X - gazePoint.X, 2) + Math.Pow(e.Y - e.Y, 2));
             double KEYHOLE = 0; //TODO Make into class field.
-            if (distance > KEYHOLE)
-                gazePoint = p1;
 
-            //Point point = PointToClient(_gazePoint); TODO Neccessary?
-            cloudFactory.AddCloud(gazePoint, currentColor);
+            //Point point = PointToClient(_gazePoint); //TODO Neccessary?
+            if (treeMode)
+            {
+                EP_Color color = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
+                EP_Point point;
+                if (distance > KEYHOLE)
+                {
+                    point = new EP_Point(e.X, e.Y);
+                }
+                else
+                {
+                    point = new EP_Point(gazePoint.X, gazePoint.Y);
+                }
+                treeFactory.AddTree(point, color);
+            }
+            else if (cloudMode)
+            {
+                Point p1 = new Point(e.X, e.Y);
+                //Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
 
+                if (distance > KEYHOLE)
+                {
+                    gazePoint = p1;
+                }
+                cloudFactory.AddCloud(gazePoint, currentColor);
+            }
             stableGaze = true;
+        }
+
+        internal Point convertToPoint(EP_Point epPoint)
+        {
+            return new Point(epPoint.X, epPoint.Y);
+        }
+
+        internal EP_Point convertToEP_Point(Point point)
+        {
+            return new EP_Point(point.X, point.Y);
+        }
+
+        internal EP_Color convertToEP_Color(Color color)
+        {
+            return new EP_Color(color.R, color.G, color.B);
         }
 
         private void OnShown(object sender, EventArgs e)

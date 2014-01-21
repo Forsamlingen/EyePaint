@@ -10,7 +10,8 @@ namespace EyePaint
     {
         private Image image, background;
         private Pen pen;
-        private Random rng;
+        private readonly int stdOpacity = 255;
+        private readonly int stdWidth = 100;
 
         internal ImageFactory(int width, int height)
         {
@@ -21,10 +22,41 @@ namespace EyePaint
             image = new Bitmap(background);
 
             pen = new Pen(Color.White, 1);
-            rng = new Random();
         }
 
-        internal Image Rasterize(Stack<Cloud> model, Point[] points)
+        internal Image RasterizeTree(LinkedList<EP_Tree> renderQueue)
+        {
+            foreach (EP_Tree tree in renderQueue)
+            { 
+                DrawTree(tree);
+            }
+            return image;
+        }
+
+        private void DrawLine(Point p1, Point p2 )
+        {
+            using (Graphics g = Graphics.FromImage(image))
+                        g.DrawLine(
+                            pen,
+                            p1,
+                            p2
+                            );
+        }
+        private void DrawTree(EP_Tree tree)
+        {
+            pen.Color = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
+            pen.Width = stdWidth;
+
+            for (int i = 0; i < tree.nLeaves; i++)
+            {
+                Point parent = new Point(tree.previousGen[i].X, tree.previousGen[i].Y);
+                Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);
+                DrawLine(parent, leaf);
+            }
+
+        }
+
+        internal Image RasterizeCloud(Stack<Cloud> model, Point[] points, EP_Tree tree) // TODO change back to normal
         {
             Cloud c = model.Peek();
             int radius = c.GetRadius();
@@ -33,7 +65,8 @@ namespace EyePaint
             pen.Width = scale * 2 * radius;
 
             using (Graphics g = Graphics.FromImage(image))
-                foreach (Point point in points)
+                foreach (Point point in points){
+                    DrawLine(new Point(0,0),point); //TODO changto to optional setting
                     g.DrawEllipse(
                         pen,
                         point.X + radius,
@@ -41,7 +74,8 @@ namespace EyePaint
                         pen.Width,
                         pen.Width
                       );
-
+                      //DrawTree(tree);
+                }
             return image;
         }
 

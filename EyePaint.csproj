@@ -59,11 +59,13 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tobii.Gaze.Config.Net">
-      <HintPath>..\TobiiGazeSdk\Tobii.Gaze.Config.Net.dll</HintPath>
+    <Reference Include="Tobii.Gaze.Config.Net, Version=1.0.0.104, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\TobiiGazeSdk\Tobii.Gaze.Config.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Tobii.Gaze.Core.Net">
-      <HintPath>..\TobiiGazeSdk\Tobii.Gaze.Core.Net.dll</HintPath>
+    <Reference Include="Tobii.Gaze.Core.Net, Version=1.0.0.104, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\TobiiGazeSdk\Tobii.Gaze.Core.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -103,16 +105,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\TobiiGazeSdk\TobiiGazeConfig32.dll">
-      <Link>TobiiGazeConfig32.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\TobiiGazeSdk\TobiiGazeCore32.dll">
-      <Link>TobiiGazeCore32.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
@@ -133,6 +125,10 @@
       <ProductName>Windows Installer 4.5</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\TobiiGazeSdk\TobiiGazeConfig32.dll" />
+    <Content Include="lib\TobiiGazeSdk\TobiiGazeCore32.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

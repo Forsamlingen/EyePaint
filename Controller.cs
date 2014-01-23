@@ -82,6 +82,24 @@
             paint.Enabled = false;
         }
 
+        private Image getPainting()
+        {
+            try
+            {
+                Point[] points = new Point[cloudFactory.GetQueueLength()];
+                int i = 0;
+                while (cloudFactory.HasQueued())
+                    points[i++] = cloudFactory.GetQueued();
+
+                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
+                return image;
+            }
+            catch (InvalidOperationException)
+            {
+                return null; //TODO Improve exception handling.
+            }
+        }
+
         private void resetPainting()
         {
             imageFactory.Undo();
@@ -96,8 +114,8 @@
 
         private void storePainting()
         {
-            //TODO Call Henrik's IO library.
-            throw new NotImplementedException();
+            Image image = getPainting();
+            image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)
@@ -207,20 +225,8 @@
 
         private void OnPaint(object sender, PaintEventArgs e)
         {
-            try
-            {
-                Point[] points = new Point[cloudFactory.GetQueueLength()];
-                int i = 0;
-                while (cloudFactory.HasQueued())
-                    points[i++] = cloudFactory.GetQueued();
-
-                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
-                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
-            }
-            catch (InvalidOperationException)
-            {
-                return; //TODO Improve exception handling.
-            }
+            Image image = getPainting();
+            e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
         }
 
         private void GazePoint(object sender, GazePointEventArgs e)

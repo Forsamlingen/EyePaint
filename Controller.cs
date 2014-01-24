@@ -105,6 +105,33 @@
             paint.Enabled = false;
         }
 
+        private Image getPainting()
+        {
+            //TODO switch to switchcase and eventhandling
+            if (cloudMode)
+            {
+                try
+                {
+                    Point[] points = new Point[cloudFactory.GetQueueLength()];
+                    int i = 0;
+                    while (cloudFactory.HasQueued())
+                        points[i++] = cloudFactory.GetQueued();
+
+                    Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
+                    return image;
+                }
+                catch (InvalidOperationException)
+                {
+                    return null; //TODO Improve exception handling.
+                }
+            }
+            else if(treeMode) {
+                Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
+                treeFactory.ClearRenderQueue();
+                return image;
+            }
+        }
+
         private void resetPainting()
         {
             imageFactory.Undo();
@@ -119,8 +146,8 @@
 
         private void storePainting()
         {
-            //TODO Call Henrik's IO library.
-            throw new NotImplementedException();
+            Image image = getPainting();
+            image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e)
@@ -240,40 +267,8 @@
 
         private void OnPaint(object sender, PaintEventArgs e)
         {
-            //TODO switch to switchcase and eventhandling
-            if (cloudMode)
-            {
-                paintCloud(e);
-            }
-            else if(treeMode) {
-                paintTree(e);
-                treeFactory.ClearRenderQueue();
-            }
-        }
-
-        private void paintTree(PaintEventArgs e)
-        {
-            Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
+            Image image = getPainting();
             e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
-        }
-
-        private void paintCloud(PaintEventArgs e) 
-        {
-           try
-            {
-                Point[] points = new Point[cloudFactory.GetQueueLength()];
-                int i = 0;
-                while (cloudFactory.HasQueued())
-                    points[i++] = cloudFactory.GetQueued();
-
-                EP_Tree tree =  treeFactory.CreateDefaultTree(new EP_Point(100, 100), new EP_Color(DEFAULT_COLOR.R, DEFAULT_COLOR.G, 255));
-                Image image = imageFactory.RasterizeCloud(cloudFactory.clouds, points, tree); //TODO change back from testmode
-                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
-           }
-            catch (InvalidOperationException)
-            {
-                return; //TODO Improve exception handling.
-            }
         }
 
         private void GazePoint(object sender, GazePointEventArgs e)

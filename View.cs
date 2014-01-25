@@ -56,7 +56,7 @@ namespace EyePaint
 
         }
 
-        internal Image RasterizeCloud(Stack<Cloud> model, Point[] points, EP_Tree tree) // TODO change back to normal
+        internal Image RasterizeCloud(Stack<Cloud> model, Point[] points) // TODO change back to normal
         {
             Cloud c = model.Peek();
             int radius = c.GetRadius();

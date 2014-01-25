@@ -117,7 +117,7 @@
                     while (cloudFactory.HasQueued())
                         points[i++] = cloudFactory.GetQueued();
 
-                    Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
+                    Image image = imageFactory.RasterizeCloud(cloudFactory.clouds, points);
                     return image;
                 }
                 catch (InvalidOperationException)
@@ -130,7 +130,10 @@
                 treeFactory.ClearRenderQueue();
                 return image;
             }
-        }
+            else{
+                return null;
+            }
+            }
 
         private void resetPainting()
         {

@@ -52,6 +52,7 @@ namespace EyePaint
         }
     }
 
+
     class TreeFactory
     {
         internal List<EP_Tree> oldTrees;
@@ -193,7 +194,190 @@ namespace EyePaint
             childVector[1] = Convert.ToInt32(c * Math.Sin(v2));
             return new EP_Point(childVector[0] + root.X, childVector[1] + root.Y);
         }
-        //TODO function that calculates convex holjet. Parameters: leaves list and gaze point
+
+
+
+        //OBS this method does not compute correct if the root isn´t in the convex hull of the trees leafs
+        private bool pointInsideTree(EP_Point point, EP_Tree tree)
+        {
+            EP_Point[] points = tree.leaves;
+            
+            //Transform leaves to cordinate system where root is origo
+            for (int i = 0; i < tree.nLeaves; i++)
+            {
+                points[i]= transformCoordinates(tree.root, points[i]);               
+            }
+
+            point = transformCoordinates(tree.root, point);
+
+            Stack<EP_Point> s = GrahamScan(points);
+
+
+            return false;
+
+        }
+
+        private Stack<EP_Point> GrahamScan(EP_Point[] points)
+        {
+            //Find point with lowex Y-coordinate
+
+            EP_Point minPoint = getLowestPoint(points);
+
+            //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
+            EP_Point refPoint = new EP_Point(minPoint.X + 1, minPoint.Y);
+
+            //Create a vector of GrahamPoints by calculate the angle a for each point in points
+            //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
+
+            int size = points.Count();
+            GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
+            GrahamPoint[] grahamPoints = new GrahamPoint[size];
+            grahamPoints[0] = minGrahamPoint;
+            for (int i = 1; i < points.Count(); i++)
+            {
+                double a = getAngleBetweenVectors(minPoint, refPoint, minPoint, points[i]);
+                GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
+                grahamPoints[i] = grahamPoint;
+            }
+
+            Array.Sort(grahamPoints);           
+
+            Stack<EP_Point> s = new Stack<EP_Point>();
+
+
+            s.Push(GrahamPointToEP_Point(grahamPoints[0]));
+            s.Push(GrahamPointToEP_Point(grahamPoints[1]));
+            s.Push(GrahamPointToEP_Point(grahamPoints[2]));
+
+            EP_Point top;
+            EP_Point nextToTop;
+            for (int i = 3; i < points.Count(); i++)
+            {
+                bool notPushed = true;
+                while (notPushed)
+                {   
+                     top = s.Pop();
+                     nextToTop = s.Peek();
+                    if (ccw(nextToTop, top, points[i]) >= 0)
+                    {
+                        s.Push(points[i]);
+                        notPushed = false;
+                    }
+
+                }
+            }          
+            return s;
+        }
+
+
+        //Create struct to able to sort points by there angle a
+        private struct GrahamPoint : IComparable
+        {
+            public double angle;
+            public EP_Point point;
+
+            public GrahamPoint(double angle, EP_Point point)
+            {
+                this.angle = angle;
+                this.point = point;
+            }
+
+            public int CompareTo(GrahamPoint p1)
+            {
+                if (angle == p1.angle)
+                {
+                    return 0;
+                }
+
+                if (angle < p1.angle)
+                {
+                    return -1;
+                }
+
+                else //if(angle > p1.angle)
+                {
+                    return 1;
+                }
+            }
+
+        }
+
+
+        // Use cross-product to calculate if three points are a counter-clockwise. 
+        // They are counter-clockwise if ccw > 0, clockwise if
+        // ccw < 0, and collinear if ccw == 0
+        private int ccw(EP_Point p1, EP_Point p2, EP_Point p3)
+        {
+            return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+        }
+        /*
+         * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
+         */
+        // TODO HAndle Error from dividing by 0..if a vector is of length 0
+        private double getAngleBetweenVectors(EP_Point p1, EP_Point p2, EP_Point q1, EP_Point q2)
+        {
+            int[] P = getVector(p1, p2);
+            int[] Q = getVector(q1, q2);
+            double lP = getVectorLength(P);
+            double lQ = getVectorLength(Q);
+            //Calculate the angle v between P and Q
+            //using the dot-product.
+
+            double v = Math.Acos((P[0] * Q[0] + P[1] * Q[1]) / (lP * lQ));
+            return v;
+        }
+
+        private double getVectorLength(int[] vector)
+        {
+            double l = Math.Sqrt(Math.Pow(vector[0], 2) + Math.Pow(vector[1], 2));
+            return l;
+        }
+
+        private int[] getVector(EP_Point p1, EP_Point p2)
+        {
+            int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
+            return vector;
+        }
+
+        //Transfor the point to a coordinate system where the argumet origo have the 
+        //cooridinate (0,0)
+        private EP_Point transformCoordinates(EP_Point origo, EP_Point point)
+        {
+            point.X -= origo.X;
+            point.Y -= origo.Y;
+            
+            return point;
+        }
+
+        private EP_Point getLowestPoint(EP_Point[] points)
+        {
+            EP_Point minPoint = points[0];
+
+            for (int i = 0; i < points.Count(); i++)
+            {
+                if (points[i].Y < minPoint.Y)
+                {
+                    minPoint = points[i];
+                }
+                // if equal Y-coordinate, compare by X
+                else if (minPoint.Y == points[i].Y)
+                {
+
+                    if (points[i].X < minPoint.X)
+                    {
+                        minPoint = points[i];
+                    }
+                }
+            }
+            return minPoint;
+        }
+
+        private EP_Point GrahamPointToEP_Point(GrahamPoint grahamPoint)
+        {
+            EP_Point ep_point = new EP_Point(grahamPoint.point.X, grahamPoint.point.Y);
+            return ep_point;
+        }
+        
     }
 
 

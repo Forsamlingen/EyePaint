@@ -271,7 +271,7 @@ namespace EyePaint
 
 
         //Create struct to able to sort points by there angle a
-        private struct GrahamPoint : IComparable
+        private struct GrahamPoint : IComparable<GrahamPoint>
         {
             public double angle;
             public EP_Point point;
@@ -299,9 +299,7 @@ namespace EyePaint
                     return 1;
                 }
             }
-
         }
-
 
         // Use cross-product to calculate if three points are a counter-clockwise. 
         // They are counter-clockwise if ccw > 0, clockwise if

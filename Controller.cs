@@ -157,30 +157,28 @@
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            if (useMouse)
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        leftMouseButtonIsSDown = false;;
-                        OnGreenButtonUp(sender, e);
-                        break;
-                    default:
-                        break;
-                }
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    leftMouseButtonIsSDown = false;;
+                    OnGreenButtonUp(sender, e);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            if (useMouse)
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        leftMouseButtonIsSDown = true;
-                        OnGreenButtonDown(sender, e);
-                        break;
-                    default:
-                        break;
-                }
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    leftMouseButtonIsSDown = true;
+                    OnGreenButtonDown(sender, e);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)

@@ -13,12 +13,13 @@
         private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point gazePoint;
+        private Point latestPoint;
         private bool stableGaze;
+        private bool greenButtonPressed;
         private CloudFactory cloudFactory;
         private TreeFactory treeFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
-        private bool leftMouseButtonIsSDown = false;
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
@@ -43,10 +44,13 @@
 
             _eyeTrackingEngine = eyeTrackingEngine;
             _eyeTrackingEngine.StateChanged += StateChanged;
-            _eyeTrackingEngine.GazePoint += GazePoint;
+            _eyeTrackingEngine.GazePoint += OnGazePoint;
             _eyeTrackingEngine.Initialize();
 
             stableGaze = false;
+            greenButtonPressed = false;
+            gazePoint = new Point(0, 0);
+            latestPoint = new Point(0, 0);
             rng = new Random();
             currentColor = DEFAULT_COLOR;
 
@@ -59,17 +63,11 @@
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => {
-                tick();
-                Invalidate();
-
-                if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
-                    setRandomPaintTool();
-            });
-
+            paint.Tick += tick;
         }
 
-        private void tick()
+        // Grows the model and refreshes the canvas
+        private void tick(object sender, System.EventArgs e)
         {
             if (treeMode)
             {
@@ -77,16 +75,20 @@
                 {
                     treeFactory.growTree();
                 }
-
             }
-
             else if (cloudMode)
             {
                 cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10);
             }
+
+            Invalidate();
+
+            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
+                setRandomPaintTool();
         }
 
-        private void startPainting()
+        // Starts the timer, enabling tick events
+        private void startPaintingTimer()
         {
             if (paint.Enabled)
                 return;
@@ -100,11 +102,13 @@
             paint.Enabled = true;
         }
 
-        private void stopPainting()
+        // Stops the timer, disabling tick events
+        private void stopPaintingTimer()
         {
             paint.Enabled = false;
         }
 
+        // Rasterizes the model and returns an image object
         private Image getPainting()
         {
             //TODO switch to switchcase and eventhandling
@@ -128,7 +132,7 @@
             else if (treeMode)
             {
                 Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
-                treeFactory.ClearRenderQueue();
+                //treeFactory.ClearRenderQueue();
                 return image;
             }
             else
@@ -137,6 +141,7 @@
             }
         }
 
+        // Clears the canvas
         private void resetPainting()
         {
             imageFactory.Undo();
@@ -149,6 +154,7 @@
             currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
         }
 
+        // Writes rasterized image to a file
         private void storePainting()
         {
             Image image = getPainting();
@@ -160,7 +166,6 @@
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    leftMouseButtonIsSDown = false;;
                     OnGreenButtonUp(sender, e);
                     break;
                 default:
@@ -173,29 +178,10 @@
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    leftMouseButtonIsSDown = true;
                     OnGreenButtonDown(sender, e);
                     break;
                 default:
                     break;
-            }
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (useMouse)
-            {
-                gazePoint = new Point(e.X, e.Y);
-                stableGaze = true;
-                if (cloudMode)
-                {
-                    cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
-                }
-                else if (treeMode)
-                {
-                    if(leftMouseButtonIsSDown)
-                        treeFactory.AddTree(convertToEP_Point(gazePoint), convertToEP_Color(currentColor));
-                }
             }
         }
 
@@ -243,13 +229,17 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            startPainting();
+            greenButtonPressed = true;
+            gazePoint = latestPoint;
+            AddPoint(gazePoint);
+            startPaintingTimer();
         }
-
 
         private void OnGreenButtonUp(object sender, EventArgs e)
         {
-            stopPainting();
+            greenButtonPressed = false;
+            gazePoint = latestPoint;
+            stopPaintingTimer();
         }
 
         private void OnRedButtonDown(object sender, EventArgs e)
@@ -274,38 +264,54 @@
             e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
         }
 
-        private void GazePoint(object sender, GazePointEventArgs e)
+        // Adds a new point to the model
+        private void AddPoint(Point p)
         {
-            double distance = Math.Sqrt(Math.Pow(gazePoint.X - gazePoint.X, 2) + Math.Pow(e.Y - e.Y, 2));
-            double KEYHOLE = 0; //TODO Make into class field.
-
-            //Point point = PointToClient(_gazePoint); //TODO Neccessary?
             if (treeMode)
             {
-                EP_Color color = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
-                EP_Point point;
-                if (distance > KEYHOLE)
-                {
-                    point = new EP_Point(e.X, e.Y);
-                }
-                else
-                {
-                    point = new EP_Point(gazePoint.X, gazePoint.Y);
-                }
-                treeFactory.AddTree(point, color);
+                EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
+                EP_Point epPoint = new EP_Point(p.X, p.Y);
+                treeFactory.AddTree(epPoint, epColor);
             }
             else if (cloudMode)
             {
-                Point p1 = new Point(e.X, e.Y);
-                //Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
-
-                if (distance > KEYHOLE)
-                {
-                    gazePoint = p1;
-                }
-                cloudFactory.AddCloud(gazePoint, currentColor);
+                cloudFactory.AddCloud(p, currentColor);
             }
+        }
+
+        // Stores a new point in 'latestPoint' and determines whether or not to add it
+        private void TrackPoint(Point p)
+        {
             stableGaze = true;
+            latestPoint = p;
+
+            double distance = Math.Sqrt(Math.Pow(gazePoint.X - gazePoint.Y, 2) + Math.Pow(p.X - p.Y, 2));
+            double KEYHOLE = 30; //TODO Make into class field.
+
+            if (distance > KEYHOLE)
+            {
+                gazePoint = p;
+            }
+
+            if (greenButtonPressed)
+            {
+                AddPoint(gazePoint);
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (useMouse)
+            {
+                Point p = new Point(e.X, e.Y);
+                TrackPoint(p);
+            }
+        }
+
+        private void OnGazePoint(object sender, GazePointEventArgs e)
+        {
+            Point p = new Point(e.X, e.Y);
+            TrackPoint(p);
         }
 
         internal Point convertToPoint(EP_Point epPoint)

@@ -18,6 +18,8 @@ namespace EyePaint
             B = b;
         }
     }
+
+    //TODO change to double for coordinates ????
     public struct EP_Point
     {
         public int X, Y;
@@ -30,6 +32,9 @@ namespace EyePaint
 
     }
 
+    //TODO
+    //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
+
     internal struct EP_Tree
     {
         internal readonly EP_Color color; //TODO feedback
@@ -38,14 +43,14 @@ namespace EyePaint
         internal EP_Point[] previousGen; //Parents of the present Leaves
         internal EP_Point[] leaves;
         internal readonly int edgeLength;
-        internal readonly int nLeaves;
+        internal readonly int nLeaves;//Warning need to be >2
 
         public EP_Tree(EP_Color color, EP_Point root, int edgeLength, int nLeaves, EP_Point[] previousGen, EP_Point[] startLeaves)
         {
             this.color = color;
             this.root = root;
             this.edgeLength = edgeLength;
-            this.nLeaves = nLeaves;
+            this.nLeaves = nLeaves; //Warning need to be >2
             this.previousGen = previousGen; //TODO method DefaultEP_Tree will create this //TODO feedback
             leaves = startLeaves;
             generation = 0;
@@ -57,7 +62,7 @@ namespace EyePaint
     {
         internal List<EP_Tree> oldTrees;
         private LinkedList<EP_Tree> renderQueue;
-        private readonly int edgeLength = 50; // Constant to experiment with
+        private readonly int edgeLength =50; // Constant to experiment with
         private readonly int nLeaves = 9;       //constant to experiment with
         private Random random = new Random();
         private EP_Tree currentTree;
@@ -99,7 +104,9 @@ namespace EyePaint
          * A default tree is the base of any tree. It consists of a root, 
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
-        internal EP_Tree CreateDefaultTree(EP_Point root, EP_Color color)// TODO Change b to private
+        //TODO
+        //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
+        private EP_Tree CreateDefaultTree(EP_Point root, EP_Color color)// TODO Change b to private
         {
             // All the start leaves will have the root as parent
             EP_Point[] previousGen = new EP_Point[nLeaves];
@@ -150,25 +157,27 @@ namespace EyePaint
          * grown outwards from the root.
          */
         private EP_Point getLeave(EP_Point parent, EP_Point root)
-        {
+        {   
+            //Declare an origo point
+            EP_Point origo = new EP_Point(0,0);
             //Declare a vector of length 1  from the root out on the positve x-axis.
             int[] xAxisVector = new int[2] { 1, 0 };
 
             //Transform to cooridninatesystem where root is origo
-            parent.X = parent.X - root.X;
-            parent.Y = parent.Y - root.Y;
-            // parentVector is the vector between the root and the parent-point
-            int[] parentVector = new int[2] { parent.X, parent.Y };
-
+            parent = transformCoordinates(root, parent);
+            // parentVector is the vector between the origo and the parent-point
+            int[] parentVector = getVector(origo, parent);
+            
             // the child vector is the vector between the root and the leaf we want calculate the coordinates for 
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
-            double r = Math.Sqrt(Math.Pow(parentVector[0], 2) + Math.Pow(parentVector[1], 2));//TODO change variable name 
+            double r = getVectorLength(parentVector);//TODO change variable name 
 
             //Calculate the angle v1 between parent vector and the x-axis vector
             //using the dot-product.
-            double v1 = Math.Acos((parentVector[0] * xAxisVector[0] + parentVector[1] * xAxisVector[1]) / (r * 1));
+            double v1 = getAngleBetweenVectors(parentVector, xAxisVector);
+
             // If v1 is in the 3rd or 4th quadrant, we calculate the radians between the positive x-axis and the parent vector anti-clockwise
             if (parentVector[1] < 0)
             {
@@ -198,23 +207,107 @@ namespace EyePaint
 
 
         //OBS this method does not compute correct if the root isn´t in the convex hull of the trees leafs
-        private bool pointInsideTree(EP_Point point, EP_Tree tree)
+        internal bool pointInsideTree(EP_Point evalPoint)
         {
-            EP_Point[] points = tree.leaves;
-            
-            //Transform leaves to cordinate system where root is origo
-            for (int i = 0; i < tree.nLeaves; i++)
+            if (!treeAdded)
             {
-                points[i]= transformCoordinates(tree.root, points[i]);               
+                return false;
             }
-
-            point = transformCoordinates(tree.root, point);
+     
+            EP_Point[] points =new EP_Point[currentTree.nLeaves];
+            //Transform leaves to cordinate system where root is origo
+            for (int i = 0; i < currentTree.nLeaves; i++)
+            {
+                points[i]= transformCoordinates(currentTree.root, currentTree.leaves[i]);
+            }
+            
+            evalPoint = transformCoordinates(currentTree.root, evalPoint);
 
             Stack<EP_Point> s = GrahamScan(points);
 
+            //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
 
-            return false;
+            EP_Point hullStart = s.Pop();
+            EP_Point p1 = hullStart;
+            EP_Point p2 =hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
+            EP_Point origo = new EP_Point(0, 0);           
+            while (s.Count() != 0)
+            {
+                p2 = s.Pop();
+                if(lineSegmentIntersect(origo,evalPoint, p1,p2))
+                {
+                    return false;
+                }               
+                p1 = p2;
+            }
 
+            if(lineSegmentIntersect(origo, evalPoint, hullStart, p2) )
+            {
+                return false;
+            }
+
+            return true;
+
+        }
+        
+        private bool lineSegmentIntersect(EP_Point A, EP_Point B, EP_Point C, EP_Point D)
+        {
+
+            //check if any of the vectors are the 0-vector
+            if((A.X ==B.X && A.Y ==B.Y)||(C.X == D.X )&&( C.Y == D.Y))
+            {
+                return false;
+            }
+            //  Fail if the segments share an end point.
+
+            if (A.X == C.X && A.Y == C.Y || B.X == C.X && B.Y == C.Y
+
+            || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
+            {
+               return false;
+            }
+            //Trnsform all points to a coordinate system where A is origo
+            B = transformCoordinates(A, B);
+            C = transformCoordinates(A, C);
+            D = transformCoordinates(A, D);
+            A = transformCoordinates(A,A);
+
+            //  Discover the length of segment A-B.
+
+            double distAB = getVectorLength(getVector(A,B));
+
+            //Change to double
+            double Cx = C.X; double Cy = C.Y;
+            double Dx = D.X; double Dy = D.Y;
+
+             //  (2) Rotate the system so that point B is on the positive X axis.
+
+            double theCos = B.X / distAB;
+
+            double theSin = B.Y / distAB;
+
+            double newX = Cx * theCos + Cy * theSin;
+
+            Cy = Cy * theCos - Cx * theSin; Cx = newX;
+
+            newX = Dx * theCos + Dy * theSin;
+
+            Dy = Dy * theCos - Dx * theSin; Dx = newX;
+
+            //  Fail if segment C-D doesn't cross line A-B.
+
+            if (Cy < 0 && Dy < 0 || Cy >= 0 && Dy >= 0) return false;
+
+            //  (3) Discover the position of the intersection point along line A-B.
+
+            double ABpos = Dx + (Cx - Dx) * Dy / (Dy - Cy);
+
+            //  Fail if segment C-D crosses line A-B outside of segment A-B.
+
+            if (ABpos < 0 || ABpos > distAB) return false;
+
+            //The line segments intersect
+            return true;
         }
 
         private Stack<EP_Point> GrahamScan(EP_Point[] points)
@@ -222,9 +315,8 @@ namespace EyePaint
             //Find point with lowex Y-coordinate
 
             EP_Point minPoint = getLowestPoint(points);
-
             //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
-            EP_Point refPoint = new EP_Point(minPoint.X + 1, minPoint.Y);
+            EP_Point refPoint = new EP_Point(minPoint.X + 10, minPoint.Y);
 
             //Create a vector of GrahamPoints by calculate the angle a for each point in points
             //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
@@ -233,14 +325,20 @@ namespace EyePaint
             GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
             GrahamPoint[] grahamPoints = new GrahamPoint[size];
             grahamPoints[0] = minGrahamPoint;
-            for (int i = 1; i < points.Count(); i++)
+            int gpIndex = 1;
+            for (int i = 0; i < points.Count(); i++)
             {
-                double a = getAngleBetweenVectors(minPoint, refPoint, minPoint, points[i]);
-                GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
-                grahamPoints[i] = grahamPoint;
+                if (!(points[i].X == minPoint.X && points[i].Y == minPoint.Y))
+                {
+                    double a = getAngleBetweenVectors(getVector(minPoint, refPoint), getVector(minPoint, points[i]));
+                    GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
+                    grahamPoints[gpIndex] = grahamPoint;
+                    gpIndex++;
+                }
             }
 
-            Array.Sort(grahamPoints);           
+            Array.Sort(grahamPoints);
+
 
             Stack<EP_Point> s = new Stack<EP_Point>();
 
@@ -251,23 +349,25 @@ namespace EyePaint
 
             EP_Point top;
             EP_Point nextToTop;
-            for (int i = 3; i < points.Count(); i++)
+            for (int i = 3; i < grahamPoints.Count(); i++)
             {
                 bool notPushed = true;
                 while (notPushed)
-                {   
-                     top = s.Pop();
-                     nextToTop = s.Peek();
-                    if (ccw(nextToTop, top, points[i]) >= 0)
+                {
+                    top = s.Pop();
+                    nextToTop = s.Peek();
+                    if (ccw(nextToTop, top, grahamPoints[i].point) >= 0 || s.Count() < 2)
                     {
-                        s.Push(points[i]);
+                        s.Push(top);
+                        s.Push(grahamPoints[i].point);
                         notPushed = false;
                     }
 
                 }
-            }          
+            }
             return s;
         }
+
 
 
         //Create struct to able to sort points by there angle a
@@ -312,10 +412,8 @@ namespace EyePaint
          * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
          */
         // TODO HAndle Error from dividing by 0..if a vector is of length 0
-        private double getAngleBetweenVectors(EP_Point p1, EP_Point p2, EP_Point q1, EP_Point q2)
+        private double getAngleBetweenVectors(int[] P, int[] Q)
         {
-            int[] P = getVector(p1, p2);
-            int[] Q = getVector(q1, q2);
             double lP = getVectorLength(P);
             double lQ = getVectorLength(Q);
             //Calculate the angle v between P and Q

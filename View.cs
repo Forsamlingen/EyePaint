@@ -11,7 +11,7 @@ namespace EyePaint
         private Image image, background;
         private Pen pen;
         private readonly int stdOpacity = 255;
-        private readonly int stdWidth = 100;
+        private readonly int stdWidth = 5;
 
         internal ImageFactory(int width, int height)
         {

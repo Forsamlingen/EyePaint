@@ -131,8 +131,9 @@
             }
             else if (treeMode)
             {
+                
                 Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
-                //treeFactory.ClearRenderQueue();
+                treeFactory.ClearRenderQueue();
                 return image;
             }
             else
@@ -268,10 +269,18 @@
         private void AddPoint(Point p)
         {
             if (treeMode)
-            {
+            {   
+                
                 EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
                 EP_Point epPoint = new EP_Point(p.X, p.Y);
-                treeFactory.AddTree(epPoint, epColor);
+                if (treeFactory.pointInsideTree(epPoint))
+                {
+                    treeFactory.growTree();
+                }
+                else
+                {
+                    treeFactory.AddTree(epPoint, epColor);
+                }
             }
             else if (cloudMode)
             {

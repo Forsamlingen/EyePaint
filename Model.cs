@@ -62,9 +62,10 @@ namespace EyePaint
     {
         internal List<EP_Tree> oldTrees;
         private LinkedList<EP_Tree> renderQueue;
+        private int maxGenerations = 100;   // controls the max size of a single tree
         private int offset_distance = 30;   // distance from the convex hull
-        private readonly int edgeLength = 2; // Constant to experiment with
-        private readonly int nLeaves = 100;       //constant to experiment with
+        private readonly int edgeLength = 10; // Constant to experiment with
+        private readonly int nLeaves = 1000;       //constant to experiment with
         private Random random = new Random();
         private EP_Tree currentTree;
         private bool treeAdded = false;
@@ -138,6 +139,11 @@ namespace EyePaint
         {
             if (treeAdded)
             {
+                if (currentTree.generation > maxGenerations)
+                {
+                    return;
+                }
+
                 EP_Tree lastTree = currentTree;
                 EP_Point[] newLeaves = new EP_Point[nLeaves];
                 // Grow all branches
@@ -147,7 +153,7 @@ namespace EyePaint
                     newLeaves[i] = newLeave;
                 }
                 EP_Tree grownTree = new EP_Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
-                grownTree.generation++;
+                grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
                 renderQueue.AddLast(currentTree);
             }

@@ -240,7 +240,7 @@
 
             greenButtonPressed = true;
             gazePoint = latestPoint;
-            AddPoint(gazePoint);
+            AddPoint(gazePoint, true);
             startPaintingTimer();
         }
 
@@ -274,13 +274,13 @@
         }
 
         // Adds a new point to the model
-        private void AddPoint(Point p)
+        private void AddPoint(Point p, bool alwaysAdd = false)
         {
             if (treeMode)
             {
                 EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
                 EP_Point epPoint = new EP_Point(p.X, p.Y);
-                if (!treeFactory.pointInsideTree(epPoint))
+                if (alwaysAdd || !treeFactory.pointInsideTree(epPoint))
                 {
                     treeFactory.AddTree(epPoint, epColor);
                 }

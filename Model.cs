@@ -62,8 +62,10 @@ namespace EyePaint
     {
         internal List<EP_Tree> oldTrees;
         private LinkedList<EP_Tree> renderQueue;
-        private readonly int edgeLength =2; // Constant to experiment with
-        private readonly int nLeaves = 100;       //constant to experiment with
+        private int maxGenerations = 100;   // controls the max size of a single tree
+        private int offset_distance = 30;   // distance from the convex hull
+        private readonly int edgeLength = 10; // Constant to experiment with
+        private readonly int nLeaves = 1000;       //constant to experiment with
         private Random random = new Random();
         private EP_Tree currentTree;
         private bool treeAdded = false;
@@ -137,6 +139,11 @@ namespace EyePaint
         {
             if (treeAdded)
             {
+                if (currentTree.generation > maxGenerations)
+                {
+                    return;
+                }
+
                 EP_Tree lastTree = currentTree;
                 EP_Point[] newLeaves = new EP_Point[nLeaves];
                 // Grow all branches
@@ -146,7 +153,7 @@ namespace EyePaint
                     newLeaves[i] = newLeave;
                 }
                 EP_Tree grownTree = new EP_Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
-                grownTree.generation++;
+                grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
                 renderQueue.AddLast(currentTree);
             }
@@ -214,11 +221,12 @@ namespace EyePaint
                 return false;
             }
      
-            EP_Point[] points =new EP_Point[currentTree.nLeaves];
+            EP_Point[] points = new EP_Point[currentTree.nLeaves];
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
-                points[i]= transformCoordinates(currentTree.root, currentTree.leaves[i]);
+                EP_Point p = transformCoordinates(currentTree.root, currentTree.leaves[i]);
+                points[i] = offset(p);
             }
             
             evalPoint = transformCoordinates(currentTree.root, evalPoint);
@@ -433,6 +441,19 @@ namespace EyePaint
         {
             int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
             return vector;
+        }
+
+        // Offsets the point 'p' 'distance' pixels from origo
+        private EP_Point offset(EP_Point p)
+        {
+            EP_Point origo = new EP_Point(0, 0);
+            int[] op = getVector(origo, p);
+            double old_l = getVectorLength(op);
+            double new_l = old_l + offset_distance;
+            double ratio = new_l / old_l;
+            int x = Convert.ToInt32(p.X * ratio);
+            int y = Convert.ToInt32(p.Y * ratio);
+            return new EP_Point(x, y);
         }
 
         //Transfor the point to a coordinate system where the argumet origo have the 

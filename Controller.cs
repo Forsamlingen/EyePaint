@@ -15,6 +15,7 @@
         private Point gazePoint;
         private Point latestPoint;
         private bool stableGaze;
+        private int keyhole = 120; // constant for gazePoint noise detection
         private bool greenButtonPressed;
         private CloudFactory cloudFactory;
         private TreeFactory treeFactory;
@@ -161,25 +162,31 @@
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
+            if (useMouse)
             {
-                case MouseButtons.Left:
-                    OnGreenButtonUp(sender, e);
-                    break;
-                default:
-                    break;
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonUp(sender, e);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            switch (e.Button)
+            if (useMouse)
             {
-                case MouseButtons.Left:
-                    OnGreenButtonDown(sender, e);
-                    break;
-                default:
-                    break;
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        OnGreenButtonDown(sender, e);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -227,9 +234,13 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
+            if (greenButtonPressed) {
+                return;
+            }
+
             greenButtonPressed = true;
             gazePoint = latestPoint;
-            AddPoint(gazePoint);
+            AddPoint(gazePoint, true);
             startPaintingTimer();
         }
 
@@ -263,14 +274,13 @@
         }
 
         // Adds a new point to the model
-        private void AddPoint(Point p)
+        private void AddPoint(Point p, bool alwaysAdd = false)
         {
             if (treeMode)
-            {   
-                
+            {
                 EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
                 EP_Point epPoint = new EP_Point(p.X, p.Y);
-                if (!treeFactory.pointInsideTree(epPoint))
+                if (alwaysAdd || !treeFactory.pointInsideTree(epPoint))
                 {
                     treeFactory.AddTree(epPoint, epColor);
                 }
@@ -287,17 +297,15 @@
             stableGaze = true;
             latestPoint = p;
 
-            double distance = Math.Sqrt(Math.Pow(gazePoint.X - gazePoint.Y, 2) + Math.Pow(p.X - p.Y, 2));
-            double KEYHOLE = 30; //TODO Make into class field.
+            double distance = Math.Sqrt(Math.Pow(gazePoint.X - p.X, 2) + Math.Pow(gazePoint.Y - p.Y, 2));
 
-            if (distance > KEYHOLE)
+            if (distance > keyhole)
             {
                 gazePoint = p;
-            }
-
-            if (greenButtonPressed)
-            {
-                AddPoint(gazePoint);
+                if (greenButtonPressed)
+                {
+                    AddPoint(gazePoint);
+                }
             }
         }
 

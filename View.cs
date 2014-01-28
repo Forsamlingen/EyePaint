@@ -26,9 +26,10 @@ namespace EyePaint
 
         internal Image RasterizeTree(LinkedList<EP_Tree> renderQueue)
         {
-            foreach (EP_Tree tree in renderQueue)
-            { 
-                DrawTree(tree);
+            while (renderQueue.Count() != 0)
+            {
+                DrawTree(renderQueue.First());
+                renderQueue.RemoveFirst();
             }
             return image;
         }

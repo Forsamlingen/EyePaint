@@ -9,18 +9,24 @@
 
     public partial class EyeTrackingForm : Form
     {
+
         private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point gazePoint;
+        private Point latestPoint;
         private bool stableGaze;
+        private bool greenButtonPressed;
         private CloudFactory cloudFactory;
+        private TreeFactory treeFactory;
         private ImageFactory imageFactory;
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
         private readonly Color DEFAULT_COLOR = Color.Crimson;
-        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = false;
+        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
         private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
+        private bool treeMode = true;
+        private bool cloudMode = false;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -38,10 +44,13 @@
 
             _eyeTrackingEngine = eyeTrackingEngine;
             _eyeTrackingEngine.StateChanged += StateChanged;
-            _eyeTrackingEngine.GazePoint += GazePoint;
+            _eyeTrackingEngine.GazePoint += OnGazePoint;
             _eyeTrackingEngine.Initialize();
 
             stableGaze = false;
+            greenButtonPressed = false;
+            gazePoint = new Point(0, 0);
+            latestPoint = new Point(0, 0);
             rng = new Random();
             currentColor = DEFAULT_COLOR;
 
@@ -49,21 +58,37 @@
             int width = Screen.PrimaryScreen.Bounds.Width;
             imageFactory = new ImageFactory(width, height);
             cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
+            treeFactory = new TreeFactory();
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += new EventHandler((object sender, System.EventArgs e) => { 
-                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10); 
-                Invalidate(); 
-
-                if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
-                    setRandomPaintTool();
-            });
-
+            paint.Tick += tick;
         }
 
-        private void startPainting()
+        // Grows the model and refreshes the canvas
+        private void tick(object sender, System.EventArgs e)
+        {
+            if (treeMode)
+            {
+                if (treeFactory.HasQueued())
+                {
+                    treeFactory.growTree();
+                }
+            }
+            else if (cloudMode)
+            {
+                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10);
+            }
+
+            Invalidate();
+
+            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
+                setRandomPaintTool();
+        }
+
+        // Starts the timer, enabling tick events
+        private void startPaintingTimer()
         {
             if (paint.Enabled)
                 return;
@@ -77,29 +102,47 @@
             paint.Enabled = true;
         }
 
-        private void stopPainting()
+        // Stops the timer, disabling tick events
+        private void stopPaintingTimer()
         {
             paint.Enabled = false;
         }
 
+        // Rasterizes the model and returns an image object
         private Image getPainting()
         {
-            try
+            //TODO switch to switchcase and eventhandling
+            if (cloudMode)
             {
-                Point[] points = new Point[cloudFactory.GetQueueLength()];
-                int i = 0;
-                while (cloudFactory.HasQueued())
-                    points[i++] = cloudFactory.GetQueued();
+                try
+                {
+                    Point[] points = new Point[cloudFactory.GetQueueLength()];
+                    int i = 0;
+                    while (cloudFactory.HasQueued())
+                        points[i++] = cloudFactory.GetQueued();
 
-                Image image = imageFactory.Rasterize(cloudFactory.clouds, points);
+                    Image image = imageFactory.RasterizeCloud(cloudFactory.clouds, points);
+                    return image;
+                }
+                catch (InvalidOperationException)
+                {
+                    return null; //TODO Improve exception handling.
+                }
+            }
+            else if (treeMode)
+            {
+                
+                Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
+                treeFactory.ClearRenderQueue();
                 return image;
             }
-            catch (InvalidOperationException)
+            else
             {
-                return null; //TODO Improve exception handling.
+                return null;
             }
         }
 
+        // Clears the canvas
         private void resetPainting()
         {
             imageFactory.Undo();
@@ -112,6 +155,7 @@
             currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
         }
 
+        // Writes rasterized image to a file
         private void storePainting()
         {
             Image image = getPainting();
@@ -120,37 +164,25 @@
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            if (useMouse)
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonUp(sender, e);
-                        break;
-                    default:
-                        break;
-                }
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    OnGreenButtonUp(sender, e);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            if (useMouse)
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonDown(sender, e);
-                        break;
-                    default:
-                        break;
-                }
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (useMouse)
+            switch (e.Button)
             {
-                gazePoint = new Point(e.X, e.Y);
-                stableGaze = true;
-                cloudFactory.AddCloud(PointToClient(gazePoint), currentColor);
+                case MouseButtons.Left:
+                    OnGreenButtonDown(sender, e);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -198,13 +230,17 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            startPainting();
+            greenButtonPressed = true;
+            gazePoint = latestPoint;
+            AddPoint(gazePoint);
+            startPaintingTimer();
         }
-
 
         private void OnGreenButtonUp(object sender, EventArgs e)
         {
-            stopPainting();
+            greenButtonPressed = false;
+            gazePoint = latestPoint;
+            stopPaintingTimer();
         }
 
         private void OnRedButtonDown(object sender, EventArgs e)
@@ -229,19 +265,77 @@
             e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
         }
 
-        private void GazePoint(object sender, GazePointEventArgs e)
+        // Adds a new point to the model
+        private void AddPoint(Point p)
         {
-            Point p1 = new Point(e.X, e.Y);
-            Point p2 = gazePoint; //TODO Is this a reference or does a wasteful copy occur?
-            double distance = Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
-            double KEYHOLE = 0; //TODO Make into class field.
-            if (distance > KEYHOLE)
-                gazePoint = p1;
+            if (treeMode)
+            {   
+                
+                EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
+                EP_Point epPoint = new EP_Point(p.X, p.Y);
+                if (treeFactory.pointInsideTree(epPoint))
+                {
+                    treeFactory.growTree();
+                }
+                else
+                {
+                    treeFactory.AddTree(epPoint, epColor);
+                }
+            }
+            else if (cloudMode)
+            {
+                cloudFactory.AddCloud(p, currentColor);
+            }
+        }
 
-            //Point point = PointToClient(_gazePoint); TODO Neccessary?
-            cloudFactory.AddCloud(gazePoint, currentColor);
-
+        // Stores a new point in 'latestPoint' and determines whether or not to add it
+        private void TrackPoint(Point p)
+        {
             stableGaze = true;
+            latestPoint = p;
+
+            double distance = Math.Sqrt(Math.Pow(gazePoint.X - gazePoint.Y, 2) + Math.Pow(p.X - p.Y, 2));
+            double KEYHOLE = 30; //TODO Make into class field.
+
+            if (distance > KEYHOLE)
+            {
+                gazePoint = p;
+            }
+
+            if (greenButtonPressed)
+            {
+                AddPoint(gazePoint);
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (useMouse)
+            {
+                Point p = new Point(e.X, e.Y);
+                TrackPoint(p);
+            }
+        }
+
+        private void OnGazePoint(object sender, GazePointEventArgs e)
+        {
+            Point p = new Point(e.X, e.Y);
+            TrackPoint(p);
+        }
+
+        internal Point convertToPoint(EP_Point epPoint)
+        {
+            return new Point(epPoint.X, epPoint.Y);
+        }
+
+        internal EP_Point convertToEP_Point(Point point)
+        {
+            return new EP_Point(point.X, point.Y);
+        }
+
+        internal EP_Color convertToEP_Color(Color color)
+        {
+            return new EP_Color(color.R, color.G, color.B);
         }
 
         private void OnShown(object sender, EventArgs e)

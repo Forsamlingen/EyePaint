@@ -97,25 +97,32 @@ namespace EyePaint
             while (factory.HasQueued())
                 points[i++] = factory.GetQueued();
 
-            Cloud c = factory.clouds.Peek();
-            int radius = c.GetRadius();
-            pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
-            int scale = 10;
-            pen.Width = scale * 2 * radius;
+            try
+            {
+                Cloud c = factory.clouds.Peek();
+                int radius = c.GetRadius();
+                pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
+                int scale = 10;
+                pen.Width = scale * 2 * radius;
 
-            using (Graphics g = Graphics.FromImage(image))
-                foreach (Point point in points)
-                {
-                    DrawLine(new Point(0, 0), point); //TODO changto to optional setting
-                    g.DrawEllipse(
-                        pen,
-                        point.X + radius,
-                        point.Y + radius,
-                        pen.Width,
-                        pen.Width
-                      );
-                }
-            return image;
+                using (Graphics g = Graphics.FromImage(image))
+                    foreach (Point point in points)
+                    {
+                        DrawLine(new Point(0, 0), point); //TODO changto to optional setting
+                        g.DrawEllipse(
+                            pen,
+                            point.X + radius,
+                            point.Y + radius,
+                            pen.Width,
+                            pen.Width
+                          );
+                    }
+                return image;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
     }
 }

@@ -24,8 +24,8 @@
         private readonly Color DEFAULT_COLOR = Color.Crimson;
         private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
         private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
-        private bool treeMode = true;
-        private bool cloudMode = false;
+        private bool treeMode = false;
+        private bool cloudMode = true;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
@@ -240,7 +240,10 @@
         private void OnPaint(object sender, PaintEventArgs e)
         {
             Image image = getPainting();
-            e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            if (image != null)
+            {
+                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            }
         }
 
         // Adds a new point to the model

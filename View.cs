@@ -6,44 +6,68 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    class ImageFactory
+    class BaseRasterizer
     {
-        private Image image, background;
-        private Pen pen;
-        private readonly int stdOpacity = 255;
-        private readonly int stdWidth = 5;
+        internal Image image, background;
+        internal Pen pen;
+        internal readonly int stdOpacity = 255;
+        internal readonly int stdWidth = 5;
 
-        internal ImageFactory(int width, int height)
+        public BaseRasterizer(int width, int height)
         {
             background = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(background))
                 g.FillRectangle(Brushes.White, 0, 0, width, height);
 
             image = new Bitmap(background);
-
             pen = new Pen(Color.White, 1);
         }
 
-        internal Image RasterizeTree(LinkedList<EP_Tree> renderQueue)
+        public virtual Image Rasterize(BaseFactory factory)
         {
-            while (renderQueue.Count() != 0)
-            {
-                DrawTree(renderQueue.First());
-                renderQueue.RemoveFirst();
-            }
             return image;
         }
 
-        private void DrawLine(Point p1, Point p2 )
+        internal void DrawLine(Point p1, Point p2)
         {
             using (Graphics g = Graphics.FromImage(image))
-                        g.DrawLine(
-                            pen,
-                            p1,
-                            p2
-                            );
+                g.DrawLine(pen, p1, p2);
         }
-        private void DrawTree(EP_Tree tree)
+
+        public virtual void Undo()
+        {
+            //TODO Don't clear the entire drawing, instead implement an undo history.
+            Clear();
+        }
+
+        public virtual void Clear()
+        {
+            image = new Bitmap(background);
+        }
+    }
+
+    class TreeRasterizer : BaseRasterizer
+    {
+        public TreeRasterizer(int width, int height)
+            : base(width, height)
+        {
+        }
+
+        public override Image Rasterize(BaseFactory f)
+        {
+            TreeFactory factory = f as TreeFactory;
+
+            LinkedList<Tree> q = factory.getRenderQueue();
+            while (q.Count() != 0)
+            {
+                DrawTree(q.First());
+                q.RemoveFirst();
+            }
+            factory.ClearRenderQueue();
+            return image;
+        }
+
+        private void DrawTree(Tree tree)
         {
             pen.Color = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
             pen.Width = stdWidth;
@@ -54,20 +78,35 @@ namespace EyePaint
                 Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);
                 DrawLine(parent, leaf);
             }
+        }
+    }
 
+    class CloudRasterizer : BaseRasterizer
+    {
+        public CloudRasterizer(int width, int height)
+            : base(width, height)
+        {
         }
 
-        internal Image RasterizeCloud(Stack<Cloud> model, Point[] points) // TODO change back to normal
+        public override Image Rasterize(BaseFactory f)
         {
-            Cloud c = model.Peek();
+            CloudFactory factory = f as CloudFactory;
+
+            Point[] points = new Point[factory.GetQueueLength()];
+            int i = 0;
+            while (factory.HasQueued())
+                points[i++] = factory.GetQueued();
+
+            Cloud c = factory.clouds.Peek();
             int radius = c.GetRadius();
             pen.Color = Color.FromArgb(100, c.color.R, c.color.G, c.color.B);
             int scale = 10;
             pen.Width = scale * 2 * radius;
 
             using (Graphics g = Graphics.FromImage(image))
-                foreach (Point point in points){
-                    DrawLine(new Point(0,0),point); //TODO changto to optional setting
+                foreach (Point point in points)
+                {
+                    DrawLine(new Point(0, 0), point); //TODO changto to optional setting
                     g.DrawEllipse(
                         pen,
                         point.X + radius,
@@ -75,20 +114,8 @@ namespace EyePaint
                         pen.Width,
                         pen.Width
                       );
-                      //DrawTree(tree);
                 }
             return image;
-        }
-
-        internal void Undo()
-        {
-            //TODO Don't clear the entire drawing, instead implement an undo history.
-            Clear();
-        }
-
-        internal void Clear()
-        {
-            image = new Bitmap(background);
         }
     }
 }

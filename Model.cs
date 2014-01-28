@@ -62,8 +62,8 @@ namespace EyePaint
     {
         internal List<EP_Tree> oldTrees;
         private LinkedList<EP_Tree> renderQueue;
-        private readonly int edgeLength =50; // Constant to experiment with
-        private readonly int nLeaves = 9;       //constant to experiment with
+        private readonly int edgeLength =2; // Constant to experiment with
+        private readonly int nLeaves = 100;       //constant to experiment with
         private Random random = new Random();
         private EP_Tree currentTree;
         private bool treeAdded = false;

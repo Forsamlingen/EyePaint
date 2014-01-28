@@ -71,10 +71,7 @@
         {
             if (treeMode)
             {
-                if (treeFactory.HasQueued())
-                {
-                    treeFactory.growTree();
-                }
+                treeFactory.growTree();
             }
             else if (cloudMode)
             {
@@ -273,11 +270,7 @@
                 
                 EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
                 EP_Point epPoint = new EP_Point(p.X, p.Y);
-                if (treeFactory.pointInsideTree(epPoint))
-                {
-                    treeFactory.growTree();
-                }
-                else
+                if (!treeFactory.pointInsideTree(epPoint))
                 {
                     treeFactory.AddTree(epPoint, epColor);
                 }

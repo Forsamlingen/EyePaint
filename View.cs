@@ -11,13 +11,16 @@ namespace EyePaint
         private Image image, background;
         private Pen pen;
         private readonly int stdOpacity = 255;
-        private readonly int stdWidth = 5;
-
+        private readonly int stdWidth = 2;
+        private readonly int stdRadius = 1;
+        private string stdString = "tree tihi :-)";
+        private Font font = new Font( "Times New Roman", 20.0f);
+        
         internal ImageFactory(int width, int height)
         {
             background = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(background))
-                g.FillRectangle(Brushes.White, 0, 0, width, height);
+                g.FillRectangle(Brushes.Black, 0, 0, width, height);
 
             image = new Bitmap(background);
 
@@ -28,21 +31,13 @@ namespace EyePaint
         {
             while (renderQueue.Count() != 0)
             {
-                DrawTree(renderQueue.First());
+                DrawStringTree(renderQueue.First());
+                //DrawTree(renderQueue.First());
                 renderQueue.RemoveFirst();
             }
             return image;
         }
 
-        private void DrawLine(Point p1, Point p2 )
-        {
-            using (Graphics g = Graphics.FromImage(image))
-                        g.DrawLine(
-                            pen,
-                            p1,
-                            p2
-                            );
-        }
         private void DrawTree(EP_Tree tree)
         {
             pen.Color = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
@@ -55,6 +50,74 @@ namespace EyePaint
                 DrawLine(parent, leaf);
             }
 
+        }
+        
+        private void DrawBlopTree(EP_Tree tree)
+        {
+            pen.Color = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
+            
+            pen.Width = stdWidth * 2 * stdRadius;
+
+            for (int i = 0; i < tree.nLeaves; i++)
+            {
+               
+                Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);
+                DrawElipse(leaf);
+            }
+
+        }
+        private void DrawStringTree(EP_Tree tree)
+        {
+            Color c = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
+            
+            for (int i = 0; i < tree.nLeaves; i++)
+            {
+               
+                Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);
+                DrawString(leaf,c);
+            }
+
+        }
+
+        private void DrawLine(Point p1, Point p2)
+        {
+            using (Graphics g = Graphics.FromImage(image))
+                g.DrawLine(
+                    pen,
+                    p1,
+                    p2
+                    );
+        }
+        private void DrawElipse(Point point)
+        {
+            using (Graphics g = Graphics.FromImage(image))
+                g.DrawEllipse(
+                            pen,
+                            point.X + stdRadius,
+                            point.Y + stdRadius,
+                            pen.Width,
+                            pen.Width
+                          );
+
+        }
+        private void DrawString(Point point, Color col)
+        {
+            float x = point.X;
+            float y = point.Y;
+
+            PointF pf = new PointF();
+
+            pf.X = x;
+            pf.Y = y;
+            System.Drawing.SolidBrush myBrush;
+            myBrush = new System.Drawing.SolidBrush(col);
+            using (Graphics g = Graphics.FromImage(image))
+                g.DrawString(
+                            stdString,
+                            font,
+                            myBrush,
+                            pf
+                    );
         }
 
         internal Image RasterizeCloud(Stack<Cloud> model, Point[] points) // TODO change back to normal

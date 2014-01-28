@@ -24,8 +24,8 @@
         private readonly Color DEFAULT_COLOR = Color.Crimson;
         private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
         private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
-        private bool treeMode = false;
-        private bool cloudMode = true;
+        private bool treeMode = true;
+        private bool cloudMode = false;
         private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
 
         public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)

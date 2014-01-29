@@ -7,72 +7,52 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
-    public struct EP_Color
+    abstract class BaseFactory
     {
-        public int R, G, B;
-
-        public EP_Color(int r, int g, int b)
-        {
-            R = r;
-            G = g;
-            B = b;
-        }
-    }
-
-    //TODO change to double for coordinates ????
-    public struct EP_Point
-    {
-        public int X, Y;
-
-        public EP_Point(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-
+        public abstract void Add(Point p, Color c, bool alwaysAdd = false);
+        public abstract void Grow();
     }
 
     //TODO
     //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
-
-    internal struct EP_Tree
+    internal struct Tree
     {
-        internal readonly EP_Color color; //TODO feedback
-        internal readonly EP_Point root;
+        internal readonly Color color; 
+        internal readonly Point root;
         internal int generation;
-        internal EP_Point[] previousGen; //Parents of the present Leaves
-        internal EP_Point[] leaves;
+        internal Point[] previousGen; //Parents of the present Leaves
+        internal Point[] leaves;
         internal readonly int edgeLength;
         internal readonly int nLeaves;//Warning need to be >2
 
-        public EP_Tree(EP_Color color, EP_Point root, int edgeLength, int nLeaves, EP_Point[] previousGen, EP_Point[] startLeaves)
+        public Tree(Color color, Point root, int edgeLength, int nLeaves, Point[] previousGen, Point[] startLeaves)
         {
             this.color = color;
             this.root = root;
             this.edgeLength = edgeLength;
             this.nLeaves = nLeaves; //Warning need to be >2
-            this.previousGen = previousGen; //TODO method DefaultEP_Tree will create this //TODO feedback
+            this.previousGen = previousGen; //TODO method DefaultTree will create this //TODO feedback
             leaves = startLeaves;
             generation = 0;
         }
     }
 
-
-    class TreeFactory
+    class TreeFactory : BaseFactory
     {
-        internal List<EP_Tree> oldTrees;
-        private LinkedList<EP_Tree> renderQueue;
-        private int maxGenerations = 100;   // controls the max size of a single tree
-        private int offset_distance = 30;   // distance from the convex hull
-        private readonly int edgeLength = 20; // Constant to experiment with
-        private readonly int nLeaves = 90;       //constant to experiment with
+        internal List<Tree> oldTrees;
+        private LinkedList<Tree> renderQueue;
+        private int maxGenerations = 100;           // controls the max size of a single tree
+        private int offset_distance = 30;           // distance from the convex hull
+        private readonly int edgeLength = 20;       // Constant to experiment with
+        private readonly int nLeaves = 90;          //constant to experiment with
         private Random random = new Random();
-        private EP_Tree currentTree;
+        private Tree currentTree;
         private bool treeAdded = false;
+
         public TreeFactory()
         {
-            oldTrees = new List<EP_Tree>();
-            renderQueue = new LinkedList<EP_Tree>();
+            oldTrees = new List<Tree>();
+            renderQueue = new LinkedList<Tree>();
         }
 
         internal void ClearRenderQueue()
@@ -80,7 +60,7 @@ namespace EyePaint
             renderQueue.Clear();
         }
 
-        internal LinkedList<EP_Tree> getRenderQueue()
+        internal LinkedList<Tree> getRenderQueue()
         {
             return renderQueue;
         }
@@ -93,13 +73,16 @@ namespace EyePaint
                 return true;
         }
 
-        internal void AddTree(EP_Point root, EP_Color color)
+        public override void Add(Point root, Color c, bool alwaysAdd = false)
         {
-            oldTrees.Add(currentTree);
-            EP_Tree tree = CreateDefaultTree(root, color);
-            currentTree = tree;
-            renderQueue.AddLast(tree);
-            treeAdded = true;
+            if (alwaysAdd || !pointInsideTree(root))
+            {
+                oldTrees.Add(currentTree);
+                Tree tree = CreateDefaultTree(root, c);
+                currentTree = tree;
+                renderQueue.AddLast(tree);
+                treeAdded = true;
+            }
         }
 
         /*
@@ -108,34 +91,33 @@ namespace EyePaint
          */
         //TODO
         //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
-        private EP_Tree CreateDefaultTree(EP_Point root, EP_Color color)// TODO Change b to private
+        private Tree CreateDefaultTree(Point root, Color color)// TODO Change b to private
         {
             // All the start leaves will have the root as parent
-            EP_Point[] previousGen = new EP_Point[nLeaves];
+            Point[] previousGen = new Point[nLeaves];
             for (int i = 0; i < nLeaves; i++)
                 previousGen[i] = root;
 
-            EP_Point[] startLeaves = new EP_Point[nLeaves];
+            Point[] startLeaves = new Point[nLeaves];
             double v = 0;
 
             // Create a set number of leaves with the root of of the tree as parent to all of them
             for (int i = 0; i < nLeaves; i++)
             {
-
                 int x = Convert.ToInt32(edgeLength * Math.Cos(v)) + root.X;
                 int y = Convert.ToInt32(edgeLength * Math.Sin(v)) + root.Y;
-                EP_Point leaf = new EP_Point(x, y);
+                Point leaf = new Point(x, y);
                 startLeaves[i] = leaf;
                 v += 2 * Math.PI / nLeaves;
             }
 
-            return new EP_Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
+            return new Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
         }
 
         /*
          * Update renderQuee with a EP-tree representing the next generation of the last tree created
          */
-        internal void growTree()
+        public override void Grow()
         {
             if (treeAdded)
             {
@@ -144,15 +126,15 @@ namespace EyePaint
                     return;
                 }
 
-                EP_Tree lastTree = currentTree;
-                EP_Point[] newLeaves = new EP_Point[nLeaves];
+                Tree lastTree = currentTree;
+                Point[] newLeaves = new Point[nLeaves];
                 // Grow all branches
                 for (int i = 0; i < nLeaves; i++)
                 {
-                    EP_Point newLeave = getLeave(lastTree.leaves[i], lastTree.root);
+                    Point newLeave = getLeave(lastTree.leaves[i], lastTree.root);
                     newLeaves[i] = newLeave;
                 }
-                EP_Tree grownTree = new EP_Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
+                Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
                 grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
                 renderQueue.AddLast(currentTree);
@@ -163,10 +145,10 @@ namespace EyePaint
          * Return a point representing a leave that is 
          * grown outwards from the root.
          */
-        private EP_Point getLeave(EP_Point parent, EP_Point root)
+        private Point getLeave(Point parent, Point root)
         {   
             //Declare an origo point
-            EP_Point origo = new EP_Point(0,0);
+            Point origo = new Point(0,0);
             //Declare a vector of length 1  from the root out on the positve x-axis.
             int[] xAxisVector = new int[2] { 1, 0 };
 
@@ -208,37 +190,32 @@ namespace EyePaint
             // Calculate the coordinates for the leaf and transform them back to the original coordinate system
             childVector[0] = Convert.ToInt32(c * Math.Cos(v2));
             childVector[1] = Convert.ToInt32(c * Math.Sin(v2));
-            return new EP_Point(childVector[0] + root.X, childVector[1] + root.Y);
+            return new Point(childVector[0] + root.X, childVector[1] + root.Y);
         }
 
-
-
         //OBS this method does not compute correct if the root isn´t in the convex hull of the trees leafs
-        internal bool pointInsideTree(EP_Point evalPoint)
+        internal bool pointInsideTree(Point evalPoint)
         {
             if (!treeAdded)
             {
                 return false;
             }
      
-            EP_Point[] points = new EP_Point[currentTree.nLeaves];
+            Point[] points = new Point[currentTree.nLeaves];
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
-                EP_Point p = transformCoordinates(currentTree.root, currentTree.leaves[i]);
+                Point p = transformCoordinates(currentTree.root, currentTree.leaves[i]);
                 points[i] = offset(p);
             }
             
             evalPoint = transformCoordinates(currentTree.root, evalPoint);
-
-            Stack<EP_Point> s = GrahamScan(points);
-
+            Stack<Point> s = GrahamScan(points);
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
-
-            EP_Point hullStart = s.Pop();
-            EP_Point p1 = hullStart;
-            EP_Point p2 =hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
-            EP_Point origo = new EP_Point(0, 0);           
+            Point hullStart = s.Pop();
+            Point p1 = hullStart;
+            Point p2 =hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
+            Point origo = new Point(0, 0);           
             while (s.Count() != 0)
             {
                 p2 = s.Pop();
@@ -255,12 +232,10 @@ namespace EyePaint
             }
 
             return true;
-
         }
         
-        private bool lineSegmentIntersect(EP_Point A, EP_Point B, EP_Point C, EP_Point D)
+        private bool lineSegmentIntersect(Point A, Point B, Point C, Point D)
         {
-
             //check if any of the vectors are the 0-vector
             if((A.X ==B.X && A.Y ==B.Y)||(C.X == D.X )&&( C.Y == D.Y))
             {
@@ -269,8 +244,7 @@ namespace EyePaint
             //  Fail if the segments share an end point.
 
             if (A.X == C.X && A.Y == C.Y || B.X == C.X && B.Y == C.Y
-
-            || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
+                || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
             {
                return false;
             }
@@ -281,50 +255,34 @@ namespace EyePaint
             A = transformCoordinates(A,A);
 
             //  Discover the length of segment A-B.
-
             double distAB = getVectorLength(getVector(A,B));
-
             //Change to double
             double Cx = C.X; double Cy = C.Y;
             double Dx = D.X; double Dy = D.Y;
-
              //  (2) Rotate the system so that point B is on the positive X axis.
-
             double theCos = B.X / distAB;
-
             double theSin = B.Y / distAB;
-
             double newX = Cx * theCos + Cy * theSin;
-
             Cy = Cy * theCos - Cx * theSin; Cx = newX;
-
             newX = Dx * theCos + Dy * theSin;
-
             Dy = Dy * theCos - Dx * theSin; Dx = newX;
-
             //  Fail if segment C-D doesn't cross line A-B.
-
             if (Cy < 0 && Dy < 0 || Cy >= 0 && Dy >= 0) return false;
-
             //  (3) Discover the position of the intersection point along line A-B.
-
             double ABpos = Dx + (Cx - Dx) * Dy / (Dy - Cy);
-
             //  Fail if segment C-D crosses line A-B outside of segment A-B.
-
             if (ABpos < 0 || ABpos > distAB) return false;
-
             //The line segments intersect
             return true;
         }
 
-        private Stack<EP_Point> GrahamScan(EP_Point[] points)
+        private Stack<Point> GrahamScan(Point[] points)
         {
             //Find point with lowex Y-coordinate
 
-            EP_Point minPoint = getLowestPoint(points);
+            Point minPoint = getLowestPoint(points);
             //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
-            EP_Point refPoint = new EP_Point(minPoint.X + 10, minPoint.Y);
+            Point refPoint = new Point(minPoint.X + 10, minPoint.Y);
 
             //Create a vector of GrahamPoints by calculate the angle a for each point in points
             //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
@@ -346,17 +304,14 @@ namespace EyePaint
             }
 
             Array.Sort(grahamPoints);
+            Stack<Point> s = new Stack<Point>();
 
+            s.Push(GrahamPointToPoint(grahamPoints[0]));
+            s.Push(GrahamPointToPoint(grahamPoints[1]));
+            s.Push(GrahamPointToPoint(grahamPoints[2]));
 
-            Stack<EP_Point> s = new Stack<EP_Point>();
-
-
-            s.Push(GrahamPointToEP_Point(grahamPoints[0]));
-            s.Push(GrahamPointToEP_Point(grahamPoints[1]));
-            s.Push(GrahamPointToEP_Point(grahamPoints[2]));
-
-            EP_Point top;
-            EP_Point nextToTop;
+            Point top;
+            Point nextToTop;
             for (int i = 3; i < grahamPoints.Count(); i++)
             {
                 bool notPushed = true;
@@ -370,21 +325,18 @@ namespace EyePaint
                         s.Push(grahamPoints[i].point);
                         notPushed = false;
                     }
-
                 }
             }
             return s;
         }
 
-
-
         //Create struct to able to sort points by there angle a
         private struct GrahamPoint : IComparable<GrahamPoint>
         {
             public double angle;
-            public EP_Point point;
+            public Point point;
 
-            public GrahamPoint(double angle, EP_Point point)
+            public GrahamPoint(double angle, Point point)
             {
                 this.angle = angle;
                 this.point = point;
@@ -412,7 +364,7 @@ namespace EyePaint
         // Use cross-product to calculate if three points are a counter-clockwise. 
         // They are counter-clockwise if ccw > 0, clockwise if
         // ccw < 0, and collinear if ccw == 0
-        private int ccw(EP_Point p1, EP_Point p2, EP_Point p3)
+        private int ccw(Point p1, Point p2, Point p3)
         {
             return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
         }
@@ -437,38 +389,37 @@ namespace EyePaint
             return l;
         }
 
-        private int[] getVector(EP_Point p1, EP_Point p2)
+        private int[] getVector(Point p1, Point p2)
         {
             int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
             return vector;
         }
 
         // Offsets the point 'p' 'distance' pixels from origo
-        private EP_Point offset(EP_Point p)
+        private Point offset(Point p)
         {
-            EP_Point origo = new EP_Point(0, 0);
+            Point origo = new Point(0, 0);
             int[] op = getVector(origo, p);
             double old_l = getVectorLength(op);
             double new_l = old_l + offset_distance;
             double ratio = new_l / old_l;
             int x = Convert.ToInt32(p.X * ratio);
             int y = Convert.ToInt32(p.Y * ratio);
-            return new EP_Point(x, y);
+            return new Point(x, y);
         }
 
         //Transfor the point to a coordinate system where the argumet origo have the 
         //cooridinate (0,0)
-        private EP_Point transformCoordinates(EP_Point origo, EP_Point point)
+        private Point transformCoordinates(Point origo, Point point)
         {
             point.X -= origo.X;
             point.Y -= origo.Y;
-            
             return point;
         }
 
-        private EP_Point getLowestPoint(EP_Point[] points)
+        private Point getLowestPoint(Point[] points)
         {
-            EP_Point minPoint = points[0];
+            Point minPoint = points[0];
 
             for (int i = 0; i < points.Count(); i++)
             {
@@ -489,14 +440,12 @@ namespace EyePaint
             return minPoint;
         }
 
-        private EP_Point GrahamPointToEP_Point(GrahamPoint grahamPoint)
+        private Point GrahamPointToPoint(GrahamPoint grahamPoint)
         {
-            EP_Point ep_point = new EP_Point(grahamPoint.point.X, grahamPoint.point.Y);
-            return ep_point;
+            Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);
+            return point;
         }
-        
     }
-
 
     class Cloud
     {
@@ -522,20 +471,20 @@ namespace EyePaint
         }
     }
 
-    class CloudFactory
+    class CloudFactory : BaseFactory
     {
         internal readonly Stack<Cloud> clouds;
         private Queue<Point> renderQueue;
         private Random randomNumberGenerator;
 
-        internal CloudFactory()
+        public CloudFactory()
         {
             clouds = new Stack<Cloud>();
             renderQueue = new Queue<Point>(); //TODO Exchange for buffer. Will probably require restructuring of program.
             randomNumberGenerator = new Random();
         }
 
-        internal void AddCloud(Point center, Color color)
+        public override void Add(Point center, Color color, bool alwaysAdd = false)
         {
             Cloud c = new Cloud(center, color);
             clouds.Push(c);
@@ -555,9 +504,9 @@ namespace EyePaint
             }
         }
 
-        internal void GrowCloudRandomAmount(Cloud c, int maximum)
+        public override void Grow()
         {
-            GrowCloud(c, randomNumberGenerator.Next(maximum));
+            GrowCloud(clouds.Peek(), randomNumberGenerator.Next(10));
         }
 
         internal bool HasQueued()

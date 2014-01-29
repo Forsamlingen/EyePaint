@@ -9,7 +9,6 @@
 
     public partial class EyeTrackingForm : Form
     {
-
         private Random rng;
         private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
         private Point gazePoint;
@@ -17,9 +16,8 @@
         private bool stableGaze;
         private int keyhole = 120; // constant for gazePoint noise detection
         private bool greenButtonPressed;
-        private CloudFactory cloudFactory;
-        private TreeFactory treeFactory;
-        private ImageFactory imageFactory;
+        private BaseFactory factory;
+        private BaseRasterizer rasterizer;
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
@@ -55,30 +53,29 @@
             rng = new Random();
             currentColor = DEFAULT_COLOR;
 
-            int height = Screen.PrimaryScreen.Bounds.Height;
             int width = Screen.PrimaryScreen.Bounds.Width;
-            imageFactory = new ImageFactory(width, height);
-            cloudFactory = new CloudFactory(); //TODO This should be ERA's tree factory instead.
-            treeFactory = new TreeFactory();
+            int height = Screen.PrimaryScreen.Bounds.Height;
+            if (treeMode)
+            {
+                rasterizer = new TreeRasterizer(width, height);
+                factory = new TreeFactory();
+            }
+            else if (cloudMode)
+            {
+                rasterizer = new CloudRasterizer(width, height);
+                factory = new CloudFactory();
+            }
 
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33;
             paint.Enabled = false;
-            paint.Tick += tick;
+            paint.Tick += onTick;
         }
 
         // Grows the model and refreshes the canvas
-        private void tick(object sender, System.EventArgs e)
+        private void onTick(object sender, System.EventArgs e)
         {
-            if (treeMode)
-            {
-                treeFactory.growTree();
-            }
-            else if (cloudMode)
-            {
-                cloudFactory.GrowCloudRandomAmount(cloudFactory.clouds.Peek(), 10);
-            }
-
+            factory.Grow();
             Invalidate();
 
             if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
@@ -109,41 +106,14 @@
         // Rasterizes the model and returns an image object
         private Image getPainting()
         {
-            //TODO switch to switchcase and eventhandling
-            if (cloudMode)
-            {
-                try
-                {
-                    Point[] points = new Point[cloudFactory.GetQueueLength()];
-                    int i = 0;
-                    while (cloudFactory.HasQueued())
-                        points[i++] = cloudFactory.GetQueued();
-
-                    Image image = imageFactory.RasterizeCloud(cloudFactory.clouds, points);
-                    return image;
-                }
-                catch (InvalidOperationException)
-                {
-                    return null; //TODO Improve exception handling.
-                }
-            }
-            else if (treeMode)
-            {
-                
-                Image image = imageFactory.RasterizeTree(treeFactory.getRenderQueue());
-                treeFactory.ClearRenderQueue();
-                return image;
-            }
-            else
-            {
-                return null;
-            }
+            Image image = rasterizer.Rasterize(factory);
+            return image;
         }
 
         // Clears the canvas
         private void resetPainting()
         {
-            imageFactory.Undo();
+            rasterizer.Undo();
             Invalidate();
         }
 
@@ -270,25 +240,16 @@
         private void OnPaint(object sender, PaintEventArgs e)
         {
             Image image = getPainting();
-            e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            if (image != null)
+            {
+                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            }
         }
 
         // Adds a new point to the model
         private void AddPoint(Point p, bool alwaysAdd = false)
         {
-            if (treeMode)
-            {
-                EP_Color epColor = new EP_Color(currentColor.R, currentColor.G, currentColor.B);
-                EP_Point epPoint = new EP_Point(p.X, p.Y);
-                if (alwaysAdd || !treeFactory.pointInsideTree(epPoint))
-                {
-                    treeFactory.AddTree(epPoint, epColor);
-                }
-            }
-            else if (cloudMode)
-            {
-                cloudFactory.AddCloud(p, currentColor);
-            }
+            factory.Add(p, currentColor, alwaysAdd);
         }
 
         // Stores a new point in 'latestPoint' and determines whether or not to add it
@@ -322,21 +283,6 @@
         {
             Point p = new Point(e.X, e.Y);
             TrackPoint(p);
-        }
-
-        internal Point convertToPoint(EP_Point epPoint)
-        {
-            return new Point(epPoint.X, epPoint.Y);
-        }
-
-        internal EP_Point convertToEP_Point(Point point)
-        {
-            return new EP_Point(point.X, point.Y);
-        }
-
-        internal EP_Color convertToEP_Color(Color color)
-        {
-            return new EP_Color(color.R, color.G, color.B);
         }
 
         private void OnShown(object sender, EventArgs e)

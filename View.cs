@@ -10,17 +10,18 @@ namespace EyePaint
     {
         private Image image, background;
         private Pen pen;
+        SolidBrush bgBrush = new SolidBrush(Color.Black);
         private readonly int stdOpacity = 255;
         private readonly int stdWidth = 2;
         private readonly int stdRadius = 1;
-        private string stdString = "tree tihi :-)";
+        private string stdString = "Evelina";
         private Font font = new Font( "Times New Roman", 20.0f);
         
         internal ImageFactory(int width, int height)
         {
             background = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(background))
-                g.FillRectangle(Brushes.Black, 0, 0, width, height);
+                g.FillRectangle(bgBrush, 0, 0, width, height);
 
             image = new Bitmap(background);
 
@@ -31,7 +32,7 @@ namespace EyePaint
         {
             while (renderQueue.Count() != 0)
             {
-                DrawStringTree(renderQueue.First());
+                DrawBlopTree(renderQueue.First());
                 //DrawTree(renderQueue.First());
                 renderQueue.RemoveFirst();
             }

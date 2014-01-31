@@ -179,7 +179,7 @@
                 case Keys.B:
                     currentColor = Color.CornflowerBlue;
                     break;
-                case Keys.Enter:
+                case Keys.S:
                     storePainting();
                     break;
                 default:

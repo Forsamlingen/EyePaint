@@ -228,7 +228,7 @@
 
         private void OnRedButtonUp(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            return;
         }
 
         private void OnMove(object sender, EventArgs e)

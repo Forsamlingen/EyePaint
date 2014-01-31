@@ -311,6 +311,7 @@
             {
                 InfoMessage.Visible = false;
                 ErrorMessagePanel.Visible = true;
+                ErrorMessagePanel.Enabled = true;
                 ErrorMessage.Text = e.ErrorMessage;
                 Resolve.Enabled = e.CanResolve;
                 Retry.Enabled = e.CanRetry;
@@ -318,6 +319,7 @@
             }
 
             ErrorMessagePanel.Visible = false;
+            ErrorMessagePanel.Enabled = false;
 
             if (e.EyeTrackingState != EyeTrackingState.Tracking)
             {
@@ -365,6 +367,7 @@
         {
             useMouse = true;
             ErrorMessagePanel.Visible = false;
+            ErrorMessagePanel.Enabled = false;
         }
     }
 }

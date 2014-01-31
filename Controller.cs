@@ -179,7 +179,7 @@
                 case Keys.B:
                     currentColor = Color.CornflowerBlue;
                     break;
-                case Keys.Enter:
+                case Keys.S:
                     storePainting();
                     break;
                 default:
@@ -228,7 +228,7 @@
 
         private void OnRedButtonUp(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            return;
         }
 
         private void OnMove(object sender, EventArgs e)
@@ -311,6 +311,7 @@
             {
                 InfoMessage.Visible = false;
                 ErrorMessagePanel.Visible = true;
+                ErrorMessagePanel.Enabled = true;
                 ErrorMessage.Text = e.ErrorMessage;
                 Resolve.Enabled = e.CanResolve;
                 Retry.Enabled = e.CanRetry;
@@ -318,6 +319,7 @@
             }
 
             ErrorMessagePanel.Visible = false;
+            ErrorMessagePanel.Enabled = false;
 
             if (e.EyeTrackingState != EyeTrackingState.Tracking)
             {
@@ -365,6 +367,7 @@
         {
             useMouse = true;
             ErrorMessagePanel.Visible = false;
+            ErrorMessagePanel.Enabled = false;
         }
     }
 }

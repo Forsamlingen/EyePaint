@@ -53,7 +53,6 @@
             // 
             resources.ApplyResources(this.EnableMouse, "EnableMouse");
             this.EnableMouse.Name = "EnableMouse";
-            this.EnableMouse.TabStop = false;
             this.EnableMouse.UseVisualStyleBackColor = false;
             this.EnableMouse.Click += new System.EventHandler(this.EnableMouseClick);
             // 
@@ -61,7 +60,6 @@
             // 
             resources.ApplyResources(this.Exit, "Exit");
             this.Exit.Name = "Exit";
-            this.Exit.TabStop = false;
             this.Exit.UseVisualStyleBackColor = false;
             this.Exit.Click += new System.EventHandler(this.ExitClick);
             // 
@@ -69,7 +67,6 @@
             // 
             resources.ApplyResources(this.Retry, "Retry");
             this.Retry.Name = "Retry";
-            this.Retry.TabStop = false;
             this.Retry.UseVisualStyleBackColor = false;
             this.Retry.Click += new System.EventHandler(this.RetryClick);
             // 
@@ -77,7 +74,6 @@
             // 
             resources.ApplyResources(this.Resolve, "Resolve");
             this.Resolve.Name = "Resolve";
-            this.Resolve.TabStop = false;
             this.Resolve.UseVisualStyleBackColor = false;
             this.Resolve.Click += new System.EventHandler(this.OpenControlPanelClick);
             // 
@@ -99,6 +95,7 @@
             this.ControlBox = false;
             this.Controls.Add(this.InfoMessage);
             this.Controls.Add(this.ErrorMessagePanel);
+            this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.KeyPreview = true;

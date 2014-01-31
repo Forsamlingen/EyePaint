@@ -43,8 +43,8 @@ namespace EyePaint
         private LinkedList<Tree> renderQueue;
         private int maxGenerations = 100;           // controls the max size of a single tree
         private int offset_distance = 30;           // distance from the convex hull
-        private readonly int edgeLength = 20;       // Constant to experiment with
-        private readonly int nLeaves = 90;          //constant to experiment with
+        private readonly int edgeLength = 25;       // Constant to experiment with
+        private readonly int nLeaves = 7;           //constant to experiment with
         private Random random = new Random();
         private Tree currentTree;
         private bool treeAdded = false;
@@ -276,7 +276,7 @@ namespace EyePaint
             return true;
         }
 
-        private Stack<Point> GrahamScan(Point[] points)
+        internal Stack<Point> GrahamScan(Point[] points)
         {
             //Find point with lowex Y-coordinate
 

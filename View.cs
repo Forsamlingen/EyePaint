@@ -10,7 +10,7 @@ namespace EyePaint
     {
         internal Image image, background;
         internal Pen pen;
-        internal SolidBrush bgBrush = new SolidBrush(Color.Black);
+        internal SolidBrush bgBrush = new SolidBrush(Color.White);
         internal readonly int stdOpacity = 25;
         internal readonly int stdWidth = 2;
         internal readonly int stdRadius = 2;

@@ -67,7 +67,8 @@ namespace EyePaint
                 Tree t = q.First();
                 Stack<Point> s = factory.GrahamScan(t.leaves);
                 DrawTree(t);
-                DrawConvexHull(t, s);
+                DrawBlopTree(t);
+                //DrawConvexHull(t, s);
                 q.RemoveFirst();
             }
             factory.ClearRenderQueue();

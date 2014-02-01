@@ -21,7 +21,7 @@
         private bool useMouse;
         private Timer paint;
         private Color currentColor;
-        private readonly Color DEFAULT_COLOR = Color.Crimson;
+        private readonly Color DEFAULT_COLOR = Color.ForestGreen;
         private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
         private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
         private bool treeMode = true;
@@ -171,13 +171,13 @@
                     OnRedButtonDown(sender, e);
                     break;
                 case Keys.R:
-                    currentColor = Color.Crimson;
+                    currentColor = Color.Purple;
                     break;
                 case Keys.G:
                     currentColor = Color.ForestGreen;
                     break;
                 case Keys.B:
-                    currentColor = Color.CornflowerBlue;
+                    currentColor = Color.Blue;
                     break;
                 case Keys.S:
                     storePainting();

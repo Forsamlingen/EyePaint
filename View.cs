@@ -13,8 +13,8 @@ namespace EyePaint
         internal SolidBrush bgBrush = new SolidBrush(Color.Black);
         internal readonly int stdOpacity = 25;
         internal readonly int stdWidth = 2;
-        internal readonly int stdRadius = 2;
-        internal readonly int edgeWith = 5;
+        internal readonly int stdRadius = 4;
+        internal readonly int edgeWith = 2;
         internal string stdString = "Evelina";
         internal Font font = new Font( "Times New Roman", 20.0f);
 
@@ -99,7 +99,7 @@ namespace EyePaint
         private void DrawBlopTree(Tree tree)
         {
             pen.Color = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
-            pen.Width = stdWidth * 2 * stdRadius;
+            pen.Width = stdRadius;
             for (int i = 0; i < tree.nLeaves; i++)
             {
                 Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);

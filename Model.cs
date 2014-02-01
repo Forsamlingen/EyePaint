@@ -41,10 +41,10 @@ namespace EyePaint
     {
         internal List<Tree> oldTrees;
         private LinkedList<Tree> renderQueue;
-        private int maxGenerations = 100;           // controls the max size of a single tree
+        private int maxGenerations = 800;           // controls the max size of a single tree
         private int offset_distance = 30;           // distance from the convex hull
-        private readonly int edgeLength = 30;       // Constant to experiment with
-        private readonly int nLeaves = 60;           //constant to experiment with
+        private readonly int edgeLength = 2;       // Constant to experiment with
+        private readonly int nLeaves = 1000;           //constant to experiment with
         private Random random = new Random();
         private Tree currentTree;
         private bool treeAdded = false;

@@ -10,7 +10,7 @@ namespace EyePaint
     {
         internal Image image, background;
         internal Pen pen;
-        internal SolidBrush bgBrush = new SolidBrush(Color.White);
+        internal SolidBrush bgBrush = new SolidBrush(Color.Black);
         internal readonly int stdOpacity = 25;
         internal readonly int stdWidth = 2;
         internal readonly int stdRadius = 2;
@@ -66,7 +66,7 @@ namespace EyePaint
                 Tree t = q.First();
                 Stack<Point> s = factory.GrahamScan(t.leaves);
                 DrawTree(t);
-                DrawConvexHull(t, s);
+                //DrawConvexHull(t, s);
                 q.RemoveFirst();
             }
             factory.ClearRenderQueue();

@@ -125,15 +125,18 @@
   <data name="ErrorMessagePanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="EnableMouse.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
+  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="EnableMouse.Location" type="System.Drawing.Point, System.Drawing">
-    <value>240, 33</value>
+    <value>209, 11</value>
   </data>
   <data name="EnableMouse.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
   <data name="EnableMouse.Size" type="System.Drawing.Size, System.Drawing">
-    <value>126, 26</value>
+    <value>150, 30</value>
   </data>
   <data name="EnableMouse.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -156,14 +159,17 @@
   <data name="Exit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="Exit.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
+  </data>
   <data name="Exit.Location" type="System.Drawing.Point, System.Drawing">
-    <value>608, 10</value>
+    <value>599, 11</value>
   </data>
   <data name="Exit.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
   <data name="Exit.Size" type="System.Drawing.Size, System.Drawing">
-    <value>23, 21</value>
+    <value>30, 30</value>
   </data>
   <data name="Exit.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -183,14 +189,17 @@
   <data name="&gt;&gt;Exit.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="Retry.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
+  </data>
   <data name="Retry.Location" type="System.Drawing.Point, System.Drawing">
-    <value>153, 33</value>
+    <value>145, 11</value>
   </data>
   <data name="Retry.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
   <data name="Retry.Size" type="System.Drawing.Size, System.Drawing">
-    <value>60, 26</value>
+    <value>60, 30</value>
   </data>
   <data name="Retry.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -210,14 +219,17 @@
   <data name="&gt;&gt;Retry.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="Resolve.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
+  </data>
   <data name="Resolve.Location" type="System.Drawing.Point, System.Drawing">
-    <value>6, 33</value>
+    <value>11, 11</value>
   </data>
   <data name="Resolve.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
   <data name="Resolve.Size" type="System.Drawing.Size, System.Drawing">
-    <value>117, 27</value>
+    <value>130, 30</value>
   </data>
   <data name="Resolve.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -237,23 +249,29 @@
   <data name="&gt;&gt;Resolve.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
+  <data name="ErrorMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Bottom, Left, Right</value>
+  </data>
   <data name="ErrorMessage.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="ErrorMessage.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 6</value>
+    <value>225, 240</value>
   </data>
   <data name="ErrorMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 0, 2, 0</value>
+    <value>0, 0, 0, 0</value>
   </data>
   <data name="ErrorMessage.Size" type="System.Drawing.Size, System.Drawing">
-    <value>228, 13</value>
+    <value>189, 13</value>
   </data>
   <data name="ErrorMessage.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
   <data name="ErrorMessage.Text" xml:space="preserve">
-    <value>Tobii Eye Tracking has not been set up for use</value>
+    <value>Could not connect to the eye tracker...</value>
+  </data>
+  <data name="ErrorMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleCenter</value>
   </data>
   <data name="&gt;&gt;ErrorMessage.Name" xml:space="preserve">
     <value>ErrorMessage</value>
@@ -292,39 +310,6 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;ErrorMessagePanel.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="InfoMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Left, Right</value>
-  </data>
-  <data name="InfoMessage.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 227</value>
-  </data>
-  <data name="InfoMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 0, 2, 0</value>
-  </data>
-  <data name="InfoMessage.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 44</value>
-  </data>
-  <data name="InfoMessage.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
-  </data>
-  <data name="InfoMessage.Text" xml:space="preserve">
-    <value>Connecting...</value>
-  </data>
-  <data name="InfoMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleCenter</value>
-  </data>
-  <data name="&gt;&gt;InfoMessage.Name" xml:space="preserve">
-    <value>InfoMessage</value>
-  </data>
-  <data name="&gt;&gt;InfoMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;InfoMessage.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;InfoMessage.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -350,9 +335,6 @@
   </data>
   <data name="$this.StartPosition" type="System.Windows.Forms.FormStartPosition, System.Windows.Forms">
     <value>CenterScreen</value>
-  </data>
-  <data name="$this.Text" xml:space="preserve">
-    <value>EyePaint</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>EyeTrackingForm</value>

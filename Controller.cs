@@ -3,37 +3,41 @@
     using System;
     using System.Drawing;
     using System.Windows.Forms;
-    using Tobii.Gaze.Core;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using Tobii.EyeX.Client;
+    using Tobii.EyeX.Client.Interop;
+    using Tobii.EyeX.Framework;
 
-    public partial class EyeTrackingForm : Form
+    public partial class EyePaintingForm : Form, IDisposable
     {
-        private Random rng;
-        private readonly EyeTrackingEngine _eyeTrackingEngine; //TODO Remove underscore. Silly naming convention with an IDE.
-        private Point gazePoint;
-        private Point latestPoint;
+        // Eye tracking.
+        private const string InteractorId = "minimal"; //TODO Set a more unique id.
+        private InteractionContext context;
+        private InteractionSnapshot globalInteractorSnapshot;
         private bool stableGaze;
-        private int keyhole = 120; // constant for gazePoint noise detection
+        private Point gazePoint, latestPoint;
+        private const int keyhole = 120; //TODO Make into property.
+
+        // User input.
+        private bool useMouse;
         private bool greenButtonPressed;
+
+        // Painting.
         private BaseFactory factory;
         private BaseRasterizer rasterizer;
-        private bool useMouse;
         private Timer paint;
         private Color currentColor;
-        private readonly Color DEFAULT_COLOR = Color.Crimson;
-        private bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true;
-        private bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false;
-        private bool treeMode = true;
-        private bool cloudMode = false;
-        private delegate void UpdateStateDelegate(EyeTrackingStateChangedEventArgs eyeTrackingStateChangedEventArgs);
+        private Color DEFAULT_COLOR = Color.Crimson; //TODO Make into property.
+        private const bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true; //TODO Make into property.
+        private const bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false; //TODO Make into property.
+        private bool treeMode = true, cloudMode = false;
 
-        public EyeTrackingForm(EyeTrackingEngine eyeTrackingEngine)
+        public EyePaintingForm()
         {
             InitializeComponent();
 
             Shown += OnShown;
-            Paint += OnPaint;
             Move += OnMove;
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
@@ -41,16 +45,18 @@
             MouseDown += OnMouseDown;
             MouseUp += OnMouseUp;
 
-            _eyeTrackingEngine = eyeTrackingEngine;
-            _eyeTrackingEngine.StateChanged += StateChanged;
-            _eyeTrackingEngine.GazePoint += OnGazePoint;
-            _eyeTrackingEngine.Initialize();
+            // Create a context and enable the connection to the eye tracking engine.
+            context = new InteractionContext(false);
+            InitializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += OnConnectionStateChanged;
+            context.RegisterEventHandler(HandleEvent);
+            context.EnableConnection();
 
+            // Start values.
             stableGaze = false;
             greenButtonPressed = false;
             gazePoint = new Point(0, 0);
             latestPoint = new Point(0, 0);
-            rng = new Random();
             currentColor = DEFAULT_COLOR;
 
             int width = Screen.PrimaryScreen.Bounds.Width;
@@ -66,8 +72,9 @@
                 factory = new CloudFactory();
             }
 
+            Paint += OnPaint;
             paint = new System.Windows.Forms.Timer();
-            paint.Interval = 33;
+            paint.Interval = 33; //TODO Make into property.
             paint.Enabled = false;
             paint.Tick += onTick;
         }
@@ -120,6 +127,7 @@
         private void setRandomPaintTool()
         {
             //TODO Set more settings randomly than just the tool color.
+            Random rng = new Random();
             currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
         }
 
@@ -204,7 +212,8 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            if (greenButtonPressed) {
+            if (greenButtonPressed)
+            {
                 return;
             }
 
@@ -233,8 +242,7 @@
 
         private void OnMove(object sender, EventArgs e)
         {
-            WarnIfOutsideEyeTrackingScreenBounds(); //TODO Neccessary?
-            stableGaze = false; // TODO Neccessary?
+            stableGaze = false; //TODO Neccessary?
         }
 
         private void OnPaint(object sender, PaintEventArgs e)
@@ -246,13 +254,13 @@
             }
         }
 
-        // Adds a new point to the model
+        // Adds a new point to the model.
         private void AddPoint(Point p, bool alwaysAdd = false)
         {
             factory.Add(p, currentColor, alwaysAdd);
         }
 
-        // Stores a new point in 'latestPoint' and determines whether or not to add it
+        // Stores a new point in 'latestPoint' and determines whether or not to add it.
         private void TrackPoint(Point p)
         {
             stableGaze = true;
@@ -264,82 +272,29 @@
             {
                 gazePoint = p;
                 if (greenButtonPressed)
-                {
                     AddPoint(gazePoint);
-                }
             }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (useMouse)
-            {
-                Point p = new Point(e.X, e.Y);
-                TrackPoint(p);
-            }
-        }
-
-        private void OnGazePoint(object sender, GazePointEventArgs e)
-        {
-            Point p = new Point(e.X, e.Y);
-            TrackPoint(p);
+                TrackPoint(new Point(e.X, e.Y));
         }
 
         private void OnShown(object sender, EventArgs e)
         {
-            WarnIfOutsideEyeTrackingScreenBounds();
             BringToFront();
-        }
-
-        private void StateChanged(object sender, EyeTrackingStateChangedEventArgs e)
-        {
-            // Forward state change to UI thread
-            if (InvokeRequired)
-            {
-                var updateStateDelegate = new UpdateStateDelegate(UpdateState);
-                Invoke(updateStateDelegate, new object[] { e });
-            }
-            else
-            {
-                UpdateState(e);
-            }
-        }
-
-        private void UpdateState(EyeTrackingStateChangedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(e.ErrorMessage))
-            {
-                InfoMessage.Visible = false;
-                ErrorMessagePanel.Visible = true;
-                ErrorMessagePanel.Enabled = true;
-                ErrorMessage.Text = e.ErrorMessage;
-                Resolve.Enabled = e.CanResolve;
-                Retry.Enabled = e.CanRetry;
-                return;
-            }
-
-            ErrorMessagePanel.Visible = false;
-            ErrorMessagePanel.Enabled = false;
-
-            if (e.EyeTrackingState != EyeTrackingState.Tracking)
-            {
-                InfoMessage.Visible = true;
-                InfoMessage.Text = "Connecting to eye tracker, please wait...";
-            }
-            else
-            {
-                InfoMessage.Visible = false;
-            }
         }
 
         private void OpenControlPanelClick(object sender, EventArgs e)
         {
-            _eyeTrackingEngine.ResolveError();
+            //TODO Implement.
         }
 
         private void RetryClick(object sender, EventArgs e)
         {
-            _eyeTrackingEngine.Retry();
+            //TODO Neccessary button? Maybe remove the button.
         }
 
         private void ExitClick(object sender, EventArgs e)
@@ -347,27 +302,62 @@
             Environment.Exit(0);
         }
 
-        private void WarnIfOutsideEyeTrackingScreenBounds()
-        {
-            var screenBounds = _eyeTrackingEngine.EyeTrackingScreenBounds;
-
-            if (screenBounds.HasValue && (Bounds.Left > screenBounds.Value.Right || Bounds.Right < screenBounds.Value.X))
-            {
-                InfoMessage.Visible = true;
-                InfoMessage.Text = "Warning!! Application window is outside of tracking area";
-                InfoMessage.BringToFront();
-            }
-            else
-            {
-                InfoMessage.Visible = false;
-            }
-        }
-
         private void EnableMouseClick(object sender, EventArgs e)
         {
             useMouse = true;
             ErrorMessagePanel.Visible = false;
             ErrorMessagePanel.Enabled = false;
+        }
+
+        private void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
+        {
+            if (e.State == ConnectionState.Connected)
+            {
+                globalInteractorSnapshot.Commit(OnSnapshotCommitted);
+            }
+            else if (e.State == ConnectionState.TryingToConnect)
+            {
+                ErrorMessagePanel.Visible = true;
+                ErrorMessagePanel.Enabled = true;
+                ErrorMessage.Text = e.State.ToString();
+            }
+        }
+
+        private void InitializeGlobalInteractorSnapshot()
+        {
+            globalInteractorSnapshot = context.CreateSnapshot();
+            globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
+            globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
+
+            var interactor = globalInteractorSnapshot.CreateInteractor(InteractorId, Literals.RootId, Literals.GlobalInteractorWindowId);
+            interactor.CreateBounds(InteractionBoundsType.None);
+
+            var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);
+            var behaviorParams = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
+            behavior.SetGazePointDataOptions(ref behaviorParams);
+
+            globalInteractorSnapshot.Commit(OnSnapshotCommitted);
+        }
+
+        private void OnSnapshotCommitted(InteractionSnapshotResult result)
+        {
+            Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
+        }
+
+        private void HandleEvent(InteractionEvent e)
+        {
+            foreach (var behavior in e.Behaviors)
+                if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
+                    OnGazePointData(behavior);
+        }
+
+        private void OnGazePointData(InteractionBehavior behavior)
+        {
+            GazePointDataEventParams eventParams;
+            if (behavior.TryGetGazePointDataEventParams(out eventParams))
+                TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y));
+            else
+                Console.WriteLine("Failed to interpret gaze data event packet.");
         }
     }
 }

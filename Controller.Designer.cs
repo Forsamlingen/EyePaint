@@ -1,6 +1,6 @@
 ﻿namespace EyePaint
 {
-    partial class EyeTrackingForm
+    partial class EyePaintingForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,14 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyeTrackingForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyePaintingForm));
             this.ErrorMessagePanel = new System.Windows.Forms.Panel();
             this.EnableMouse = new System.Windows.Forms.Button();
             this.Exit = new System.Windows.Forms.Button();
             this.Retry = new System.Windows.Forms.Button();
             this.Resolve = new System.Windows.Forms.Button();
             this.ErrorMessage = new System.Windows.Forms.Label();
-            this.InfoMessage = new System.Windows.Forms.Label();
             this.ErrorMessagePanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -47,34 +46,39 @@
             this.ErrorMessagePanel.Controls.Add(this.Retry);
             this.ErrorMessagePanel.Controls.Add(this.Resolve);
             this.ErrorMessagePanel.Controls.Add(this.ErrorMessage);
+            this.ErrorMessagePanel.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.ErrorMessagePanel.Name = "ErrorMessagePanel";
             // 
             // EnableMouse
             // 
+            this.EnableMouse.Cursor = System.Windows.Forms.Cursors.Hand;
             resources.ApplyResources(this.EnableMouse, "EnableMouse");
             this.EnableMouse.Name = "EnableMouse";
-            this.EnableMouse.UseVisualStyleBackColor = false;
+            this.EnableMouse.UseVisualStyleBackColor = true;
             this.EnableMouse.Click += new System.EventHandler(this.EnableMouseClick);
             // 
             // Exit
             // 
             resources.ApplyResources(this.Exit, "Exit");
+            this.Exit.Cursor = System.Windows.Forms.Cursors.Hand;
             this.Exit.Name = "Exit";
-            this.Exit.UseVisualStyleBackColor = false;
+            this.Exit.UseVisualStyleBackColor = true;
             this.Exit.Click += new System.EventHandler(this.ExitClick);
             // 
             // Retry
             // 
+            this.Retry.Cursor = System.Windows.Forms.Cursors.Hand;
             resources.ApplyResources(this.Retry, "Retry");
             this.Retry.Name = "Retry";
-            this.Retry.UseVisualStyleBackColor = false;
+            this.Retry.UseVisualStyleBackColor = true;
             this.Retry.Click += new System.EventHandler(this.RetryClick);
             // 
             // Resolve
             // 
+            this.Resolve.Cursor = System.Windows.Forms.Cursors.Hand;
             resources.ApplyResources(this.Resolve, "Resolve");
             this.Resolve.Name = "Resolve";
-            this.Resolve.UseVisualStyleBackColor = false;
+            this.Resolve.UseVisualStyleBackColor = true;
             this.Resolve.Click += new System.EventHandler(this.OpenControlPanelClick);
             // 
             // ErrorMessage
@@ -82,18 +86,12 @@
             resources.ApplyResources(this.ErrorMessage, "ErrorMessage");
             this.ErrorMessage.Name = "ErrorMessage";
             // 
-            // InfoMessage
-            // 
-            resources.ApplyResources(this.InfoMessage, "InfoMessage");
-            this.InfoMessage.Name = "InfoMessage";
-            // 
             // EyeTrackingForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ControlBox = false;
-            this.Controls.Add(this.InfoMessage);
             this.Controls.Add(this.ErrorMessagePanel);
             this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
@@ -101,7 +99,6 @@
             this.KeyPreview = true;
             this.Name = "EyeTrackingForm";
             this.ShowIcon = false;
-            this.ShowInTaskbar = false;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.ErrorMessagePanel.ResumeLayout(false);
             this.ErrorMessagePanel.PerformLayout();
@@ -117,7 +114,6 @@
         private System.Windows.Forms.Label ErrorMessage;
         private System.Windows.Forms.Button Retry;
         private System.Windows.Forms.Button Exit;
-        private System.Windows.Forms.Label InfoMessage;
         private System.Windows.Forms.Button EnableMouse;
     }
 }

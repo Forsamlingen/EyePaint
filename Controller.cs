@@ -12,7 +12,7 @@
     public partial class EyePaintingForm : Form, IDisposable
     {
         // Eye tracking.
-        private const string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
+        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
         private InteractionContext context;
         private InteractionSnapshot globalInteractorSnapshot;
         private bool stableGaze;
@@ -31,7 +31,8 @@
         private Color DEFAULT_COLOR = Color.Crimson; //TODO Make into property.
         private const bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true; //TODO Make into property.
         private const bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false; //TODO Make into property.
-        private bool treeMode = true, cloudMode = false;
+        internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
+        private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
         public EyePaintingForm()
         {
@@ -59,19 +60,26 @@
             latestPoint = new Point(0, 0);
             currentColor = DEFAULT_COLOR;
 
+            // Program resolution.
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
-            if (treeMode)
+
+            // Initialize model and view classes.
+            switch (modelType) //TODO Use Activator instead.
             {
-                rasterizer = new TreeRasterizer(width, height);
-                factory = new TreeFactory();
-            }
-            else if (cloudMode)
-            {
-                rasterizer = new CloudRasterizer(width, height);
-                factory = new CloudFactory();
+                case ModelType.CLOUD:
+                    factory = new CloudFactory();
+                    rasterizer = new CloudRasterizer(width, height);
+                    break;
+                case ModelType.TREE:
+                    factory = new TreeFactory();
+                    rasterizer = new TreeRasterizer(width, height);
+                    break;
+                default:
+                    goto case ModelType.TREE;
             }
 
+            // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
             Paint += OnPaint;
             paint = new System.Windows.Forms.Timer();
             paint.Interval = 33; //TODO Make into property.

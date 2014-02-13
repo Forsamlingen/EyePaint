@@ -50,7 +50,7 @@
             context = new InteractionContext(false);
             InitializeGlobalInteractorSnapshot();
             context.ConnectionStateChanged += OnConnectionStateChanged;
-            context.RegisterEventHandler(HandleEvent);
+            context.RegisterEventHandler(HandleInteractionEvent);
             context.EnableConnection();
 
             // Start values.
@@ -198,6 +198,9 @@
                 case Keys.S:
                     storePainting();
                     break;
+                case Keys.Escape:
+                    SetupPanel.Visible = SetupPanel.Enabled = true;
+                    break;
                 default:
                     break;
             }
@@ -221,9 +224,7 @@
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
             if (greenButtonPressed)
-            {
                 return;
-            }
 
             greenButtonPressed = true;
             gazePoint = latestPoint;
@@ -297,37 +298,50 @@
 
         private void OpenControlPanelClick(object sender, EventArgs e)
         {
-            //TODO Implement.
+            Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); //TODO Don't assume default install location.
         }
 
-        private void RetryClick(object sender, EventArgs e)
+        private void CloseInfoPanelClick(object sender, EventArgs e)
         {
-            //TODO Neccessary button? Maybe remove the button.
+            SetupPanel.Visible = SetupPanel.Enabled = false;
         }
 
-        private void ExitClick(object sender, EventArgs e)
+        private void UseEyeTrackerClick(object sender, EventArgs e)
         {
-            Environment.Exit(0);
+            useMouse = false;
+            SetupPanel.Visible = SetupPanel.Enabled = false;
         }
 
-        private void EnableMouseClick(object sender, EventArgs e)
+        private void UseMouseClick(object sender, EventArgs e)
         {
             useMouse = true;
-            ErrorMessagePanel.Visible = false;
-            ErrorMessagePanel.Enabled = false;
+            SetupPanel.Visible = SetupPanel.Enabled = false;
         }
 
         private void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
         {
-            if (e.State == ConnectionState.Connected)
+            switch (e.State)
             {
-                globalInteractorSnapshot.Commit(OnSnapshotCommitted);
-            }
-            else if (e.State == ConnectionState.TryingToConnect)
-            {
-                ErrorMessagePanel.Visible = true;
-                ErrorMessagePanel.Enabled = true;
-                ErrorMessage.Text = e.State.ToString();
+                case ConnectionState.Connected:
+                    globalInteractorSnapshot.Commit(OnSnapshotCommitted); //TODO What does this do really?
+                    Invoke(new Action(() => { 
+                        SetupMessage.Text = "Status: " + e.State.ToString();
+                        SetupPanel.Visible = SetupPanel.Enabled = false;
+                    }));
+                    break;
+                case ConnectionState.Disconnected:
+                    break;
+                case ConnectionState.ServerVersionTooHigh:
+                    break;
+                case ConnectionState.ServerVersionTooLow:
+                    break;
+                case ConnectionState.TryingToConnect:
+                    Invoke(new Action(() => {
+                        SetupPanel.Visible = SetupPanel.Enabled = true;
+                    }));
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -352,11 +366,17 @@
             Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
         }
 
-        private void HandleEvent(InteractionEvent e)
+        private void HandleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
-                if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
-                    OnGazePointData(behavior);
+                switch (behavior.BehaviorType)
+                {
+                    case InteractionBehaviorType.GazePointData:
+                        OnGazePointData(behavior);
+                        break;
+                    default: // TODO Investigate which other interaction events are possible in EyeX.
+                        break;
+                }
         }
 
         private void OnGazePointData(InteractionBehavior behavior)

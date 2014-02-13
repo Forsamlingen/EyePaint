@@ -118,198 +118,198 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ErrorMessagePanel.AutoSize" type="System.Boolean, mscorlib">
+  <data name="SetupPanel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ErrorMessagePanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+  <data name="SetupPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="EnableMouse.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+  <data name="EnableEyeTrackerButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Popup</value>
+  </data>
+  <data name="EnableEyeTrackerButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="EnableMouse.Location" type="System.Drawing.Point, System.Drawing">
-    <value>209, 11</value>
+  <data name="EnableEyeTrackerButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>240, 11</value>
   </data>
-  <data name="EnableMouse.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="EnableEyeTrackerButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
-  <data name="EnableMouse.Size" type="System.Drawing.Size, System.Drawing">
-    <value>150, 30</value>
+  <data name="EnableEyeTrackerButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>111, 30</value>
   </data>
-  <data name="EnableMouse.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
+  <data name="EnableEyeTrackerButton.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
   </data>
-  <data name="EnableMouse.Text" xml:space="preserve">
-    <value>Use mouse instead</value>
+  <data name="EnableEyeTrackerButton.Text" xml:space="preserve">
+    <value>Use Eye Tracker</value>
   </data>
-  <data name="&gt;&gt;EnableMouse.Name" xml:space="preserve">
-    <value>EnableMouse</value>
+  <data name="&gt;&gt;EnableEyeTrackerButton.Name" xml:space="preserve">
+    <value>EnableEyeTrackerButton</value>
   </data>
-  <data name="&gt;&gt;EnableMouse.Type" xml:space="preserve">
+  <data name="&gt;&gt;EnableEyeTrackerButton.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;EnableMouse.Parent" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
+  <data name="&gt;&gt;EnableEyeTrackerButton.Parent" xml:space="preserve">
+    <value>SetupPanel</value>
   </data>
-  <data name="&gt;&gt;EnableMouse.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;EnableEyeTrackerButton.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="Exit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
-  </data>
-  <data name="Exit.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+  <data name="EnableMouseButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Popup</value>
   </data>
-  <data name="Exit.Location" type="System.Drawing.Point, System.Drawing">
-    <value>599, 11</value>
-  </data>
-  <data name="Exit.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="Exit.Size" type="System.Drawing.Size, System.Drawing">
-    <value>30, 30</value>
-  </data>
-  <data name="Exit.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
-  </data>
-  <data name="Exit.Text" xml:space="preserve">
-    <value>X</value>
-  </data>
-  <data name="&gt;&gt;Exit.Name" xml:space="preserve">
-    <value>Exit</value>
-  </data>
-  <data name="&gt;&gt;Exit.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;Exit.Parent" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
-  </data>
-  <data name="&gt;&gt;Exit.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="Retry.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="Retry.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="EnableMouseButton.Location" type="System.Drawing.Point, System.Drawing">
     <value>145, 11</value>
   </data>
-  <data name="Retry.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="EnableMouseButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>2, 2, 2, 2</value>
   </data>
-  <data name="Retry.Size" type="System.Drawing.Size, System.Drawing">
-    <value>60, 30</value>
+  <data name="EnableMouseButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 30</value>
   </data>
-  <data name="Retry.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="Retry.Text" xml:space="preserve">
-    <value>Retry</value>
-  </data>
-  <data name="&gt;&gt;Retry.Name" xml:space="preserve">
-    <value>Retry</value>
-  </data>
-  <data name="&gt;&gt;Retry.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;Retry.Parent" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
-  </data>
-  <data name="&gt;&gt;Retry.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="Resolve.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="Resolve.Location" type="System.Drawing.Point, System.Drawing">
-    <value>11, 11</value>
-  </data>
-  <data name="Resolve.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="Resolve.Size" type="System.Drawing.Size, System.Drawing">
-    <value>130, 30</value>
-  </data>
-  <data name="Resolve.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
-  </data>
-  <data name="Resolve.Text" xml:space="preserve">
-    <value>Open Control Panel</value>
-  </data>
-  <data name="&gt;&gt;Resolve.Name" xml:space="preserve">
-    <value>Resolve</value>
-  </data>
-  <data name="&gt;&gt;Resolve.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;Resolve.Parent" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
-  </data>
-  <data name="&gt;&gt;Resolve.ZOrder" xml:space="preserve">
+  <data name="EnableMouseButton.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="ErrorMessage.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Bottom, Left, Right</value>
+  <data name="EnableMouseButton.Text" xml:space="preserve">
+    <value>Use Mouse</value>
   </data>
-  <data name="ErrorMessage.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="&gt;&gt;EnableMouseButton.Name" xml:space="preserve">
+    <value>EnableMouseButton</value>
   </data>
-  <data name="ErrorMessage.Location" type="System.Drawing.Point, System.Drawing">
-    <value>225, 240</value>
+  <data name="&gt;&gt;EnableMouseButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="ErrorMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
+  <data name="&gt;&gt;EnableMouseButton.Parent" xml:space="preserve">
+    <value>SetupPanel</value>
   </data>
-  <data name="ErrorMessage.Size" type="System.Drawing.Size, System.Drawing">
-    <value>189, 13</value>
+  <data name="&gt;&gt;EnableMouseButton.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
-  <data name="ErrorMessage.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
+  <data name="CloseSetupPanelButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
-  <data name="ErrorMessage.Text" xml:space="preserve">
-    <value>Could not connect to the eye tracker...</value>
+  <data name="CloseSetupPanelButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
   </data>
-  <data name="ErrorMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleCenter</value>
+  <data name="CloseSetupPanelButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>599, 11</value>
   </data>
-  <data name="&gt;&gt;ErrorMessage.Name" xml:space="preserve">
-    <value>ErrorMessage</value>
+  <data name="CloseSetupPanelButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
   </data>
-  <data name="&gt;&gt;ErrorMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="CloseSetupPanelButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>30, 30</value>
   </data>
-  <data name="&gt;&gt;ErrorMessage.Parent" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
-  </data>
-  <data name="&gt;&gt;ErrorMessage.ZOrder" xml:space="preserve">
+  <data name="CloseSetupPanelButton.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
-  <data name="ErrorMessagePanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+  <data name="CloseSetupPanelButton.Text" xml:space="preserve">
+    <value>X</value>
+  </data>
+  <data name="&gt;&gt;CloseSetupPanelButton.Name" xml:space="preserve">
+    <value>CloseSetupPanelButton</value>
+  </data>
+  <data name="&gt;&gt;CloseSetupPanelButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CloseSetupPanelButton.Parent" xml:space="preserve">
+    <value>SetupPanel</value>
+  </data>
+  <data name="&gt;&gt;CloseSetupPanelButton.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="OpenControlPanelButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Popup</value>
+  </data>
+  <data name="OpenControlPanelButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 11</value>
+  </data>
+  <data name="OpenControlPanelButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>2, 2, 2, 2</value>
+  </data>
+  <data name="OpenControlPanelButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>130, 30</value>
+  </data>
+  <data name="OpenControlPanelButton.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="OpenControlPanelButton.Text" xml:space="preserve">
+    <value>Setup Eye Tracker</value>
+  </data>
+  <data name="&gt;&gt;OpenControlPanelButton.Name" xml:space="preserve">
+    <value>OpenControlPanelButton</value>
+  </data>
+  <data name="&gt;&gt;OpenControlPanelButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OpenControlPanelButton.Parent" xml:space="preserve">
+    <value>SetupPanel</value>
+  </data>
+  <data name="&gt;&gt;OpenControlPanelButton.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="SetupMessage.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
-  <data name="ErrorMessagePanel.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="SetupMessage.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
-  <data name="ErrorMessagePanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="SetupMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
-  <data name="ErrorMessagePanel.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="SetupMessage.Size" type="System.Drawing.Size, System.Drawing">
     <value>640, 480</value>
   </data>
-  <data name="ErrorMessagePanel.TabIndex" type="System.Int32, mscorlib">
+  <data name="SetupMessage.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;ErrorMessagePanel.Name" xml:space="preserve">
-    <value>ErrorMessagePanel</value>
+  <data name="SetupMessage.Text" xml:space="preserve">
+    <value>...</value>
   </data>
-  <data name="&gt;&gt;ErrorMessagePanel.Type" xml:space="preserve">
+  <data name="SetupMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleCenter</value>
+  </data>
+  <data name="&gt;&gt;SetupMessage.Name" xml:space="preserve">
+    <value>SetupMessage</value>
+  </data>
+  <data name="&gt;&gt;SetupMessage.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SetupMessage.Parent" xml:space="preserve">
+    <value>SetupPanel</value>
+  </data>
+  <data name="&gt;&gt;SetupMessage.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="SetupPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="SetupPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="SetupPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="SetupPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>640, 480</value>
+  </data>
+  <data name="SetupPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;SetupPanel.Name" xml:space="preserve">
+    <value>SetupPanel</value>
+  </data>
+  <data name="&gt;&gt;SetupPanel.Type" xml:space="preserve">
     <value>System.Windows.Forms.Panel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ErrorMessagePanel.Parent" xml:space="preserve">
+  <data name="&gt;&gt;SetupPanel.Parent" xml:space="preserve">
     <value>$this</value>
   </data>
-  <data name="&gt;&gt;ErrorMessagePanel.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;SetupPanel.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -337,7 +337,7 @@
     <value>CenterScreen</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
-    <value>EyeTrackingForm</value>
+    <value>EyePaintingForm</value>
   </data>
   <data name="&gt;&gt;$this.Type" xml:space="preserve">
     <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

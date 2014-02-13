@@ -12,7 +12,7 @@
     public partial class EyePaintingForm : Form, IDisposable
     {
         // Eye tracking.
-        private const string InteractorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
+        private const string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
         private InteractionContext context;
         private InteractionSnapshot globalInteractorSnapshot;
         private bool stableGaze;
@@ -329,7 +329,7 @@
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
             globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
 
-            var interactor = globalInteractorSnapshot.CreateInteractor(InteractorId, Literals.RootId, Literals.GlobalInteractorWindowId);
+            var interactor = globalInteractorSnapshot.CreateInteractor(interactorId, Literals.RootId, Literals.GlobalInteractorWindowId);
             interactor.CreateBounds(InteractionBoundsType.None);
 
             var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);

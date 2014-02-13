@@ -15,7 +15,7 @@ namespace EyePaint
         internal readonly int stdWidth = 2;
         internal readonly int stdRadius = 2;
         internal string stdString = "Evelina";
-        internal Font font = new Font( "Times New Roman", 20.0f);
+        internal Font font = new Font("Times New Roman", 20.0f);
 
         public BaseRasterizer(int width, int height)
         {

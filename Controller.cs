@@ -12,7 +12,7 @@
     public partial class EyePaintingForm : Form, IDisposable
     {
         // Eye tracking.
-        private const string InteractorId = "minimal"; //TODO Set a more unique id.
+        private const string InteractorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
         private InteractionContext context;
         private InteractionSnapshot globalInteractorSnapshot;
         private bool stableGaze;

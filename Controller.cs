@@ -324,7 +324,8 @@
             {
                 case ConnectionState.Connected:
                     globalInteractorSnapshot.Commit(OnSnapshotCommitted); //TODO What does this do really?
-                    Invoke(new Action(() => { 
+                    Invoke(new Action(() =>
+                    {
                         SetupMessage.Text = "Status: " + e.State.ToString();
                         SetupPanel.Visible = SetupPanel.Enabled = false;
                     }));
@@ -336,7 +337,8 @@
                 case ConnectionState.ServerVersionTooLow:
                     break;
                 case ConnectionState.TryingToConnect:
-                    Invoke(new Action(() => {
+                    Invoke(new Action(() =>
+                    {
                         SetupPanel.Visible = SetupPanel.Enabled = true;
                     }));
                     break;

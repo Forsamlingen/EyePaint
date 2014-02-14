@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
-using Tobii.Gaze.Core;
+using Tobii.EyeX.Client;
 
 namespace EyePaint
 {
     public static class Program
     {
-        private static EyeTrackingEngine _eyeTrackingEngine;
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -17,20 +15,17 @@ namespace EyePaint
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            // Initialize the EyeX Engine client library and launch the paint form application.
             try
             {
-                using (_eyeTrackingEngine = new EyeTrackingEngine())
+                using (var system = InteractionSystem.Initialize(LogTarget.Trace))
                 {
-                    Application.Run(new EyeTrackingForm(_eyeTrackingEngine));
+                    Application.Run(new EyePaintingForm());
                 }
-            }
-            catch (EyeTrackerException e)
-            {
-                MessageBox.Show(e.Message, "Failed loading application!");
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString(), "Error!");
+                MessageBox.Show(e.Message, "Failed loading application!");
             }
         }
     }

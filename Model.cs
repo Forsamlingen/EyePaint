@@ -17,7 +17,7 @@ namespace EyePaint
     //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
     internal struct Tree
     {
-        internal readonly Color color; 
+        internal readonly Color color;
         internal readonly Point root;
         internal int generation;
         internal Point[] previousGen; //Parents of the present Leaves
@@ -146,9 +146,9 @@ namespace EyePaint
          * grown outwards from the root.
          */
         private Point getLeave(Point parent, Point root)
-        {   
+        {
             //Declare an origo point
-            Point origo = new Point(0,0);
+            Point origo = new Point(0, 0);
             //Declare a vector of length 1  from the root out on the positve x-axis.
             int[] xAxisVector = new int[2] { 1, 0 };
 
@@ -156,7 +156,7 @@ namespace EyePaint
             parent = transformCoordinates(root, parent);
             // parentVector is the vector between the origo and the parent-point
             int[] parentVector = getVector(origo, parent);
-            
+
             // the child vector is the vector between the root and the leaf we want calculate the coordinates for 
             int[] childVector = new int[2];
 
@@ -200,7 +200,7 @@ namespace EyePaint
             {
                 return false;
             }
-     
+
             Point[] points = new Point[currentTree.nLeaves];
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
@@ -208,36 +208,36 @@ namespace EyePaint
                 Point p = transformCoordinates(currentTree.root, currentTree.leaves[i]);
                 points[i] = offset(p);
             }
-            
+
             evalPoint = transformCoordinates(currentTree.root, evalPoint);
             Stack<Point> s = GrahamScan(points);
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
             Point p1 = hullStart;
-            Point p2 =hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
-            Point origo = new Point(0, 0);           
+            Point p2 = hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
+            Point origo = new Point(0, 0);
             while (s.Count() != 0)
             {
                 p2 = s.Pop();
-                if(lineSegmentIntersect(origo,evalPoint, p1,p2))
+                if (lineSegmentIntersect(origo, evalPoint, p1, p2))
                 {
                     return false;
-                }               
+                }
                 p1 = p2;
             }
 
-            if(lineSegmentIntersect(origo, evalPoint, hullStart, p2) )
+            if (lineSegmentIntersect(origo, evalPoint, hullStart, p2))
             {
                 return false;
             }
 
             return true;
         }
-        
+
         private bool lineSegmentIntersect(Point A, Point B, Point C, Point D)
         {
             //check if any of the vectors are the 0-vector
-            if((A.X ==B.X && A.Y ==B.Y)||(C.X == D.X )&&( C.Y == D.Y))
+            if ((A.X == B.X && A.Y == B.Y) || (C.X == D.X) && (C.Y == D.Y))
             {
                 return false;
             }
@@ -246,20 +246,20 @@ namespace EyePaint
             if (A.X == C.X && A.Y == C.Y || B.X == C.X && B.Y == C.Y
                 || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
             {
-               return false;
+                return false;
             }
             //Trnsform all points to a coordinate system where A is origo
             B = transformCoordinates(A, B);
             C = transformCoordinates(A, C);
             D = transformCoordinates(A, D);
-            A = transformCoordinates(A,A);
+            A = transformCoordinates(A, A);
 
             //  Discover the length of segment A-B.
-            double distAB = getVectorLength(getVector(A,B));
+            double distAB = getVectorLength(getVector(A, B));
             //Change to double
             double Cx = C.X; double Cy = C.Y;
             double Dx = D.X; double Dy = D.Y;
-             //  (2) Rotate the system so that point B is on the positive X axis.
+            //  (2) Rotate the system so that point B is on the positive X axis.
             double theCos = B.X / distAB;
             double theSin = B.Y / distAB;
             double newX = Cx * theCos + Cy * theSin;

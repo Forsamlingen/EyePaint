@@ -62,19 +62,13 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tobii.Gaze.Config.Net, Version=1.0.0.104, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
+    <Reference Include="Tobii.EyeX.Client.Net20, Version=0.8.3.38, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
+      <HintPath>lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.Net20.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\TobiiGazeSdk\Tobii.Gaze.Config.Net.dll</HintPath>
-    </Reference>
-    <Reference Include="Tobii.Gaze.Core.Net, Version=1.0.0.104, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\TobiiGazeSdk\Tobii.Gaze.Core.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="View.cs" />
-    <Compile Include="EyeTrackingStateChangedEventArgs.cs" />
-    <Compile Include="EyeTrackingEngine.cs" />
     <Compile Include="Controller.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -135,8 +129,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)lib\TobiiGazeSdk\TobiiGazeConfig32.dll" "$(TargetDir)"
-copy "$(ProjectDir)lib\TobiiGazeSdk\TobiiGazeCore32.dll" "$(TargetDir)"</PostBuildEvent>
+    <PostBuildEvent>copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.Net20.dll" "$(TargetDir)"
+copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.dll" "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

@@ -93,29 +93,17 @@
             factory.Grow();
             Invalidate();
 
-            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY) 
-            {
-                setRandomPaintTool();
-            }
+            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY) setRandomPaintTool();
         }
 
         // Starts the timer, enabling tick events
         private void startPaintingTimer()
         {
-            if (paint.Enabled)
-            {
-                return;
-            }
+            if (paint.Enabled) return;
 
-            if (!stableGaze)
-            {
-                return;
-            }
+            if (!stableGaze) return;
 
-            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE)
-            {
-                setRandomPaintTool();
-            }
+            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE) setRandomPaintTool();
 
             paint.Enabled = true;
         }
@@ -231,10 +219,7 @@
 
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
-            if (greenButtonPressed)
-            {
-                return;
-            }
+            if (greenButtonPressed) return;
 
             greenButtonPressed = true;
             gazePoint = latestPoint;
@@ -290,19 +275,13 @@
             if (distance > keyhole)
             {
                 gazePoint = p;
-                if (greenButtonPressed)
-                {
-                    AddPoint(gazePoint);
-                }
+                if (greenButtonPressed) AddPoint(gazePoint);
             }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (useMouse)
-            {
-                TrackPoint(new Point(e.X, e.Y));
-            }
+            if (useMouse) TrackPoint(new Point(e.X, e.Y));
         }
 
         private void OnShown(object sender, EventArgs e)

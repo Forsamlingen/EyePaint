@@ -93,21 +93,29 @@
             factory.Grow();
             Invalidate();
 
-            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY)
+            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY) 
+			{
                 setRandomPaintTool();
+			}
         }
 
         // Starts the timer, enabling tick events
         private void startPaintingTimer()
         {
             if (paint.Enabled)
+			{
                 return;
+			}
 
             if (!stableGaze)
+			{
                 return;
+			}
 
             if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE)
+			{
                 setRandomPaintTool();
+			}
 
             paint.Enabled = true;
         }
@@ -224,7 +232,9 @@
         private void OnGreenButtonDown(object sender, EventArgs e)
         {
             if (greenButtonPressed)
+			{
                 return;
+			}
 
             greenButtonPressed = true;
             gazePoint = latestPoint;
@@ -281,14 +291,18 @@
             {
                 gazePoint = p;
                 if (greenButtonPressed)
+				{
                     AddPoint(gazePoint);
+				}
             }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (useMouse)
+			{
                 TrackPoint(new Point(e.X, e.Y));
+			}
         }
 
         private void OnShown(object sender, EventArgs e)
@@ -323,7 +337,7 @@
             switch (e.State)
             {
                 case ConnectionState.Connected:
-                    globalInteractorSnapshot.Commit(OnSnapshotCommitted); //TODO What does this do really?
+                    globalInteractorSnapshot.Commit(OnSnapshotCommitted);
                     Invoke(new Action(() =>
                     {
                         SetupMessage.Text = "Status: " + e.State.ToString();
@@ -385,9 +399,13 @@
         {
             GazePointDataEventParams eventParams;
             if (behavior.TryGetGazePointDataEventParams(out eventParams))
+			{
                 TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y));
+			}
             else
+			{
                 Console.WriteLine("Failed to interpret gaze data event packet.");
+			}
         }
     }
 }

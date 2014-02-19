@@ -14,8 +14,6 @@ namespace EyePaint
         internal readonly int stdOpacity = 25;
         internal readonly int stdWidth = 2;
         internal readonly int stdRadius = 2;
-        internal string stdString = "Evelina";
-        internal Font font = new Font("Times New Roman", 20.0f);
 
         public BaseRasterizer(int width, int height)
         {
@@ -64,7 +62,7 @@ namespace EyePaint
             while (q.Count() != 0)
             {
                 Tree t = q.First();
-                Stack<Point> s = factory.GrahamScan(t.leaves);
+                Stack<Point> s = factory.GetConvexHull(t);
                 DrawTree(t);
                 DrawConvexHull(t, s);
                 q.RemoveFirst();
@@ -104,15 +102,6 @@ namespace EyePaint
                 DrawElipse(leaf);
             }
         }
-        private void DrawStringTree(Tree tree)
-        {
-            Color c = Color.FromArgb(stdOpacity, tree.color.R, tree.color.G, tree.color.B);
-            for (int i = 0; i < tree.nLeaves; i++)
-            {
-                Point leaf = new Point(tree.leaves[i].X, tree.leaves[i].Y);
-                DrawString(leaf, c);
-            }
-        }
 
         private void DrawElipse(Point point)
         {
@@ -126,19 +115,6 @@ namespace EyePaint
                     );
         }
 
-        private void DrawString(Point point, Color col)
-        {
-            float x = point.X;
-            float y = point.Y;
-
-            PointF pf = new PointF();
-            pf.X = x;
-            pf.Y = y;
-            System.Drawing.SolidBrush myBrush;
-            myBrush = new System.Drawing.SolidBrush(col);
-            using (Graphics g = Graphics.FromImage(image))
-                g.DrawString(stdString, font, myBrush, pf);
-        }
     }
 
     class CloudRasterizer : BaseRasterizer

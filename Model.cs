@@ -140,7 +140,7 @@ namespace EyePaint
                 // Grow all branches
                 for (int i = 0; i < nLeaves; i++)
                 {
-                    Point newLeaf = GetLeave(lastTree.leaves[i], lastTree.root);
+                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root);
                     newLeaves[i] = newLeaf;
                 }
                 Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
@@ -154,7 +154,7 @@ namespace EyePaint
          * Return a point representing a leaf that is 
          * grown outwards from the root.
          */
-        private Point GetLeave(Point parent, Point root)
+        private Point GetLeaf(Point parent, Point root)
         {
             //Declare an origo point
             Point origo = new Point(0, 0);

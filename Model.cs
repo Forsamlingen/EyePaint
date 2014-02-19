@@ -13,17 +13,16 @@ namespace EyePaint
         public abstract void Grow();
     }
 
-    //TODO
-    //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
+ 
     internal struct Tree
     {
         internal readonly Color color;
         internal readonly Point root;
         internal int generation;
-        internal Point[] previousGen; //Parents of the present Leaves
+        internal Point[] previousGen; //Parents of the present leaves
         internal Point[] leaves;
         internal readonly int edgeLength;
-        internal readonly int nLeaves;//Warning need to be >2
+        internal readonly int nLeaves;// TODO Warning need to be >2
 
         public Tree(Color color, Point root, int edgeLength, int nLeaves, Point[] previousGen, Point[] startLeaves)
         {
@@ -31,7 +30,7 @@ namespace EyePaint
             this.root = root;
             this.edgeLength = edgeLength;
             this.nLeaves = nLeaves; //Warning need to be >2
-            this.previousGen = previousGen; //TODO method DefaultTree will create this //TODO feedback
+            this.previousGen = previousGen; 
             leaves = startLeaves;
             generation = 0;
         }
@@ -43,7 +42,7 @@ namespace EyePaint
         private LinkedList<Tree> renderQueue;
         private int maxGenerations = 100;           // controls the max size of a single tree
         private int offset_distance = 30;           // distance from the convex hull
-        private readonly int edgeLength = 25;       // Constant to experiment with
+        private readonly int edgeLength = 25;       // constant to experiment with
         private readonly int nLeaves = 7;           //constant to experiment with
         private Random random = new Random();
         private Tree currentTree;
@@ -72,10 +71,21 @@ namespace EyePaint
             else
                 return true;
         }
+        /**
+         * Return a stack with the points in the convex hull of the tree.
+         * If number of leaves in the tree is less then 3 an empty stack is returned
+         **/ 
+        internal Stack<Point> GetConvexHull(Tree tree)
+        {
+            Stack<Point> s = new Stack<Point>();
+            if(tree.nLeaves<3) return s;
+            else return GrahamScan(tree.leaves);
+            
+        }
 
         public override void Add(Point root, Color c, bool alwaysAdd = false)
         {
-            if (alwaysAdd || !pointInsideTree(root))
+            if (alwaysAdd || !PointInsideTree(root))
             {
                 oldTrees.Add(currentTree);
                 Tree tree = CreateDefaultTree(root, c);
@@ -89,9 +99,8 @@ namespace EyePaint
          * A default tree is the base of any tree. It consists of a root, 
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
-        //TODO
-        //If tree have less then 3 leaves then  convex hull algorithm crashes!!! 
-        private Tree CreateDefaultTree(Point root, Color color)// TODO Change b to private
+
+        private Tree CreateDefaultTree(Point root, Color color)
         {
             // All the start leaves will have the root as parent
             Point[] previousGen = new Point[nLeaves];
@@ -131,8 +140,8 @@ namespace EyePaint
                 // Grow all branches
                 for (int i = 0; i < nLeaves; i++)
                 {
-                    Point newLeave = getLeave(lastTree.leaves[i], lastTree.root);
-                    newLeaves[i] = newLeave;
+                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root);
+                    newLeaves[i] = newLeaf;
                 }
                 Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
                 grownTree.generation = currentTree.generation + 1;
@@ -142,10 +151,10 @@ namespace EyePaint
         }
 
         /*
-         * Return a point representing a leave that is 
+         * Return a point representing a leaf that is 
          * grown outwards from the root.
          */
-        private Point getLeave(Point parent, Point root)
+        private Point GetLeaf(Point parent, Point root)
         {
             //Declare an origo point
             Point origo = new Point(0, 0);
@@ -153,19 +162,19 @@ namespace EyePaint
             int[] xAxisVector = new int[2] { 1, 0 };
 
             //Transform to cooridninatesystem where root is origo
-            parent = transformCoordinates(root, parent);
+            parent = TransformCoordinates(root, parent);
             // parentVector is the vector between the origo and the parent-point
-            int[] parentVector = getVector(origo, parent);
+            int[] parentVector = GetVector(origo, parent);
 
             // the child vector is the vector between the root and the leaf we want calculate the coordinates for 
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
-            double r = getVectorLength(parentVector);//TODO change variable name 
+            double r = GetVectorLength(parentVector); 
 
             //Calculate the angle v1 between parent vector and the x-axis vector
             //using the dot-product.
-            double v1 = getAngleBetweenVectors(parentVector, xAxisVector);
+            double v1 = GetAngleBetweenVectors(parentVector, xAxisVector);
 
             // If v1 is in the 3rd or 4th quadrant, we calculate the radians between the positive x-axis and the parent vector anti-clockwise
             if (parentVector[1] < 0)
@@ -193,10 +202,17 @@ namespace EyePaint
             return new Point(childVector[0] + root.X, childVector[1] + root.Y);
         }
 
-        //OBS this method does not compute correct if the root isn´t in the convex hull of the trees leafs
-        internal bool pointInsideTree(Point evalPoint)
+        /**
+         * If nLeaves is less then 3 return always false
+         * Otherwise returns if the evalPoint is inside tree 
+         **/
+        internal bool PointInsideTree(Point evalPoint)
         {
             if (!treeAdded)
+            {
+                return false;
+            }
+            if (currentTree.nLeaves < 3)
             {
                 return false;
             }
@@ -205,12 +221,16 @@ namespace EyePaint
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
-                Point p = transformCoordinates(currentTree.root, currentTree.leaves[i]);
-                points[i] = offset(p);
+                Point p = TransformCoordinates(currentTree.root, currentTree.leaves[i]);
+                points[i] = Offset(p);
             }
 
-            evalPoint = transformCoordinates(currentTree.root, evalPoint);
+            evalPoint = TransformCoordinates(currentTree.root, evalPoint);
+            
+
+
             Stack<Point> s = GrahamScan(points);
+            
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
             Point p1 = hullStart;
@@ -219,14 +239,14 @@ namespace EyePaint
             while (s.Count() != 0)
             {
                 p2 = s.Pop();
-                if (lineSegmentIntersect(origo, evalPoint, p1, p2))
+                if (LineSegmentIntersect(origo, evalPoint, p1, p2))
                 {
                     return false;
                 }
                 p1 = p2;
             }
 
-            if (lineSegmentIntersect(origo, evalPoint, hullStart, p2))
+            if (LineSegmentIntersect(origo, evalPoint, hullStart, p2))
             {
                 return false;
             }
@@ -234,7 +254,7 @@ namespace EyePaint
             return true;
         }
 
-        private bool lineSegmentIntersect(Point A, Point B, Point C, Point D)
+        private bool LineSegmentIntersect(Point A, Point B, Point C, Point D)
         {
             //check if any of the vectors are the 0-vector
             if ((A.X == B.X && A.Y == B.Y) || (C.X == D.X) && (C.Y == D.Y))
@@ -249,13 +269,13 @@ namespace EyePaint
                 return false;
             }
             //Trnsform all points to a coordinate system where A is origo
-            B = transformCoordinates(A, B);
-            C = transformCoordinates(A, C);
-            D = transformCoordinates(A, D);
-            A = transformCoordinates(A, A);
+            B = TransformCoordinates(A, B);
+            C = TransformCoordinates(A, C);
+            D = TransformCoordinates(A, D);
+            A = TransformCoordinates(A, A);
 
             //  Discover the length of segment A-B.
-            double distAB = getVectorLength(getVector(A, B));
+            double distAB = GetVectorLength(GetVector(A, B));
             //Change to double
             double Cx = C.X; double Cy = C.Y;
             double Dx = D.X; double Dy = D.Y;
@@ -276,11 +296,12 @@ namespace EyePaint
             return true;
         }
 
-        internal Stack<Point> GrahamScan(Point[] points)
+        
+        private Stack<Point> GrahamScan(Point[] points)
         {
             //Find point with lowex Y-coordinate
 
-            Point minPoint = getLowestPoint(points);
+            Point minPoint = GetLowestPoint(points);
             //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
             Point refPoint = new Point(minPoint.X + 10, minPoint.Y);
 
@@ -288,6 +309,7 @@ namespace EyePaint
             //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
 
             int size = points.Count();
+
             GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
             GrahamPoint[] grahamPoints = new GrahamPoint[size];
             grahamPoints[0] = minGrahamPoint;
@@ -296,7 +318,7 @@ namespace EyePaint
             {
                 if (!(points[i].X == minPoint.X && points[i].Y == minPoint.Y))
                 {
-                    double a = getAngleBetweenVectors(getVector(minPoint, refPoint), getVector(minPoint, points[i]));
+                    double a = GetAngleBetweenVectors(GetVector(minPoint, refPoint), GetVector(minPoint, points[i]));
                     GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
                     grahamPoints[gpIndex] = grahamPoint;
                     gpIndex++;
@@ -319,7 +341,7 @@ namespace EyePaint
                 {
                     top = s.Pop();
                     nextToTop = s.Peek();
-                    if (ccw(nextToTop, top, grahamPoints[i].point) >= 0 || s.Count() < 2)
+                    if (Ccw(nextToTop, top, grahamPoints[i].point) >= 0 || s.Count() < 2)
                     {
                         s.Push(top);
                         s.Push(grahamPoints[i].point);
@@ -364,43 +386,43 @@ namespace EyePaint
         // Use cross-product to calculate if three points are a counter-clockwise. 
         // They are counter-clockwise if ccw > 0, clockwise if
         // ccw < 0, and collinear if ccw == 0
-        private int ccw(Point p1, Point p2, Point p3)
+        private int Ccw(Point p1, Point p2, Point p3)
         {
             return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
         }
         /*
          * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
+         * If any of the vectors is of length zero, return zero
          */
-        // TODO HAndle Error from dividing by 0..if a vector is of length 0
-        private double getAngleBetweenVectors(int[] P, int[] Q)
+        private double GetAngleBetweenVectors(int[] P, int[] Q)
         {
-            double lP = getVectorLength(P);
-            double lQ = getVectorLength(Q);
-            //Calculate the angle v between P and Q
-            //using the dot-product.
-
+            double lP = GetVectorLength(P);
+            double lQ = GetVectorLength(Q);
+            
+            if (lP == 0 || lQ == 0) return 0;
+            
             double v = Math.Acos((P[0] * Q[0] + P[1] * Q[1]) / (lP * lQ));
             return v;
         }
 
-        private double getVectorLength(int[] vector)
+        private double GetVectorLength(int[] vector)
         {
             double l = Math.Sqrt(Math.Pow(vector[0], 2) + Math.Pow(vector[1], 2));
             return l;
         }
 
-        private int[] getVector(Point p1, Point p2)
+        private int[] GetVector(Point p1, Point p2)
         {
             int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
             return vector;
         }
 
         // Offsets the point 'p' 'distance' pixels from origo
-        private Point offset(Point p)
+        private Point Offset(Point p)
         {
             Point origo = new Point(0, 0);
-            int[] op = getVector(origo, p);
-            double old_l = getVectorLength(op);
+            int[] op = GetVector(origo, p);
+            double old_l = GetVectorLength(op);
             double new_l = old_l + offset_distance;
             double ratio = new_l / old_l;
             int x = Convert.ToInt32(p.X * ratio);
@@ -410,14 +432,14 @@ namespace EyePaint
 
         //Transfor the point to a coordinate system where the argumet origo have the 
         //cooridinate (0,0)
-        private Point transformCoordinates(Point origo, Point point)
+        private Point TransformCoordinates(Point origo, Point point)
         {
             point.X -= origo.X;
             point.Y -= origo.Y;
             return point;
         }
 
-        private Point getLowestPoint(Point[] points)
+        private Point GetLowestPoint(Point[] points)
         {
             Point minPoint = points[0];
 

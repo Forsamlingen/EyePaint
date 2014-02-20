@@ -125,43 +125,13 @@
   <data name="SetupPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="PaintToolsPanel.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="PaintToolsPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="PaintToolsPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Top</value>
-  </data>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="PaintToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
-  </data>
-  <data name="PaintToolsPanel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 2</value>
-  </data>
-  <data name="PaintToolsPanel.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
-  </data>
-  <data name="&gt;&gt;PaintToolsPanel.Name" xml:space="preserve">
-    <value>PaintToolsPanel</value>
-  </data>
-  <data name="&gt;&gt;PaintToolsPanel.Type" xml:space="preserve">
-    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;PaintToolsPanel.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;PaintToolsPanel.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="EnableEyeTrackerButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Popup</value>
   </data>
   <data name="EnableEyeTrackerButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="EnableEyeTrackerButton.Location" type="System.Drawing.Point, System.Drawing">
     <value>240, 11</value>
   </data>
@@ -187,7 +157,7 @@
     <value>SetupPanel</value>
   </data>
   <data name="&gt;&gt;EnableEyeTrackerButton.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>0</value>
   </data>
   <data name="EnableMouseButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Popup</value>
@@ -217,7 +187,7 @@
     <value>SetupPanel</value>
   </data>
   <data name="&gt;&gt;EnableMouseButton.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>1</value>
   </data>
   <data name="CloseSetupPanelButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -250,7 +220,7 @@
     <value>SetupPanel</value>
   </data>
   <data name="&gt;&gt;CloseSetupPanelButton.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>2</value>
   </data>
   <data name="OpenControlPanelButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Popup</value>
@@ -280,7 +250,7 @@
     <value>SetupPanel</value>
   </data>
   <data name="&gt;&gt;OpenControlPanelButton.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>3</value>
   </data>
   <data name="SetupMessage.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
@@ -313,7 +283,7 @@
     <value>SetupPanel</value>
   </data>
   <data name="&gt;&gt;SetupMessage.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>4</value>
   </data>
   <data name="SetupPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
@@ -340,6 +310,39 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;SetupPanel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="PaintToolsPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="PaintToolsPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="PaintToolsPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Top</value>
+  </data>
+  <data name="PaintToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="PaintToolsPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>640, 0</value>
+  </data>
+  <data name="PaintToolsPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="PaintToolsPanel.Visible" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;PaintToolsPanel.Name" xml:space="preserve">
+    <value>PaintToolsPanel</value>
+  </data>
+  <data name="&gt;&gt;PaintToolsPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PaintToolsPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;PaintToolsPanel.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

@@ -49,17 +49,25 @@
             InitializeComponent();
 
             paintTools = new List<PaintTool>();
-            paintTools.Add(new PaintTool("Funny Test Brush", Color.Crimson));
-            paintTools.Add(new PaintTool("Hilarious Test Pencil", Color.Blue));
-            //TODO Get all paint tools. 
-            //TODO Create buttons in paint tools toolbox.
+            //TODO Get all paint tools from a data store instead of automatically generating tools below.
+            Random rng = new Random();
+            for (int i = 0; i < 10; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, Color.FromArgb(rng.Next(255), rng.Next(255), rng.Next(255), rng.Next(255))));
+
             //TODO Gaze enable toolbox.
+            // Create buttons in paint tools toolbox.
             foreach (var paintTool in paintTools)
             {
                 Button button = new Button();
-                button.Name = paintTool.name;
-                button.Text = paintTool.name;
-                button.Tag = paintTool.name;
+                button.Height = button.Width = 200; //TODO What size should a paint tool button be?
+
+                //TODO Don't create new objects every iteration.
+                BaseFactory sampleFactory = new TreeFactory();
+                BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
+                sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool.color, false);
+                for (int i = 0; i < 3; ++i) sampleFactory.Grow();
+                button.BackgroundImage = sampleRasterizer.Rasterize(sampleFactory);
+                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+
                 button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
                 PaintToolsPanel.Controls.Add(button);
             }
@@ -142,12 +150,12 @@
 
         private void openToolBox()
         {
-            PaintToolsPanel.BringToFront(); //TODO Animate.
+            PaintToolsPanel.Visible = true;
         }
 
         private void closeToolBox()
         {
-            PaintToolsPanel.SendToBack(); //TODO Animate.
+            PaintToolsPanel.Visible = false;
         }
 
         private void getPaintTools()
@@ -169,14 +177,17 @@
         // Store a new point in the model, if painting is enabled.
         private void TrackPoint(Point p)
         {
-            if (p.Y < 50) {
-                openToolBox();                
+
+            // TODO Gaze enable.
+            if (p.Y < 50)
+            {
+                openToolBox();
                 return;
             }
             else
                 closeToolBox();
 
-            if (paint.Enabled) factory.Add(p, currentTool.color, false);
+            if (paint.Enabled) factory.Add(p, currentTool.color, true);
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)

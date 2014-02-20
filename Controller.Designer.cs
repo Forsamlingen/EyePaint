@@ -30,18 +30,19 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyePaintingForm));
             this.SetupPanel = new System.Windows.Forms.Panel();
-            this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.EnableEyeTrackerButton = new System.Windows.Forms.Button();
             this.EnableMouseButton = new System.Windows.Forms.Button();
             this.CloseSetupPanelButton = new System.Windows.Forms.Button();
             this.OpenControlPanelButton = new System.Windows.Forms.Button();
             this.SetupMessage = new System.Windows.Forms.Label();
+            this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.SetupPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // SetupPanel
             // 
             resources.ApplyResources(this.SetupPanel, "SetupPanel");
+            this.SetupPanel.BackColor = System.Drawing.Color.White;
             this.SetupPanel.Controls.Add(this.EnableEyeTrackerButton);
             this.SetupPanel.Controls.Add(this.EnableMouseButton);
             this.SetupPanel.Controls.Add(this.CloseSetupPanelButton);
@@ -49,12 +50,6 @@
             this.SetupPanel.Controls.Add(this.SetupMessage);
             this.SetupPanel.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.SetupPanel.Name = "SetupPanel";
-            // 
-            // PaintToolsPanel
-            // 
-            resources.ApplyResources(this.PaintToolsPanel, "PaintToolsPanel");
-            this.PaintToolsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.PaintToolsPanel.Name = "PaintToolsPanel";
             // 
             // EnableEyeTrackerButton
             // 
@@ -93,13 +88,19 @@
             resources.ApplyResources(this.SetupMessage, "SetupMessage");
             this.SetupMessage.Name = "SetupMessage";
             // 
+            // PaintToolsPanel
+            // 
+            resources.ApplyResources(this.PaintToolsPanel, "PaintToolsPanel");
+            this.PaintToolsPanel.BackColor = System.Drawing.Color.Transparent;
+            this.PaintToolsPanel.Name = "PaintToolsPanel";
+            // 
             // EyePaintingForm
             // 
             resources.ApplyResources(this, "$this");
-            this.Controls.Add(this.PaintToolsPanel);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
+            this.BackColor = System.Drawing.Color.Black;
             this.ControlBox = false;
+            this.Controls.Add(this.PaintToolsPanel);
             this.Controls.Add(this.SetupPanel);
             this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
@@ -109,7 +110,6 @@
             this.ShowIcon = false;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.SetupPanel.ResumeLayout(false);
-            this.SetupPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

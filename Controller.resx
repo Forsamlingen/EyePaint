@@ -324,6 +324,9 @@
   <data name="PaintToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
+  <data name="PaintToolsPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
   <data name="PaintToolsPanel.Size" type="System.Drawing.Size, System.Drawing">
     <value>640, 0</value>
   </data>

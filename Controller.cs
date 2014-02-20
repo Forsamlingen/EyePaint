@@ -48,10 +48,6 @@
             // Setup paint tools and toolbox panel.
             setupPaintTools();
 
-            // Program resolution.
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
-
             // Choose user input mode and register event handlers, etc.
             useInputMode(InputMode.MOUSE_AND_KEYBOARD);
 
@@ -67,34 +63,28 @@
             {
                 case ModelType.CLOUD:
                     factory = new CloudFactory();
-                    rasterizer = new CloudRasterizer(width, height);
+                    rasterizer = new CloudRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 case ModelType.TREE:
                     factory = new TreeFactory();
-                    rasterizer = new TreeRasterizer(width, height);
+                    rasterizer = new TreeRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 default:
                     goto case ModelType.TREE;
             }
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
-            Paint += OnPaint;
+            Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
             paint = new System.Windows.Forms.Timer();
             paint.Enabled = false;
             paint.Interval = 33; //TODO Make into property.
             paint.Tick += (object s, EventArgs e) => { factory.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
-            OpenControlPanelButton.Click += (object sender, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
-            EnableEyeTrackerButton.Click += (object sender, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
-            EnableMouseButton.Click += (object sender, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
-            CloseSetupPanelButton.Click += (object sender, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
-        }
-
-        private void OnPaint(object sender, PaintEventArgs e)
-        {
-            Image image = getPainting();
-            if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
+            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
+            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
+            CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
         }
 
         // Starts the paint timer.
@@ -120,6 +110,7 @@
         // Clears the canvas.
         private void resetPainting()
         {
+            //TODO Clear model as well.
             rasterizer.Undo();
             Invalidate();
         }
@@ -132,47 +123,55 @@
         }
 
         // Populates the paint tools toolbox with user selectable paint tools.
-        private List<PaintTool> setupPaintTools()
+        private void setupPaintTools()
         {
-            List<PaintTool> paintTools = new List<PaintTool>();
-
             //TODO Get all paint tools from a data store instead of automatically generating tools below.
+            List<PaintTool> paintTools = new List<PaintTool>();
             Random rng = new Random();
-            for (int i = 0; i < 10; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, Color.FromArgb(rng.Next(255), rng.Next(255), rng.Next(255), 255)));
+            for (int i = 0; i < 20; ++i)
+            {
+                paintTools.Add(new PaintTool("Test paint tool" + i, Color.FromArgb(255, rng.Next(255), rng.Next(255), rng.Next(255))));
+            }
 
-            //TODO Gaze enable toolbox.
-            //TODO Check if toolbox already has been created.
+            int rows = 2; // TODO Make into property.
+
             // Create buttons in paint tools toolbox.
             foreach (var paintTool in paintTools)
             {
+                // Create a button for the paint tool.
                 Button button = new Button();
-                button.Height = button.Width = 200; //TODO What size should a paint tool button be?
+                button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
+                button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);
+                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                button.Margin = new Padding(0);
 
-                //TODO Don't create new objects every iteration.
+                // Create sample drawing for the button thumbnail.
                 BaseFactory sampleFactory = new TreeFactory();
                 BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
                 sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool.color, false);
-                for (int i = 0; i < 3; ++i) sampleFactory.Grow();
+                for (int i = 0; i < 5; ++i) sampleFactory.Grow();
                 button.BackgroundImage = sampleRasterizer.Rasterize(sampleFactory);
-                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 
-                button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
+                // Add button to toolbox.
                 PaintToolsPanel.Controls.Add(button);
             }
 
             // TODO Append "Get random tool" button.
-
-            return paintTools;
         }
 
         // Store a new point in the model, if painting is enabled.
         private void TrackPoint(Point p)
         {
-            //TODO Animate opening and closing?
-            if (p.Y < 50) PaintToolsPanel.Visible = true;
-            else PaintToolsPanel.Visible = false;
-
-            if (paint.Enabled) factory.Add(p, currentTool.color, true);
+            if (paint.Enabled)
+            {
+                factory.Add(p, currentTool.color, true);
+            }
+            else
+            {
+                //TODO Animate opening and closing?
+                if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
+                else PaintToolsPanel.Visible = false;
+            }
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)

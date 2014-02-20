@@ -64,7 +64,6 @@
             resources.ApplyResources(this.EnableMouseButton, "EnableMouseButton");
             this.EnableMouseButton.Name = "EnableMouseButton";
             this.EnableMouseButton.UseVisualStyleBackColor = true;
-
             // 
             // CloseSetupPanelButton
             // 
@@ -72,7 +71,6 @@
             this.CloseSetupPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.CloseSetupPanelButton.Name = "CloseSetupPanelButton";
             this.CloseSetupPanelButton.UseVisualStyleBackColor = true;
-
             // 
             // OpenControlPanelButton
             // 
@@ -80,7 +78,6 @@
             resources.ApplyResources(this.OpenControlPanelButton, "OpenControlPanelButton");
             this.OpenControlPanelButton.Name = "OpenControlPanelButton";
             this.OpenControlPanelButton.UseVisualStyleBackColor = true;
-
             // 
             // SetupMessage
             // 

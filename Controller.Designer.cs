@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyePaintingForm));
             this.SetupPanel = new System.Windows.Forms.Panel();
+            this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.EnableEyeTrackerButton = new System.Windows.Forms.Button();
             this.EnableMouseButton = new System.Windows.Forms.Button();
             this.CloseSetupPanelButton = new System.Windows.Forms.Button();
@@ -48,6 +49,12 @@
             this.SetupPanel.Controls.Add(this.SetupMessage);
             this.SetupPanel.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.SetupPanel.Name = "SetupPanel";
+            // 
+            // PaintToolsPanel
+            // 
+            resources.ApplyResources(this.PaintToolsPanel, "PaintToolsPanel");
+            this.PaintToolsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.PaintToolsPanel.Name = "PaintToolsPanel";
             // 
             // EnableEyeTrackerButton
             // 
@@ -71,7 +78,7 @@
             this.CloseSetupPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.CloseSetupPanelButton.Name = "CloseSetupPanelButton";
             this.CloseSetupPanelButton.UseVisualStyleBackColor = true;
-            this.CloseSetupPanelButton.Click += new System.EventHandler(this.CloseInfoPanelClick);
+            this.CloseSetupPanelButton.Click += new System.EventHandler(this.CloseSetupPanelClick);
             // 
             // OpenControlPanelButton
             // 
@@ -89,6 +96,7 @@
             // EyePaintingForm
             // 
             resources.ApplyResources(this, "$this");
+            this.Controls.Add(this.PaintToolsPanel);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ControlBox = false;
@@ -101,6 +109,7 @@
             this.ShowIcon = false;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.SetupPanel.ResumeLayout(false);
+            this.SetupPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -114,6 +123,7 @@
         private System.Windows.Forms.Button CloseSetupPanelButton;
         private System.Windows.Forms.Button EnableMouseButton;
         private System.Windows.Forms.Button EnableEyeTrackerButton;
+        private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
     }
 }
 

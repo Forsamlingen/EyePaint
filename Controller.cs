@@ -79,9 +79,10 @@
             // Choose user input mode and register event handlers, etc.
             useInputMode(InputMode.MOUSE_AND_KEYBOARD);
 
-            // Create a global interactor context for the gaze point data stream.
+            // Create an interactor context for the eye tracker engine.
             context = new InteractionContext(false);
             InitializeGlobalInteractorSnapshot();
+            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
             context.ConnectionStateChanged += OnConnectionStateChanged;
             context.RegisterEventHandler(HandleInteractionEvent);
 
@@ -344,15 +345,81 @@
 
         private void HandleInteractionEvent(InteractionEvent e)
         {
+            var interactorId = e.InteractorId;
+
             foreach (var behavior in e.Behaviors)
                 switch (behavior.BehaviorType)
                 {
                     case InteractionBehaviorType.GazePointData:
                         OnGazePointData(behavior);
                         break;
-                    default: // TODO Investigate which other interaction events are possible in EyeX.
+                    case InteractionBehaviorType.GazeAware:
+                        GazeAwareEventParams gazeAwareEventParams;
+                        behavior.TryGetGazeAwareEventParams(out gazeAwareEventParams);
+                        Console.WriteLine(interactorId + " " + gazeAwareEventParams.HasGaze);
+                        BeginInvoke(new Action<string, bool>(OnGaze), interactorId, gazeAwareEventParams.HasGaze != EyeXBoolean.False);
+                        break;
+                    default:
                         break;
                 }
+        }
+
+        private void HandleQuery(InteractionQuery query)
+        {
+            var queryBounds = query.Bounds;
+            double x, y, w, h;
+            if (queryBounds.TryGetRectangularData(out x, out y, out w, out h))
+            {
+                // marshal the query to the UI thread, where WinForms objects may be accessed.
+                BeginInvoke(new Action<Rectangle>(HandleQueryOnUiThread), new Rectangle((int)x, (int)y, (int)w, (int)h));
+            }
+        }
+
+        private void HandleQueryOnUiThread(Rectangle queryBounds)
+        {
+            var windowId = Handle.ToString();
+
+            var snapshot = context.CreateSnapshot();
+            snapshot.AddWindowId(windowId);
+
+            var bounds = snapshot.CreateBounds(InteractionBoundsType.Rectangular);
+            bounds.SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+
+            var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+
+            CreateGazeAwareInteractor(panel1, Literals.RootId, windowId, 1, snapshot, queryBoundsRect);
+            CreateGazeAwareInteractor(panel2, panel1.Name, windowId, 1, snapshot, queryBoundsRect);
+            CreateGazeAwareInteractor(panel3, Literals.RootId, windowId, 2, snapshot, queryBoundsRect);
+            CreateGazeAwareInteractor(panel4, panel2.Name, windowId, 1, snapshot, queryBoundsRect);
+
+            snapshot.Commit(OnSnapshotCommitted);
+        }
+
+        private void CreateGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
+        {
+            var controlRect = control.Bounds;
+            controlRect = control.Parent.RectangleToScreen(controlRect);
+
+            if (controlRect.IntersectsWith(queryBoundsRect))
+            {
+                var interactor = snapshot.CreateInteractor(control.Name, parentId, windowId);
+                interactor.SetZ(z);
+
+                var bounds = interactor.CreateBounds(InteractionBoundsType.Rectangular);
+                bounds.SetRectangularData(controlRect.Left, controlRect.Top, controlRect.Width, controlRect.Height);
+
+                interactor.CreateBehavior(InteractionBehaviorType.GazeAware);
+            }
+        }
+
+
+        private void OnGaze(string interactorId, bool hasGaze)
+        {
+            var control = FindChildByName(interactorId, Controls);
+            if (control != null)
+            {
+                ((Panel)control).BorderStyle = (hasGaze) ? BorderStyle.FixedSingle : BorderStyle.None;
+            }
         }
 
         private void OnGazePointData(InteractionBehavior behavior)

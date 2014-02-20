@@ -57,7 +57,6 @@
             resources.ApplyResources(this.EnableEyeTrackerButton, "EnableEyeTrackerButton");
             this.EnableEyeTrackerButton.Name = "EnableEyeTrackerButton";
             this.EnableEyeTrackerButton.UseVisualStyleBackColor = true;
-            this.EnableEyeTrackerButton.Click += new System.EventHandler(this.UseEyeTrackerClick);
             // 
             // EnableMouseButton
             // 
@@ -65,7 +64,7 @@
             resources.ApplyResources(this.EnableMouseButton, "EnableMouseButton");
             this.EnableMouseButton.Name = "EnableMouseButton";
             this.EnableMouseButton.UseVisualStyleBackColor = true;
-            this.EnableMouseButton.Click += new System.EventHandler(this.UseMouseClick);
+
             // 
             // CloseSetupPanelButton
             // 
@@ -73,7 +72,7 @@
             this.CloseSetupPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.CloseSetupPanelButton.Name = "CloseSetupPanelButton";
             this.CloseSetupPanelButton.UseVisualStyleBackColor = true;
-            this.CloseSetupPanelButton.Click += new System.EventHandler(this.CloseSetupPanelClick);
+
             // 
             // OpenControlPanelButton
             // 
@@ -81,7 +80,7 @@
             resources.ApplyResources(this.OpenControlPanelButton, "OpenControlPanelButton");
             this.OpenControlPanelButton.Name = "OpenControlPanelButton";
             this.OpenControlPanelButton.UseVisualStyleBackColor = true;
-            this.OpenControlPanelButton.Click += new System.EventHandler(this.OpenControlPanelClick);
+
             // 
             // SetupMessage
             // 

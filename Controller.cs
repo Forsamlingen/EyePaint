@@ -11,33 +11,19 @@
 
     public partial class EyePaintingForm : Form, IDisposable
     {
-        // Eye tracking engine.
-        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
+        // Eye tracking engine
         private InteractionContext context;
+        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
         private InteractionSnapshot globalInteractorSnapshot;
 
-        // User input alternatives.
+        // User input alternatives
         internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
-        // Painting.
+        // Painting
         private BaseFactory factory;
         private BaseRasterizer rasterizer;
         private Timer paint;
-
-        //TODO Move into its own file.
-        internal struct PaintTool
-        {
-            public string name;
-            public Color color;
-
-            public PaintTool(string name, Color color)
-            {
-                this.name = name;
-                this.color = color;
-            }
-        }
         private PaintTool currentTool;
-
         internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
         private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
@@ -111,7 +97,7 @@
         private void resetPainting()
         {
             //TODO Clear model as well.
-            rasterizer.Undo();
+            rasterizer.Clear();
             Invalidate();
         }
 
@@ -148,7 +134,7 @@
                 // Create sample drawing for the button thumbnail.
                 BaseFactory sampleFactory = new TreeFactory();
                 BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
-                sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool.color, false);
+                sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool, false);
                 for (int i = 0; i < 5; ++i) sampleFactory.Grow();
                 button.BackgroundImage = sampleRasterizer.Rasterize(sampleFactory);
 
@@ -162,9 +148,9 @@
         // Store a new point in the model, if painting is enabled.
         private void TrackPoint(Point p)
         {
-            if (paint.Enabled)
+            if (paint.Enabled && currentTool != null)
             {
-                factory.Add(p, currentTool.color, true);
+                factory.Add(p, currentTool, true);
             }
             else
             {
@@ -214,13 +200,13 @@
                     resetPainting();
                     break;
                 case Keys.R:
-                    currentTool.color = Color.Crimson;
+                    currentTool.pen.Color = Color.Crimson;
                     break;
                 case Keys.G:
-                    currentTool.color = Color.ForestGreen;
+                    currentTool.pen.Color = Color.ForestGreen;
                     break;
                 case Keys.B:
-                    currentTool.color = Color.CornflowerBlue;
+                    currentTool.pen.Color = Color.CornflowerBlue;
                     break;
                 case Keys.S:
                     storePainting();

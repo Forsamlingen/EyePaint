@@ -7,39 +7,62 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
-    abstract class BaseFactory
+    internal abstract class FactoryElement
     {
-        public abstract void Add(Point p, Color c, bool alwaysAdd = false);
-        public abstract void Grow();
+        internal readonly PaintTool paintTool;
+        internal List<Point> points;
+        internal FactoryElement(PaintTool paintTool)
+        {
+            this.paintTool = paintTool;
+            points = new List<Point>();
+        }
     }
 
- 
-    internal struct Tree
+    internal abstract class BaseFactory
     {
-        internal readonly Color color;
+        private Queue<FactoryElement> renderQueue; //TODO The render queue should be a list of points, not FactoryElements.
+        public abstract void Add(Point p, PaintTool pt, bool alwaysAdd = false); // TODO Remove bool.
+        public abstract void Grow();
+
+        public BaseFactory()
+        {
+            renderQueue = new Queue<FactoryElement>();
+        }
+
+        internal void ClearRenderQueue()
+        {
+            renderQueue.Clear();
+        }
+
+        internal Queue<FactoryElement> GetRenderQueue()
+        {
+            return renderQueue;
+        }
+    }
+
+    internal class Tree : FactoryElement
+    {
         internal readonly Point root;
         internal int generation;
         internal Point[] previousGen; //Parents of the present leaves
-        internal Point[] leaves;
         internal readonly int edgeLength;
-        internal readonly int nLeaves;// TODO Warning need to be >2
+        internal readonly int nLeaves;// TODO Warning need to be >2 TODO Fix warning.
 
-        public Tree(Color color, Point root, int edgeLength, int nLeaves, Point[] previousGen, Point[] startLeaves)
+        internal Tree(PaintTool paintTool, Point root, int edgeLength, int nLeaves, Point[] previousGen, Point[] startLeaves)
+            : base(paintTool)
         {
-            this.color = color;
             this.root = root;
             this.edgeLength = edgeLength;
-            this.nLeaves = nLeaves; //Warning need to be >2
-            this.previousGen = previousGen; 
-            leaves = startLeaves;
+            this.nLeaves = nLeaves; //Warning need to be >2 TODO Fix warning.
+            this.previousGen = previousGen;
+            points = startLeaves.ToList();
             generation = 0;
         }
     }
 
-    class TreeFactory : BaseFactory
+    internal class TreeFactory : BaseFactory
     {
         internal List<Tree> oldTrees;
-        private LinkedList<Tree> renderQueue;
         private int maxGenerations = 100;           // controls the max size of a single tree
         private int offset_distance = 30;           // distance from the convex hull
         private readonly int edgeLength = 25;       // constant to experiment with
@@ -51,46 +74,26 @@ namespace EyePaint
         public TreeFactory()
         {
             oldTrees = new List<Tree>();
-            renderQueue = new LinkedList<Tree>();
         }
 
-        internal void ClearRenderQueue()
-        {
-            renderQueue.Clear();
-        }
-
-        internal LinkedList<Tree> getRenderQueue()
-        {
-            return renderQueue;
-        }
-
-        internal Boolean HasQueued()
-        {
-            if (renderQueue.Count() == 0)
-                return false;
-            else
-                return true;
-        }
         /**
          * Return a stack with the points in the convex hull of the tree.
          * If number of leaves in the tree is less then 3 an empty stack is returned
-         **/ 
+         **/
         internal Stack<Point> GetConvexHull(Tree tree)
         {
-            Stack<Point> s = new Stack<Point>();
-            if(tree.nLeaves<3) return s;
-            else return GrahamScan(tree.leaves);
-            
+            if (tree.nLeaves < 3) return new Stack<Point>();
+            else return GrahamScan(tree.points.ToArray());
         }
 
-        public override void Add(Point root, Color c, bool alwaysAdd = false)
+        public override void Add(Point root, PaintTool pt, bool alwaysAdd = false)
         {
             if (alwaysAdd || !PointInsideTree(root))
             {
                 oldTrees.Add(currentTree);
-                Tree tree = CreateDefaultTree(root, c);
+                Tree tree = CreateDefaultTree(root, pt);
                 currentTree = tree;
-                renderQueue.AddLast(tree);
+                GetRenderQueue().Enqueue(tree);
                 treeAdded = true;
             }
         }
@@ -99,8 +102,7 @@ namespace EyePaint
          * A default tree is the base of any tree. It consists of a root, 
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
-
-        private Tree CreateDefaultTree(Point root, Color color)
+        private Tree CreateDefaultTree(Point root, PaintTool pt)
         {
             // All the start leaves will have the root as parent
             Point[] previousGen = new Point[nLeaves];
@@ -120,7 +122,7 @@ namespace EyePaint
                 v += 2 * Math.PI / nLeaves;
             }
 
-            return new Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
+            return new Tree(pt, root, edgeLength, nLeaves, previousGen, startLeaves);
         }
 
         /*
@@ -140,13 +142,14 @@ namespace EyePaint
                 // Grow all branches
                 for (int i = 0; i < nLeaves; i++)
                 {
-                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root);
+                    Point newLeaf = GetLeaf(lastTree.points[i], lastTree.root);
                     newLeaves[i] = newLeaf;
                 }
-                Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
+
+                Tree grownTree = new Tree(lastTree.paintTool, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.points.ToArray(), newLeaves);
                 grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
-                renderQueue.AddLast(currentTree);
+                GetRenderQueue().Enqueue(currentTree);
             }
         }
 
@@ -170,7 +173,7 @@ namespace EyePaint
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
-            double r = GetVectorLength(parentVector); 
+            double r = GetVectorLength(parentVector);
 
             //Calculate the angle v1 between parent vector and the x-axis vector
             //using the dot-product.
@@ -221,16 +224,14 @@ namespace EyePaint
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
-                Point p = TransformCoordinates(currentTree.root, currentTree.leaves[i]);
+                Point p = TransformCoordinates(currentTree.root, currentTree.points[i]);
                 points[i] = Offset(p);
             }
 
             evalPoint = TransformCoordinates(currentTree.root, evalPoint);
-            
-
 
             Stack<Point> s = GrahamScan(points);
-            
+
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
             Point p1 = hullStart;
@@ -296,7 +297,7 @@ namespace EyePaint
             return true;
         }
 
-        
+
         private Stack<Point> GrahamScan(Point[] points)
         {
             //Find point with lowex Y-coordinate
@@ -328,9 +329,7 @@ namespace EyePaint
             Array.Sort(grahamPoints);
             Stack<Point> s = new Stack<Point>();
 
-            s.Push(GrahamPointToPoint(grahamPoints[0]));
-            s.Push(GrahamPointToPoint(grahamPoints[1]));
-            s.Push(GrahamPointToPoint(grahamPoints[2]));
+            for (int i = 0; i < 3; ++i) s.Push(new Point(grahamPoints[i].point.X, grahamPoints[i].point.Y));
 
             Point top;
             Point nextToTop;
@@ -390,6 +389,7 @@ namespace EyePaint
         {
             return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
         }
+
         /*
          * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
          * If any of the vectors is of length zero, return zero
@@ -398,9 +398,9 @@ namespace EyePaint
         {
             double lP = GetVectorLength(P);
             double lQ = GetVectorLength(Q);
-            
+
             if (lP == 0 || lQ == 0) return 0;
-            
+
             double v = Math.Acos((P[0] * Q[0] + P[1] * Q[1]) / (lP * lQ));
             return v;
         }
@@ -461,30 +461,22 @@ namespace EyePaint
             }
             return minPoint;
         }
-
-        private Point GrahamPointToPoint(GrahamPoint grahamPoint)
-        {
-            Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);
-            return point;
-        }
     }
 
-    class Cloud
+    internal class Cloud : FactoryElement
     {
-        internal readonly Color color;
-        internal readonly List<Point> points;
         private int radius;
 
-        internal Cloud(Point root, Color color)
+        internal Cloud(PaintTool paintTool, Point root)
+            : base(paintTool)
         {
-            this.points = new List<Point> { root };
-            this.color = color;
+            this.points.Add(root);
             this.radius = 1;
         }
 
-        internal void IncreaseRadius()
+        internal void IncreaseRadius(int amount = 1)
         {
-            radius++;
+            radius += amount;
         }
 
         internal int GetRadius()
@@ -495,58 +487,35 @@ namespace EyePaint
 
     class CloudFactory : BaseFactory
     {
-        internal readonly Stack<Cloud> clouds;
-        private Queue<Point> renderQueue;
+        private Cloud cloud;
         private Random randomNumberGenerator;
 
         public CloudFactory()
         {
-            clouds = new Stack<Cloud>();
-            renderQueue = new Queue<Point>(); //TODO Exchange for buffer. Will probably require restructuring of program.
             randomNumberGenerator = new Random();
         }
 
-        public override void Add(Point center, Color color, bool alwaysAdd = false)
+        public override void Add(Point p, PaintTool pt, bool alwaysAdd = true)
         {
-            Cloud c = new Cloud(center, color);
-            clouds.Push(c);
-        }
-
-        internal void GrowCloud(Cloud c, int amount)
-        {
-            c.IncreaseRadius();
-            int radius = c.GetRadius();
-
-            for (int i = 0; i < amount; i++)
-            {
-                int x = randomNumberGenerator.Next(c.points[0].X - radius, c.points[0].X + radius);
-                int y = randomNumberGenerator.Next(c.points[0].Y - radius, c.points[0].Y + radius);
-                c.points.Add(new Point(x, y)); //TODO Memory management!
-                renderQueue.Enqueue(new Point(x, y));
-            }
+            cloud = new Cloud(pt, p);
+            GetRenderQueue().Enqueue(cloud);
         }
 
         public override void Grow()
         {
-            GrowCloud(clouds.Peek(), randomNumberGenerator.Next(10));
-        }
-
-        internal bool HasQueued()
-        {
-            if (renderQueue.Count > 0)
-                return true;
-            else
-                return false;
-        }
-
-        internal Point GetQueued()
-        {
-            return renderQueue.Dequeue();
-        }
-
-        internal int GetQueueLength()
-        {
-            return renderQueue.Count;
+            if (GetRenderQueue().Count > 0)
+            {
+                var cloud = (Cloud)GetRenderQueue().First();
+                int amount = randomNumberGenerator.Next(10);
+                cloud.IncreaseRadius(amount);
+                int radius = cloud.GetRadius();
+                for (int i = 0; i < amount; i++)
+                {
+                    int x = randomNumberGenerator.Next(cloud.points[0].X - radius, cloud.points[0].X + radius);
+                    int y = randomNumberGenerator.Next(cloud.points[0].Y - radius, cloud.points[0].Y + radius);
+                    cloud.points.Add(new Point(x, y));
+                }
+            }
         }
     }
 }

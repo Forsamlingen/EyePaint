@@ -68,7 +68,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LinearAlgebra.cs" />
+    <None Include="LinearAlgebra.cs1" />
     <Compile Include="PaintTool.cs" />
     <Compile Include="View.cs" />
     <Compile Include="Controller.cs">

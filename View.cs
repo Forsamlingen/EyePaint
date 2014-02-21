@@ -53,11 +53,13 @@ namespace EyePaint
                                 g.DrawLine(pt.pen, t.parents[leaf], leaf);
                     }
 
+                    /* TODO Finish Linear Algebra library.
                     if (pt.drawHull)
                     {
                         Stack<Point> convexHull = f.GetConvexHull(t);
                         g.FillPolygon(pt.pen.Brush, convexHull.ToArray());
                     }
+                    */
 
                     if (pt.drawEllipses)
                     {

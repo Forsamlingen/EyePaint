@@ -47,6 +47,7 @@ namespace EyePaint
 
     class Tree : FactoryElement
     {
+        Random random; // TODO Every tree probably shouldn't have its own random number generator. Wasteful.
         internal readonly Point root;
         internal readonly Dictionary<Point, Point> parents;
         Stack<Point> leaves;
@@ -60,6 +61,7 @@ namespace EyePaint
             parents = new Dictionary<Point, Point>();
             leaves = new Stack<Point>();
             leaves.Push(root);
+            random = new Random();
         }
 
         // Increase the age of the tree.
@@ -83,7 +85,24 @@ namespace EyePaint
                 var leaf = leaves.Pop();
                 for (int i = 0; i < branches; ++i)
                 {
-                    var newLeaf = new Point(leaf.X + branchLength, leaf.Y + branchLength);
+                    // Determine current branch growth direction.
+                    int directionX, directionY;
+                    if (!parents.ContainsKey(leaf)) {
+                        directionX = random.Next(-1, 1);
+                        directionY = random.Next(-1, 1);
+                    }
+                    else
+                    {
+                        directionX = Math.Sign(leaf.X - parents[leaf].X);
+                        directionY = Math.Sign(leaf.Y - parents[leaf].Y);
+                    }
+
+                    // Determine endpoint displacement.
+                    int dx = directionX * random.Next(0, branchLength);
+                    int dy = directionY * random.Next(0, branchLength);
+
+                    // Construct and store branch's endpoint.
+                    var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
                     parents[newLeaf] = leaf;
                     newLeaves.Push(newLeaf);
                 }
@@ -106,11 +125,11 @@ namespace EyePaint
         const int maxTreeAge = 100; //TODO Make into property.
         const int offsetDistance = 30; //TODO Make into property.
         const int edgeLength = 25; //TODO Make into property.
-        const int leavesCount = 1; //TODO Make into property.
+        const int leavesCount = 3; //TODO Make into property.
 
         public override void Add(Point root, PaintTool pt)
         {
-            //if (isInsideTree(root) && !pt.alwaysAdd) return; TODO
+            //if (isInsideTree(root) && !pt.alwaysAdd) return; TODO Implement Linear Algebra library.
             Tree t = new Tree(pt, root);
             history.Push(t);
             renderQueue.Enqueue(t);

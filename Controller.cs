@@ -9,23 +9,23 @@
     using Tobii.EyeX.Client.Interop;
     using Tobii.EyeX.Framework;
 
-    public partial class EyePaintingForm : Form, IDisposable
+    partial class EyePaintingForm : Form, IDisposable
     {
         // Eye tracking engine
-        private InteractionContext context;
-        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
-        private InteractionSnapshot globalInteractorSnapshot;
+        InteractionContext context;
+        readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
+        InteractionSnapshot globalInteractorSnapshot;
 
         // User input alternatives
-        internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
+        enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
         // Painting
-        private BaseFactory factory;
-        private BaseRasterizer rasterizer;
-        private Timer paint;
-        private PaintTool currentTool;
-        internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
-        private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
+        BaseFactory factory;
+        BaseRasterizer rasterizer;
+        Timer paint;
+        PaintTool currentTool;
+        enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
+        const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
         public EyePaintingForm()
         {
@@ -45,7 +45,7 @@
             context.RegisterEventHandler(HandleInteractionEvent);
 
             // Initialize model and view classes.
-            switch (modelType) //TODO Use Activator instead.
+            switch (modelType)
             {
                 case ModelType.CLOUD:
                     factory = new CloudFactory();
@@ -74,52 +74,47 @@
         }
 
         // Starts the paint timer.
-        private void startPainting()
+        void startPainting()
         {
             if (paint.Enabled) return;
             else paint.Enabled = true;
         }
 
         // Stops the timer.
-        private void stopPainting()
+        void stopPainting()
         {
             paint.Enabled = false;
         }
 
         // Rasterizes the model and returns an image object.
-        private Image getPainting()
+        Image getPainting()
         {
             Image image = rasterizer.Rasterize(factory);
             return image;
         }
 
         // Clears the canvas.
-        private void resetPainting()
+        void resetPainting()
         {
             //TODO Clear model as well.
-            rasterizer.Clear();
+            rasterizer.ClearImage();
             Invalidate();
         }
 
         // Writes rasterized image to a file
-        private void storePainting()
+        void storePainting()
         {
             Image image = getPainting();
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
         // Populates the paint tools toolbox with user selectable paint tools.
-        private void setupPaintTools()
+        void setupPaintTools()
         {
             //TODO Get all paint tools from a data store instead of automatically generating tools below.
             List<PaintTool> paintTools = new List<PaintTool>();
             Random rng = new Random();
-            for (int i = 0; i < 20; ++i)
-            {
-                paintTools.Add(new PaintTool("Test paint tool" + i, Color.FromArgb(255, rng.Next(255), rng.Next(255), rng.Next(255))));
-            }
-
-            int rows = 2; // TODO Make into property.
+            for (int i = 0; i < 20; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, null, Color.FromArgb(255, rng.Next(255), rng.Next(255), rng.Next(255))));
 
             // Create buttons in paint tools toolbox.
             foreach (var paintTool in paintTools)
@@ -127,16 +122,21 @@
                 // Create a button for the paint tool.
                 Button button = new Button();
                 button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
+                int rows = 2; // TODO Make into a property.
                 button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);
                 button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
                 button.Margin = new Padding(0);
 
-                // Create sample drawing for the button thumbnail.
-                BaseFactory sampleFactory = new TreeFactory();
-                BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
-                sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool, false);
-                for (int i = 0; i < 5; ++i) sampleFactory.Grow();
-                button.BackgroundImage = sampleRasterizer.Rasterize(sampleFactory);
+                // Create sample drawing for the button thumbnail, if a paint tool icon doesn't already exist.
+                if (paintTool.icon == null) {
+                    //TODO Switch factory based on user choice.
+                    BaseFactory sampleFactory = new TreeFactory();
+                    BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
+                    sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool);
+                    for (int i = 0; i < 5; ++i) sampleFactory.Grow();
+                    paintTool.icon = sampleRasterizer.Rasterize(sampleFactory);
+                }
+                button.BackgroundImage = paintTool.icon;
 
                 // Add button to toolbox.
                 PaintToolsPanel.Controls.Add(button);
@@ -146,11 +146,11 @@
         }
 
         // Store a new point in the model, if painting is enabled.
-        private void TrackPoint(Point p)
+        void trackPoint(Point p)
         {
             if (paint.Enabled && currentTool != null)
             {
-                factory.Add(p, currentTool, true);
+                factory.Add(p, currentTool);
             }
             else
             {
@@ -162,7 +162,7 @@
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            TrackPoint(new Point(e.X, e.Y));
+            trackPoint(new Point(e.X, e.Y));
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
@@ -352,7 +352,7 @@
                     case InteractionBehaviorType.GazePointData:
                         GazePointDataEventParams eventParams;
                         if (behavior.TryGetGazePointDataEventParams(out eventParams))
-                            TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
+                            trackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
                         break;
                     case InteractionBehaviorType.GazeAware:
                         GazeAwareEventParams gazeAwareEventParams;

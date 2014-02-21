@@ -25,6 +25,7 @@ namespace EyePaint
             }
             catch (Exception e)
             {
+                //TODO Notify a program admin via email or HTTP request.
                 MessageBox.Show(e.Message, "Failed loading application!");
             }
         }

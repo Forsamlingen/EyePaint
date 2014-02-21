@@ -6,29 +6,36 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    internal abstract class BaseRasterizer
+    abstract class BaseRasterizer
     {
-        internal Image image, background;
+        protected Image image, background;
 
-        internal BaseRasterizer(int width, int height)
+        public BaseRasterizer(int width, int height)
         {
             background = new Bitmap(width, height);
-            using (Graphics g = Graphics.FromImage(background)) g.FillRectangle(Brushes.Black, 0, 0, width, height);
+            using (Graphics g = System.Drawing.Graphics.FromImage(background))
+                g.FillRectangle(Brushes.Black, 0, 0, width, height);
             image = new Bitmap(background);
         }
 
-        abstract internal Image Rasterize(BaseFactory factory);
+        abstract public Image Rasterize(BaseFactory factory);
 
-        internal void Clear()
+        public void ClearImage()
         {
             image = new Bitmap(background);
+        }
+
+        public Image GetImage()
+        {
+            return image;
         }
     }
 
-    internal class TreeRasterizer : BaseRasterizer
+    class TreeRasterizer : BaseRasterizer
     {
-        internal TreeRasterizer(int width, int height) : base(width, height) { }
-        internal override Image Rasterize(BaseFactory factory)
+        public TreeRasterizer(int width, int height) : base(width, height) { }
+
+        public override Image Rasterize(BaseFactory factory)
         {
             var f = (TreeFactory)factory;
             Queue<FactoryElement> q = f.GetRenderQueue();
@@ -40,18 +47,14 @@ namespace EyePaint
                     // Pick render methods based on paint tool settings.
                     if (pt.drawLines)
                     {
-                        // Draw tree lines.
-                        for (int i = 0; i < t.nLeaves; i++)
-                        {
-                            Point parent = new Point(t.previousGen[i].X, t.previousGen[i].Y);
-                            Point leaf = new Point(t.points[i].X, t.points[i].Y);
-                            g.DrawLine(pt.pen, parent, leaf);
-                        }
+                        var leaves = t.GetLeaves();
+                        if (leaves.Count > 1)
+                            foreach (var leaf in t.GetLeaves())
+                                g.DrawLine(pt.pen, t.parents[leaf], leaf);
                     }
 
                     if (pt.drawHull)
                     {
-                        // Draw convex hull.
                         Stack<Point> convexHull = f.GetConvexHull(t);
                         g.FillPolygon(pt.pen.Brush, convexHull.ToArray());
                     }
@@ -67,16 +70,15 @@ namespace EyePaint
 
                     q.Dequeue();
                 }
-            f.ClearRenderQueue(); //TODO Neccessary? Probably not.
-            return image;
+            return GetImage();
         }
-
     }
 
-    internal class CloudRasterizer : BaseRasterizer
+    class CloudRasterizer : BaseRasterizer
     {
-        internal CloudRasterizer(int width, int height) : base(width, height) { }
-        internal override Image Rasterize(BaseFactory factory)
+        public CloudRasterizer(int width, int height) : base(width, height) { }
+
+        public override Image Rasterize(BaseFactory factory)
         {
             var f = (CloudFactory)factory;
             var q = f.GetRenderQueue();
@@ -85,7 +87,6 @@ namespace EyePaint
                     Cloud c = (Cloud)q.First();
                     foreach (Point p in c.points)
                     {
-                        Console.WriteLine(p.ToString());
                         g.DrawEllipse(
                             c.paintTool.pen,
                             p.X - c.GetRadius() / 2,
@@ -96,7 +97,7 @@ namespace EyePaint
                     }
                     q.Dequeue();
                 }
-            return image;
+            return GetImage();
         }
     }
 }

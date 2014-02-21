@@ -6,20 +6,31 @@ using System.Text;
 
 namespace EyePaint
 {
-    internal class PaintTool
+    class PaintTool
     {
-        //TODO Declare more fields.
-        internal readonly string name;
-        internal readonly Pen pen;
-        internal bool drawEllipses, drawLines, drawHull;
+        internal string name;
+        internal Image icon;
+        internal readonly Pen pen; // Contains settings for opacity, base color, width, etc.
+        internal readonly List<Color> shades;
+        internal bool drawEllipses, drawLines, drawHull, alwaysAdd; //TODO Perhaps extend the PaintTool class with specific tools per model element (i.e. CloudTool, TreeTool).
 
-        internal PaintTool(string name, Color color)
+        public PaintTool(string name, Image icon, Color color)
         {
             this.name = name;
-            this.drawLines = true;
-            this.drawHull = false;
-            this.drawEllipses = false;
-            this.pen = new Pen(Color.FromArgb(100, color), 10);
+            drawLines = true;
+            drawHull = false;
+            drawEllipses = true;
+            alwaysAdd = true;
+            pen = new Pen(Color.FromArgb(100, color), 10); //TODO Set opacity and width somewhere else.
+            shades = new List<Color>();
+            SetShades(color);
+        }
+
+        public void SetShades(Color baseColor, int numberOfShades = 10)
+        {
+            //TODO Add more interesting palette generation than scaling opacity with the base color.
+            for (int i = 1; i <= numberOfShades; ++i)
+                shades.Add(Color.FromArgb(255 / i, baseColor));
         }
     }
 }

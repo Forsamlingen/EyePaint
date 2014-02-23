@@ -21,12 +21,10 @@
         bool track = false;
 
         // Painting
-        BaseFactory factory;
-        Rasterizer rasterizer;
+        Factory<Tree> factory;
+        Rasterizer<Tree> rasterizer;
         Timer paint;
         PaintTool currentTool = new PaintTool("DEFAULT", null, Color.White);
-        enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
-        const ModelType modelType = ModelType.CLOUD; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
         public EyePaintingForm()
         {
@@ -46,18 +44,8 @@
             context.RegisterEventHandler(HandleInteractionEvent);
 
             // Initialize model and view classes.
-            rasterizer = new Rasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            switch (modelType)
-            {
-                case ModelType.CLOUD:
-                    factory = new CloudFactory();
-                    break;
-                case ModelType.TREE:
-                    factory = new TreeFactory();
-                    break;
-                default:
-                    goto case ModelType.TREE;
-            }
+            rasterizer = new Rasterizer<Tree>(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            factory = new Factory<Tree>();
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
@@ -131,8 +119,8 @@
                 if (paintTool.icon == null)
                 {
                     //TODO Switch factory based on user choice.
-                    BaseFactory sampleFactory = new TreeFactory();
-                    Rasterizer sampleRasterizer = new Rasterizer(button.Width, button.Height);
+                    Factory<Tree> sampleFactory = new Factory<Tree>();
+                    Rasterizer<Tree> sampleRasterizer = new Rasterizer<Tree>(button.Width, button.Height);
                     sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool);
                     for (int i = 0; i < 5; ++i) sampleFactory.Grow();
                     sampleRasterizer.RasterizeModel(sampleFactory);
@@ -202,13 +190,13 @@
                     resetPainting();
                     break;
                 case Keys.R:
-                    currentTool.pen.Color = Color.Crimson;
+                    currentTool = new PaintTool("Red", null, Color.Crimson);
                     break;
                 case Keys.G:
-                    currentTool.pen.Color = Color.ForestGreen;
+                    currentTool = new PaintTool("Red", null, Color.ForestGreen);
                     break;
                 case Keys.B:
-                    currentTool.pen.Color = Color.CornflowerBlue;
+                    currentTool = new PaintTool("Red", null, Color.CornflowerBlue);
                     break;
                 case Keys.S:
                     storePainting();

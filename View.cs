@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    class Rasterizer
+    class Rasterizer<T> where T : FactoryElement
     {
         protected Image image, background;
 
@@ -18,26 +18,27 @@ namespace EyePaint
             image = new Bitmap(background);
         }
 
-        public void RasterizeModel(BaseFactory f)
+        public void RasterizeModel(Factory<T> f)
         {
             using (Graphics g = Graphics.FromImage(image))
                 foreach (var e in f.Consume())
                 {
                     var pt = e.GetPaintTool();
                     var pen = pt.pen;
+                    pt.RandomShade();
                     var w = pen.Width;
                     while (e.CanConsume())
                     {
                         var points = e.Consume();
-                        if (pt.drawLines && points.Length > 1)
+
+                        if (points.Length > 1)
                         {
-                            g.DrawLines(pen, points);
+                            if (pt.drawLines) g.DrawLines(pen, points);
+                            if (pt.drawCurves) g.DrawCurve(pen, points);
+                            if (pt.drawPolygon) g.DrawPolygon(pen, points);
                         }
 
-                        if (pt.drawEllipses)
-                        {
-                            foreach (var p in points) g.DrawEllipse(pen, p.X - w / 2, p.Y - w / 2, w, w);
-                        }
+                        if (pt.drawEllipses) foreach (var p in points) g.DrawEllipse(pen, p.X - w / 2, p.Y - w / 2, w, w);
                     }
                 }
         }

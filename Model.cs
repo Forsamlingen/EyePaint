@@ -13,11 +13,14 @@ namespace EyePaint
         protected readonly PaintTool paintTool;
         protected readonly Queue<Point[]> pointGroups;
 
-        public FactoryElement(PaintTool pt)
+        public FactoryElement(Point p, PaintTool pt)
         {
             paintTool = pt;
             pointGroups = new Queue<Point[]>();
+            pointGroups.Enqueue(new Point[] { p });
         }
+
+        public abstract void Grow();
 
         public PaintTool GetPaintTool()
         {
@@ -35,27 +38,34 @@ namespace EyePaint
         }
     }
 
-    // A factory creates and maintains several factory elements at once.
-    abstract class BaseFactory
+    class Cloud : FactoryElement
     {
-        protected readonly LinkedList<FactoryElement> elements;
+        internal readonly Point center;
+        int radius;
+        static Random random = random = new Random();
 
-        public BaseFactory()
+        public Cloud(Point p, PaintTool pt)
+            : base(p, pt)
         {
-            elements = new LinkedList<FactoryElement>();
+            center = p;
+            radius = 1;
         }
 
-        // Create a new factory element.
-        public abstract void Add(Point p, PaintTool pt);
-
-        // Grow factory elements.
-        public abstract void Grow();
-
-        public LinkedList<FactoryElement> Consume()
+        public override void Grow()
         {
-            //TODO Remove dead elements that are no longer changing.
-            //TODO Use iterator pattern instead.
-            return elements;
+            const int MAX_NEW_POINTS = 10; //TODO Set somewhere else. But where? Hmm...
+
+            // Interpret paint tool amplitude as number of new points to add to the cloud.
+            int amount = (int)Math.Floor(MAX_NEW_POINTS * paintTool.amplitude);
+
+            // Randomly plot new points around the cloud's center.
+            Point[] points = new Point[amount];
+            radius += amount;
+            while (--amount >= 0)
+            {
+                points[amount] = new Point(random.Next(center.X - radius, center.X + radius), random.Next(center.Y - radius, center.Y + radius));
+            }
+            pointGroups.Enqueue(points);
         }
     }
 
@@ -63,11 +73,11 @@ namespace EyePaint
     {
         Dictionary<Point, Point> parents;
         LinkedList<Point> leaves;
+        static Random random = random = new Random();
 
-        public Tree(PaintTool pt, Point p)
-            : base(pt)
+        public Tree(Point p, PaintTool pt)
+            : base(p, pt)
         {
-            pointGroups.Enqueue(new Point[] { p });
             leaves = new LinkedList<Point>();
             leaves.AddFirst(p);
             parents = new Dictionary<Point, Point>();
@@ -84,7 +94,7 @@ namespace EyePaint
         }
 
         // Add new leaves for each current leaf, effectively branching out the tree.
-        public void AddBranches(Random random)
+        public override void Grow()
         {
             // Interpret paint tool amplitude as branch length and number of new branches.
             const int MAX_BRANCHES = 20; //TODO Set this somewhere else.
@@ -128,82 +138,42 @@ namespace EyePaint
         }
     }
 
-    class TreeFactory : BaseFactory
+    // A factory creates and maintains several factory elements at once.
+    class Factory<T> where T : FactoryElement
     {
-        Random random = new Random();
+        static Random random = random = new Random();
+        protected readonly LinkedList<T> elements;
 
-        public override void Add(Point root, PaintTool pt)
+        public Factory()
         {
-            //if (isInsideTree(root) && !pt.alwaysAdd) return; TODO Implement Linear Algebra library.
-            elements.AddLast(new Tree(pt, root));
+            elements = new LinkedList<T>();
         }
 
-        public override void Grow()
+        // Create a new factory element.
+        public void Add(Point p, PaintTool pt)
         {
-            foreach (Tree t in elements)
-            {
-                t.AddBranches(random);
-            }
-        }
-    }
-
-    class Cloud : FactoryElement
-    {
-        internal readonly Point center;
-        int radius;
-
-        public Cloud(PaintTool pt, Point c)
-            : base(pt)
-        {
-            center = c;
-            radius = 1;
-            pointGroups.Enqueue(new Point[] { c });
+            if (pt.done) return;
+            var f = (T)Activator.CreateInstance(typeof(T), new object[] { p, pt });
+            elements.AddLast(f);
         }
 
-        public void GrowCloud(Random random)
+        // Grow factory elements.
+        public void Grow()
         {
-            int amount = (int)(10 * paintTool.amplitude); //TODO Convert properly.
-            Point[] points = new Point[amount];
-            radius += amount;
-            while (--amount > 0)
-            {
-                points[amount] = new Point(random.Next(center.X - radius, center.X + radius), random.Next(center.Y - radius, center.Y + radius));
-            }
-            pointGroups.Enqueue(points);
+            //TODO Collision detection.
+            foreach (T e in elements) e.Grow();
         }
 
-        public void IncreaseRadius(int amount = 1)
+        public LinkedList<T> Consume()
         {
-            radius += amount;
-        }
+            // Remove dead elements that are no longer changing.
+            /*
+            foreach (var e in elements)
+                if (e.GetPaintTool().done)
+                    elements.Remove(e);
+            */
 
-        public int GetRadius()
-        {
-            return radius;
-        }
-
-    }
-
-    class CloudFactory : BaseFactory
-    {
-        Random random;
-
-        public CloudFactory()
-        {
-            random = new Random();
-        }
-
-        public override void Add(Point p, PaintTool pt)
-        {
-            elements.AddLast(new Cloud(pt, p));
-        }
-
-        public override void Grow()
-        {
-            foreach (Cloud c in elements)
-            {
-                c.GrowCloud(random);
-            }
+            return elements;
         }
     }
 }

@@ -13,22 +13,24 @@ namespace EyePaint
         internal Image icon;
         internal readonly Pen pen; // Contains settings for opacity, base color, width, etc.
         internal readonly List<Color> shades;
-        internal bool drawEllipses, drawLines, drawHull, alwaysAdd; //TODO Perhaps extend the PaintTool class with specific tools per model element (i.e. CloudTool, TreeTool).
+        internal bool drawEllipses, drawLines, drawPolygon, drawCurves, drawStamps;
 
         // ADSR envelope
         internal double amplitude; // [0.0..1.0]
         int a, d, r;
         Timer rise, fall;
+        public bool done;
 
         public PaintTool(string name, Image icon, Color color)
         {
             this.name = name;
 
             // Shapes
-            drawLines = true;
-            drawHull = false;
-            drawEllipses = true;
-            alwaysAdd = true; //TODO Remove?
+            drawLines = false;
+            drawPolygon = false;
+            drawEllipses = false;
+            drawCurves = true;
+            drawStamps = false; //TODO Implement.
 
             // Colors
             pen = new Pen(Color.FromArgb(100, color), 10); //TODO Set default opacity and width somewhere else.
@@ -36,19 +38,32 @@ namespace EyePaint
             SetShades(color);
 
             // ADSR envelope
-            RegisterADSREnvelope(10, 1, 0.5, 10);
+            registerADSREnvelope(10, 1, 0.5, 10);
         }
 
         public void SetShades(Color baseColor, int numberOfShades = 10)
         {
-            //TODO Add more interesting palette generation than scaling opacity with the base color.
+            Random random = new Random(); //TODO Don't allocate on each call.
+            double offset = 0.25; //TODO Make into a parameter.
             for (int i = 1; i <= numberOfShades; ++i)
-                shades.Add(Color.FromArgb(255 / i, baseColor));
+                shades.Add(Color.FromArgb(
+                baseColor.A + (int)Math.Floor(offset * random.Next(-baseColor.A, 255 - baseColor.A)),
+                baseColor.R + (int)Math.Floor(offset * random.Next(-baseColor.R, 255 - baseColor.R)),
+                baseColor.G + (int)Math.Floor(offset * random.Next(-baseColor.G, 255 - baseColor.G)),
+                baseColor.B + (int)Math.Floor(offset * random.Next(-baseColor.B, 255 - baseColor.B))
+                ));
+        }
+
+        public void RandomShade()
+        {
+            Random random = new Random(); //TODO Don't allocate on each call.
+            pen.Color = shades[random.Next(0, shades.Count() - 1)];
         }
 
         //TODO Use threads instead of timers. Timers lack precise timing.
-        private void RegisterADSREnvelope(int attack, int decay, double sustain, int release)
+        void registerADSREnvelope(int attack, int decay, double sustain, int release)
         {
+            done = false;
             rise = new Timer();
             rise.Enabled = false;
             rise.Interval = 1;
@@ -89,6 +104,7 @@ namespace EyePaint
                 {
                     amplitude = 0;
                     fall.Enabled = false;
+                    done = true;
                 }
             };
         }

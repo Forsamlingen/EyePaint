@@ -7,59 +7,70 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
+    // A factory element is a collection of groups of points, and a paint tool defining the appearance of the groups of points.
     abstract class FactoryElement
     {
-        internal readonly PaintTool paintTool;
-        internal readonly LinkedList<Point> points;
+        protected readonly PaintTool paintTool;
+        protected readonly Queue<Point[]> pointGroups;
 
         public FactoryElement(PaintTool pt)
         {
             paintTool = pt;
-            points = new LinkedList<Point>();
+            pointGroups = new Queue<Point[]>();
+        }
+
+        public PaintTool GetPaintTool()
+        {
+            return paintTool;
+        }
+
+        public bool CanConsume()
+        {
+            return pointGroups.Count > 0;
+        }
+
+        public Point[] Consume()
+        {
+            return pointGroups.Dequeue();
         }
     }
 
+    // A factory creates and maintains several factory elements at once.
     abstract class BaseFactory
     {
-        protected Stack<FactoryElement> history; //TODO Limit size (memory management).
-        protected Queue<FactoryElement> renderQueue;
+        protected readonly LinkedList<FactoryElement> elements;
+
+        public BaseFactory()
+        {
+            elements = new LinkedList<FactoryElement>();
+        }
 
         // Create a new factory element.
         public abstract void Add(Point p, PaintTool pt);
 
-        // Grow latest factory element.
-        public abstract void Grow(int amount);
+        // Grow factory elements.
+        public abstract void Grow();
 
-        public BaseFactory()
+        public LinkedList<FactoryElement> Consume()
         {
-            renderQueue = new Queue<FactoryElement>();
-            history = new Stack<FactoryElement>();
-        }
-
-        public bool HasQueued()
-        {
-            return renderQueue.Count > 0;
-        }
-
-        public FactoryElement GetQueued()
-        {
-            return renderQueue.Dequeue();
+            //TODO Remove dead elements that are no longer changing.
+            //TODO Use iterator pattern instead.
+            return elements;
         }
     }
 
     class Tree : FactoryElement
     {
-        Random random; // TODO Every tree probably shouldn't have its own random number generator. Wasteful.
         Dictionary<Point, Point> parents;
-        int age;
+        LinkedList<Point> leaves;
 
-        internal Tree(PaintTool pt, Point p)
+        public Tree(PaintTool pt, Point p)
             : base(pt)
         {
-            points.AddLast(p);
-            age = 0;
+            pointGroups.Enqueue(new Point[] { p });
+            leaves = new LinkedList<Point>();
+            leaves.AddFirst(p);
             parents = new Dictionary<Point, Point>();
-            random = new Random();
         }
 
         public Point GetParent(Point leaf)
@@ -67,14 +78,25 @@ namespace EyePaint
             return parents[leaf];
         }
 
-        // Add new leaves for each current leaf, effectively branching out the tree.
-        public void AddBranches(int branches = 1, int branchLength = 1)
+        public Point[] GetLeaves()
         {
-            ++age;
-            int leaves = points.Count;
-            for (int i = 0; i < leaves; ++i)
+            return leaves.ToArray();
+        }
+
+        // Add new leaves for each current leaf, effectively branching out the tree.
+        public void AddBranches(Random random)
+        {
+            // Interpret paint tool amplitude as branch length and number of new branches.
+            const int MAX_BRANCHES = 20; //TODO Set this somewhere else.
+            const int MAX_BRANCH_LENGTH = 100; //TODO Set this somewhere else.
+            int branches = (int)Math.Round(MAX_BRANCHES * paintTool.amplitude);
+            int branchLength = MAX_BRANCH_LENGTH; // TODO Should each branch in the tree be of the same length? Or should it follow the paint tool amplitude somehow?
+
+            // Go through each leaf and branch out the tree.
+            LinkedList<Point> newLeaves = new LinkedList<Point>();
+            Dictionary<Point, Point> newParents = new Dictionary<Point, Point>();
+            foreach (var leaf in leaves)
             {
-                var leaf = points.First.Value;
                 for (int j = 0; j < branches; ++j)
                 {
                     // Determine current branch growth direction.
@@ -88,7 +110,6 @@ namespace EyePaint
                     {
                         directionX = Math.Sign(leaf.X - parents[leaf].X);
                         directionY = Math.Sign(leaf.Y - parents[leaf].Y);
-                        //parents.Remove(leaf);
                     }
 
                     // Determine endpoint displacement.
@@ -98,11 +119,12 @@ namespace EyePaint
 
                     // Construct and store branch's endpoint.
                     var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
-                    parents[newLeaf] = leaf;
-                    points.AddLast(newLeaf);
+                    newParents[newLeaf] = leaf;
+                    pointGroups.Enqueue(new Point[] { leaf, newLeaf });
                 }
-                points.RemoveFirst();
             }
+            parents = newParents;
+            leaves = newLeaves;
         }
     }
 
@@ -113,36 +135,41 @@ namespace EyePaint
         public override void Add(Point root, PaintTool pt)
         {
             //if (isInsideTree(root) && !pt.alwaysAdd) return; TODO Implement Linear Algebra library.
-            Tree t = new Tree(pt, root);
-            history.Push(t);
-            renderQueue.Enqueue(t);
+            elements.AddLast(new Tree(pt, root));
         }
 
-        public override void Grow(int amount)
+        public override void Grow()
         {
-            if (history.Count == 0)
-                return;
-
-            // Latest tree.
-            Tree t = (Tree)history.Peek();
-
-            // Branch out the latest tree.
-            t.AddBranches(amount, 50);
-
-            // Add modified tree to render queue, as its been updated.
-            renderQueue.Enqueue(t);
+            foreach (Tree t in elements)
+            {
+                t.AddBranches(random);
+            }
         }
     }
 
     class Cloud : FactoryElement
     {
+        internal readonly Point center;
         int radius;
 
-        public Cloud(PaintTool pt, Point center)
+        public Cloud(PaintTool pt, Point c)
             : base(pt)
         {
-            points.AddFirst(center);
+            center = c;
             radius = 1;
+            pointGroups.Enqueue(new Point[] { c });
+        }
+
+        public void GrowCloud(Random random)
+        {
+            int amount = (int)(10 * paintTool.amplitude); //TODO Convert properly.
+            Point[] points = new Point[amount];
+            radius += amount;
+            while (--amount > 0)
+            {
+                points[amount] = new Point(random.Next(center.X - radius, center.X + radius), random.Next(center.Y - radius, center.Y + radius));
+            }
+            pointGroups.Enqueue(points);
         }
 
         public void IncreaseRadius(int amount = 1)
@@ -154,6 +181,7 @@ namespace EyePaint
         {
             return radius;
         }
+
     }
 
     class CloudFactory : BaseFactory
@@ -167,24 +195,14 @@ namespace EyePaint
 
         public override void Add(Point p, PaintTool pt)
         {
-            Cloud c = new Cloud(pt, p);
-            renderQueue.Enqueue(c);
-            history.Push(c);
+            elements.AddLast(new Cloud(pt, p));
         }
 
-        public override void Grow(int amount)
+        public override void Grow()
         {
-            if (history.Count > 0)
+            foreach (Cloud c in elements)
             {
-                var cloud = (Cloud)history.Peek();
-                var center = cloud.points.First.Value;
-                int radius = cloud.GetRadius();
-                cloud.IncreaseRadius(amount);
-                while (--amount > 0) cloud.points.AddLast(new Point(
-                    random.Next(center.X - radius, center.X + radius),
-                    random.Next(center.Y - radius, center.Y + radius)
-                ));
-                renderQueue.Enqueue(cloud);
+                c.GrowCloud(random);
             }
         }
     }

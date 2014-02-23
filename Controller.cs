@@ -22,7 +22,7 @@
 
         // Painting
         BaseFactory factory;
-        BaseRasterizer rasterizer;
+        Rasterizer rasterizer;
         Timer paint;
         PaintTool currentTool = new PaintTool("DEFAULT", null, Color.White);
         enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
@@ -46,15 +46,14 @@
             context.RegisterEventHandler(HandleInteractionEvent);
 
             // Initialize model and view classes.
+            rasterizer = new Rasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
             switch (modelType)
             {
                 case ModelType.CLOUD:
                     factory = new CloudFactory();
-                    rasterizer = new CloudRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 case ModelType.TREE:
                     factory = new TreeFactory();
-                    rasterizer = new TreeRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 default:
                     goto case ModelType.TREE;
@@ -65,10 +64,10 @@
             paint = new System.Windows.Forms.Timer();
             paint.Enabled = true;
             paint.Interval = 33; //TODO Make into property.
-            paint.Tick += (object s, EventArgs e) => { factory.Grow(currentTool.GetAmplitude()); Invalidate(); };
+            paint.Tick += (object s, EventArgs e) => { factory.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
-            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
+            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume the default install location.
             EnableEyeTrackerButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
             EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
             CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
@@ -91,14 +90,13 @@
         // Rasterizes the model and returns an image object.
         Image getPainting()
         {
-            Image image = rasterizer.Rasterize(factory);
-            return image;
+            rasterizer.RasterizeModel(factory);
+            return rasterizer.GetImage();
         }
 
         // Clears the canvas.
         void resetPainting()
         {
-            //TODO Clear model as well.
             rasterizer.ClearImage();
             Invalidate();
         }
@@ -130,13 +128,15 @@
                 button.Margin = new Padding(0);
 
                 // Create sample drawing for the button thumbnail, if a paint tool icon doesn't already exist.
-                if (paintTool.icon == null) {
+                if (paintTool.icon == null)
+                {
                     //TODO Switch factory based on user choice.
                     BaseFactory sampleFactory = new TreeFactory();
-                    BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
+                    Rasterizer sampleRasterizer = new Rasterizer(button.Width, button.Height);
                     sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool);
-                    for (int i = 0; i < 5; ++i) sampleFactory.Grow(1);
-                    paintTool.icon = sampleRasterizer.Rasterize(sampleFactory);
+                    for (int i = 0; i < 5; ++i) sampleFactory.Grow();
+                    sampleRasterizer.RasterizeModel(sampleFactory);
+                    paintTool.icon = sampleRasterizer.GetImage();
                 }
                 button.BackgroundImage = paintTool.icon;
 

@@ -6,11 +6,11 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    abstract class BaseRasterizer
+    class Rasterizer
     {
         protected Image image, background;
 
-        public BaseRasterizer(int width, int height)
+        public Rasterizer(int width, int height)
         {
             background = new Bitmap(width, height);
             using (Graphics g = System.Drawing.Graphics.FromImage(background))
@@ -18,7 +18,29 @@ namespace EyePaint
             image = new Bitmap(background);
         }
 
-        abstract public Image Rasterize(BaseFactory factory);
+        public void RasterizeModel(BaseFactory f)
+        {
+            using (Graphics g = Graphics.FromImage(image))
+                foreach (var e in f.Consume())
+                {
+                    var pt = e.GetPaintTool();
+                    var pen = pt.pen;
+                    var w = pen.Width;
+                    while (e.CanConsume())
+                    {
+                        var points = e.Consume();
+                        if (pt.drawLines && points.Length > 1)
+                        {
+                            g.DrawLines(pen, points);
+                        }
+
+                        if (pt.drawEllipses)
+                        {
+                            foreach (var p in points) g.DrawEllipse(pen, p.X - w / 2, p.Y - w / 2, w, w);
+                        }
+                    }
+                }
+        }
 
         public void ClearImage()
         {
@@ -28,75 +50,6 @@ namespace EyePaint
         public Image GetImage()
         {
             return image;
-        }
-    }
-
-    class TreeRasterizer : BaseRasterizer
-    {
-        public TreeRasterizer(int width, int height) : base(width, height) { }
-
-        public override Image Rasterize(BaseFactory factory)
-        {
-            var f = (TreeFactory)factory;
-            using (Graphics g = Graphics.FromImage(image)) while (f.HasQueued())
-                {
-                    Tree t = (Tree)f.GetQueued();
-                    var pt = t.paintTool;
-                    var leaves = t.points;
-
-                    // Pick render methods based on paint tool settings.
-                    if (pt.drawLines)
-                    {
-                        if (leaves.Count > 1)
-                        foreach (Point p in leaves)
-                        {
-                            g.DrawLine(pt.pen, t.GetParent(p), p);
-                        }
-                    }
-
-                    /* TODO Finish Linear Algebra library.
-                    if (pt.drawHull)
-                    {
-                        Stack<Point> convexHull = f.GetConvexHull(t);
-                        g.FillPolygon(pt.pen.Brush, convexHull.ToArray());
-                    }
-                    */
-
-                    if (pt.drawEllipses)
-                    {
-                        foreach (Point p in leaves)
-                        {
-                            var w = pt.pen.Width;
-                            g.DrawEllipse(pt.pen, p.X - w / 2, p.Y - w / 2, w, w);
-                        }
-                    }
-                }
-            return GetImage();
-        }
-    }
-
-    class CloudRasterizer : BaseRasterizer
-    {
-        public CloudRasterizer(int width, int height) : base(width, height) { }
-
-        public override Image Rasterize(BaseFactory factory)
-        {
-            var f = (CloudFactory)factory;
-            using (Graphics g = Graphics.FromImage(image)) while (f.HasQueued())
-                {
-                    Cloud c = (Cloud)f.GetQueued();
-                    foreach (Point p in c.points)
-                    {
-                        g.DrawEllipse(
-                            c.paintTool.pen,
-                            p.X - c.GetRadius() / 2,
-                            p.Y - c.GetRadius() / 2,
-                            c.paintTool.pen.Width,
-                            c.paintTool.pen.Width
-                            );
-                    }
-                }
-            return GetImage();
         }
     }
 }

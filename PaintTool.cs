@@ -15,66 +15,28 @@ namespace EyePaint
         internal readonly List<Color> shades;
         internal bool drawEllipses, drawLines, drawHull, alwaysAdd; //TODO Perhaps extend the PaintTool class with specific tools per model element (i.e. CloudTool, TreeTool).
 
+        // ADSR envelope
+        internal double amplitude; // [0.0..1.0]
+        int a, d, r;
         Timer rise, fall;
-        int amplitude, a, d, r;
-        const int AMPLITUDE_MAX = 100;
-        readonly int attack, decay, sustain, release;
 
         public PaintTool(string name, Image icon, Color color)
         {
             this.name = name;
 
-            // ADSR envelope
-            rise = new Timer();
-            fall = new Timer();
-            rise.Enabled = fall.Enabled = false;
-            rise.Interval = fall.Interval = 1;
-
-            rise.Tick += (object s, EventArgs e) =>
-            {
-                if (a < attack)
-                {
-                    ++a;
-                    amplitude += AMPLITUDE_MAX / attack;
-                    return;
-                }
-                else if (d < decay)
-                {
-                    ++d;
-                    amplitude -= (AMPLITUDE_MAX - sustain) / decay;
-                    return;
-                }
-                else rise.Enabled = false;
-            };
-
-            fall.Tick += (object s, EventArgs e) =>
-            {
-                if (r < release)
-                {
-                    ++r;
-                    amplitude -= sustain / release;
-                    return;
-                }
-                else fall.Enabled = false;
-            };
-
-            //TODO Don't hardcode values.
-            amplitude = 0;
-            attack = 10;
-            decay = 10;
-            sustain = 0;
-            release = 10;
-
             // Shapes
             drawLines = true;
             drawHull = false;
-            drawEllipses = false;
+            drawEllipses = true;
             alwaysAdd = true; //TODO Remove?
 
             // Colors
-            pen = new Pen(Color.FromArgb(100, color), 3); //TODO Set default opacity and width somewhere else.
+            pen = new Pen(Color.FromArgb(100, color), 10); //TODO Set default opacity and width somewhere else.
             shades = new List<Color>();
             SetShades(color);
+
+            // ADSR envelope
+            RegisterADSREnvelope(10, 1, 0.5, 10);
         }
 
         public void SetShades(Color baseColor, int numberOfShades = 10)
@@ -84,21 +46,64 @@ namespace EyePaint
                 shades.Add(Color.FromArgb(255 / i, baseColor));
         }
 
+        //TODO Use threads instead of timers. Timers lack precise timing.
+        private void RegisterADSREnvelope(int attack, int decay, double sustain, int release)
+        {
+            rise = new Timer();
+            rise.Enabled = false;
+            rise.Interval = 1;
+            rise.Tick += (object o, EventArgs e) =>
+            {
+                Console.WriteLine("Amplitude: " + amplitude + ", Attack: " + a + ", Decay: " + d + ", Sustain: " + sustain + ", Release: " + r);
+                if (a < attack)
+                {
+                    ++a;
+                    amplitude += 1.0 / attack;
+                    return;
+                }
+                else if (d < decay)
+                {
+                    ++d;
+                    amplitude -= (1.0 - sustain) / decay;
+                    return;
+                }
+                else
+                {
+                    amplitude = sustain;
+                    rise.Enabled = false;
+                }
+            };
+
+            fall = new Timer();
+            fall.Enabled = false;
+            fall.Interval = 1;
+            fall.Tick += (object o, EventArgs e) =>
+            {
+                if (r < release)
+                {
+                    ++r;
+                    amplitude -= (sustain / release);
+                    return;
+                }
+                else
+                {
+                    amplitude = 0;
+                    fall.Enabled = false;
+                }
+            };
+        }
+
         public void StartPainting()
         {
-            amplitude = a = d = r = 0;
+            a = d = 0;
             rise.Enabled = true;
         }
 
         public void StopPainting()
         {
-            amplitude = a = d = r = 0;
-            rise.Enabled = true;
-        }
-
-        internal int GetAmplitude()
-        {
-            return amplitude;
+            r = 0;
+            fall.Enabled = true;
         }
     }
+
 }

@@ -16,16 +16,17 @@
         readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
         InteractionSnapshot globalInteractorSnapshot;
 
-        // User input alternatives
+        // User input
         enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
+        bool track = false;
 
         // Painting
         BaseFactory factory;
         BaseRasterizer rasterizer;
         Timer paint;
-        PaintTool currentTool;
+        PaintTool currentTool = new PaintTool("DEFAULT", null, Color.White);
         enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
-        const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
+        const ModelType modelType = ModelType.CLOUD; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
         public EyePaintingForm()
         {
@@ -62,9 +63,9 @@
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
             paint = new System.Windows.Forms.Timer();
-            paint.Enabled = false;
+            paint.Enabled = true;
             paint.Interval = 33; //TODO Make into property.
-            paint.Tick += (object s, EventArgs e) => { factory.Grow(); Invalidate(); };
+            paint.Tick += (object s, EventArgs e) => { factory.Grow(currentTool.GetAmplitude()); Invalidate(); };
 
             // Register setup panel button click handlers.
             OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
@@ -73,17 +74,18 @@
             CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
         }
 
-        // Starts the paint timer.
+        // User wants to paint.
         void startPainting()
         {
-            if (paint.Enabled) return;
-            else paint.Enabled = true;
+            track = true;
+            currentTool.StartPainting();
         }
 
-        // Stops the timer.
+        // User doesn't want to paint anymore.
         void stopPainting()
         {
-            paint.Enabled = false;
+            track = false;
+            currentTool.StopPainting();
         }
 
         // Rasterizes the model and returns an image object.
@@ -133,7 +135,7 @@
                     BaseFactory sampleFactory = new TreeFactory();
                     BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
                     sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool);
-                    for (int i = 0; i < 5; ++i) sampleFactory.Grow();
+                    for (int i = 0; i < 5; ++i) sampleFactory.Grow(1);
                     paintTool.icon = sampleRasterizer.Rasterize(sampleFactory);
                 }
                 button.BackgroundImage = paintTool.icon;
@@ -148,7 +150,7 @@
         // Store a new point in the model, if painting is enabled.
         void trackPoint(Point p)
         {
-            if (paint.Enabled && currentTool != null)
+            if (track)
             {
                 factory.Add(p, currentTool);
             }

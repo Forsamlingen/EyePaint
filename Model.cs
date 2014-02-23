@@ -10,12 +10,12 @@ namespace EyePaint
     abstract class FactoryElement
     {
         internal readonly PaintTool paintTool;
-        internal readonly List<Point> points;
+        internal readonly LinkedList<Point> points;
 
         public FactoryElement(PaintTool pt)
         {
             paintTool = pt;
-            points = new List<Point>();
+            points = new LinkedList<Point>();
         }
     }
 
@@ -24,9 +24,11 @@ namespace EyePaint
         protected Stack<FactoryElement> history; //TODO Limit size (memory management).
         protected Queue<FactoryElement> renderQueue;
 
+        // Create a new factory element.
         public abstract void Add(Point p, PaintTool pt);
 
-        public abstract void Grow();
+        // Grow latest factory element.
+        public abstract void Grow(int amount);
 
         public BaseFactory()
         {
@@ -34,98 +36,79 @@ namespace EyePaint
             history = new Stack<FactoryElement>();
         }
 
-        public void ClearRenderQueue()
+        public bool HasQueued()
         {
-            renderQueue.Clear();
+            return renderQueue.Count > 0;
         }
 
-        public Queue<FactoryElement> GetRenderQueue()
+        public FactoryElement GetQueued()
         {
-            return renderQueue;
+            return renderQueue.Dequeue();
         }
     }
 
     class Tree : FactoryElement
     {
         Random random; // TODO Every tree probably shouldn't have its own random number generator. Wasteful.
-        internal readonly Point root;
-        internal readonly Dictionary<Point, Point> parents;
-        Stack<Point> leaves;
+        Dictionary<Point, Point> parents;
         int age;
 
-        internal Tree(PaintTool pt, Point r)
+        internal Tree(PaintTool pt, Point p)
             : base(pt)
         {
-            root = r;
+            points.AddLast(p);
             age = 0;
             parents = new Dictionary<Point, Point>();
-            leaves = new Stack<Point>();
-            leaves.Push(root);
             random = new Random();
         }
 
-        // Increase the age of the tree.
-        public void IncreaseAge(int amount = 1)
+        public Point GetParent(Point leaf)
         {
-            age += amount;
-        }
-
-        // Return tree's current age.
-        public int GetAge()
-        {
-            return age;
+            return parents[leaf];
         }
 
         // Add new leaves for each current leaf, effectively branching out the tree.
         public void AddBranches(int branches = 1, int branchLength = 1)
         {
-            Stack<Point> newLeaves = new Stack<Point>();
-            while (leaves.Count > 0)
+            ++age;
+            int leaves = points.Count;
+            for (int i = 0; i < leaves; ++i)
             {
-                var leaf = leaves.Pop();
-                for (int i = 0; i < branches; ++i)
+                var leaf = points.First.Value;
+                for (int j = 0; j < branches; ++j)
                 {
                     // Determine current branch growth direction.
                     int directionX, directionY;
-                    if (!parents.ContainsKey(leaf)) {
-                        directionX = random.Next(-1, 1);
-                        directionY = random.Next(-1, 1);
+                    if (!parents.ContainsKey(leaf))
+                    {
+                        directionX = Math.Sign(random.Next(-1, 1));
+                        directionY = Math.Sign(random.Next(-1, 1));
                     }
                     else
                     {
                         directionX = Math.Sign(leaf.X - parents[leaf].X);
                         directionY = Math.Sign(leaf.Y - parents[leaf].Y);
+                        //parents.Remove(leaf);
                     }
 
                     // Determine endpoint displacement.
-                    int dx = directionX * random.Next(0, branchLength);
-                    int dy = directionY * random.Next(0, branchLength);
+                    int r = random.Next(1, branchLength);
+                    int dx = directionX * r;
+                    int dy = directionY * (branchLength - r);
 
                     // Construct and store branch's endpoint.
                     var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
                     parents[newLeaf] = leaf;
-                    newLeaves.Push(newLeaf);
+                    points.AddLast(newLeaf);
                 }
+                points.RemoveFirst();
             }
-            leaves = newLeaves;
-            points.AddRange(leaves);
-        }
-
-        // Get all leaves in the tree.
-        public Stack<Point> GetLeaves()
-        {
-            return leaves;
         }
     }
 
     class TreeFactory : BaseFactory
     {
         Random random = new Random();
-
-        const int maxTreeAge = 100; //TODO Make into property.
-        const int offsetDistance = 30; //TODO Make into property.
-        const int edgeLength = 25; //TODO Make into property.
-        const int leavesCount = 3; //TODO Make into property.
 
         public override void Add(Point root, PaintTool pt)
         {
@@ -135,7 +118,7 @@ namespace EyePaint
             renderQueue.Enqueue(t);
         }
 
-        public override void Grow()
+        public override void Grow(int amount)
         {
             if (history.Count == 0)
                 return;
@@ -143,12 +126,8 @@ namespace EyePaint
             // Latest tree.
             Tree t = (Tree)history.Peek();
 
-            // Don't grow a tree past the limit.
-            if (t.GetAge() > maxTreeAge) return;
-            else t.IncreaseAge(1);
-
             // Branch out the latest tree.
-            t.AddBranches(leavesCount, edgeLength);
+            t.AddBranches(amount, 50);
 
             // Add modified tree to render queue, as its been updated.
             renderQueue.Enqueue(t);
@@ -162,7 +141,7 @@ namespace EyePaint
         public Cloud(PaintTool pt, Point center)
             : base(pt)
         {
-            points.Add(center);
+            points.AddFirst(center);
             radius = 1;
         }
 
@@ -193,16 +172,15 @@ namespace EyePaint
             history.Push(c);
         }
 
-        public override void Grow()
+        public override void Grow(int amount)
         {
             if (history.Count > 0)
             {
                 var cloud = (Cloud)history.Peek();
-                var center = cloud.points[0];
+                var center = cloud.points.First.Value;
                 int radius = cloud.GetRadius();
-                int amount = random.Next(10);
                 cloud.IncreaseRadius(amount);
-                while (--amount > 0) cloud.points.Add(new Point(
+                while (--amount > 0) cloud.points.AddLast(new Point(
                     random.Next(center.X - radius, center.X + radius),
                     random.Next(center.Y - radius, center.Y + radius)
                 ));

@@ -38,19 +38,20 @@ namespace EyePaint
         public override Image Rasterize(BaseFactory factory)
         {
             var f = (TreeFactory)factory;
-            Queue<FactoryElement> q = f.GetRenderQueue();
-            using (Graphics g = Graphics.FromImage(image)) while (q.Count() > 0)
+            using (Graphics g = Graphics.FromImage(image)) while (f.HasQueued())
                 {
-                    Tree t = (Tree)q.First();
+                    Tree t = (Tree)f.GetQueued();
                     var pt = t.paintTool;
+                    var leaves = t.points;
 
                     // Pick render methods based on paint tool settings.
                     if (pt.drawLines)
                     {
-                        var leaves = t.GetLeaves();
                         if (leaves.Count > 1)
-                            foreach (var leaf in t.GetLeaves())
-                                g.DrawLine(pt.pen, t.parents[leaf], leaf);
+                        foreach (Point p in leaves)
+                        {
+                            g.DrawLine(pt.pen, t.GetParent(p), p);
+                        }
                     }
 
                     /* TODO Finish Linear Algebra library.
@@ -63,14 +64,12 @@ namespace EyePaint
 
                     if (pt.drawEllipses)
                     {
-                        foreach (Point p in t.points)
+                        foreach (Point p in leaves)
                         {
                             var w = pt.pen.Width;
                             g.DrawEllipse(pt.pen, p.X - w / 2, p.Y - w / 2, w, w);
                         }
                     }
-
-                    q.Dequeue();
                 }
             return GetImage();
         }
@@ -83,10 +82,9 @@ namespace EyePaint
         public override Image Rasterize(BaseFactory factory)
         {
             var f = (CloudFactory)factory;
-            var q = f.GetRenderQueue();
-            using (Graphics g = Graphics.FromImage(image)) while (q.Count() > 0)
+            using (Graphics g = Graphics.FromImage(image)) while (f.HasQueued())
                 {
-                    Cloud c = (Cloud)q.First();
+                    Cloud c = (Cloud)f.GetQueued();
                     foreach (Point p in c.points)
                     {
                         g.DrawEllipse(
@@ -97,7 +95,6 @@ namespace EyePaint
                             c.paintTool.pen.Width
                             );
                     }
-                    q.Dequeue();
                 }
             return GetImage();
         }

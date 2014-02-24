@@ -25,7 +25,7 @@ namespace EyePaint
                 {
                     var pt = e.GetPaintTool();
                     var pen = pt.pen;
-                    pt.RandomShade();
+                   // pt.RandomShade();
                     var w = pen.Width;
                     while (e.CanConsume())
                     {

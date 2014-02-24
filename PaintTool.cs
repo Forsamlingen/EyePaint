@@ -35,7 +35,7 @@ namespace EyePaint
 
             // Colors
             var c = Color.FromArgb(50, color);
-            pen = new Pen(c, 10); //TODO Set default opacity and width somewhere else.
+            pen = new Pen(c, 1); //TODO Set default opacity and width somewhere else.
             pen.StartCap = LineCap.Round;
             pen.EndCap = LineCap.Round;
             shades = GetShades(c);

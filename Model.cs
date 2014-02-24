@@ -96,15 +96,27 @@ namespace EyePaint
             return leaves;
         }
 
+        public Point[] GetHull()
+        {
+            if (leaves.Length > 0)
+            {
+                Point[] hull = new Point[leaves.Length + 1];
+                leaves.CopyTo(hull, 0); //TODO Don't copy arrays.
+                hull[hull.Length - 1] = leaves[0];
+                return hull;
+            }
+            else return new Point[] { };
+        }
+
         // Add new leaves for each current leaf, effectively branching out the tree.
         public override void Grow()
         {
             ++age;
 
             // Interpret paint tool amplitude as branch length and number of new branches.
-            const int MAX_BRANCHES = 7; //TODO Set this somewhere else.
-            const int MAX_BRANCH_LENGTH = 25; //TODO Set this somewhere else.
-            int branches = MAX_BRANCHES / age;
+            const int MAX_BRANCHES = 5; //TODO Set this somewhere else.
+            const int MAX_BRANCH_LENGTH = 50; //TODO Set this somewhere else.
+            int branches = 1+ MAX_BRANCHES / age;
             int branchLength = random.Next(MAX_BRANCH_LENGTH);
 
             // Go through each leaf and branch out the tree, distributed evenly.
@@ -115,8 +127,8 @@ namespace EyePaint
             foreach (var leaf in leaves) for (int j = 0; j < branches; ++j)
                 {
                     // Determine endpoint displacement.
-                    int dx = (int)Math.Round(branchLength * Math.Cos(angle * idx + rotation));
-                    int dy = (int)Math.Round(branchLength * Math.Sin(angle * idx + rotation));
+                    int dx = (int)Math.Round(random.Next(branchLength)* Math.Cos(angle * idx + rotation));
+                    int dy = (int)Math.Round(random.Next(branchLength) * Math.Sin(angle * idx + rotation));
 
                     // Construct and store branch's endpoint.
                     var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
@@ -127,15 +139,7 @@ namespace EyePaint
 
             parents = newParents;
             leaves = newLeaves;
-
-            // Convex hull. TODO Place somewhere else.
-            if (leaves.Length > 0)
-            {
-                Point[] hull = new Point[leaves.Length + 1];
-                leaves.CopyTo(hull, 0);
-                hull[hull.Length - 1] = leaves[0];
-                pointGroups.Enqueue(hull);
-            }
+            // pointGroups.Enqueue(GetHull()); //TODO
         }
     }
 
@@ -164,6 +168,7 @@ namespace EyePaint
         {
             //TODO Collision detection.
             foreach (T e in elements) e.Grow();
+            //if (elements.Count > 0) elements.Last.Value.Grow(); TODO
         }
 
         public LinkedList<T> Consume()

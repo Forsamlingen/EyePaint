@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -26,23 +27,26 @@ namespace EyePaint
             this.name = name;
 
             // Shapes
-            drawLines = false;
+            drawLines = true;
             drawPolygon = false;
-            drawEllipses = false;
-            drawCurves = true;
+            drawEllipses = true;
+            drawCurves = false;
             drawStamps = false; //TODO Implement.
 
             // Colors
-            pen = new Pen(Color.FromArgb(100, color), 10); //TODO Set default opacity and width somewhere else.
-            shades = new List<Color>();
-            SetShades(color);
+            var c = Color.FromArgb(50, color);
+            pen = new Pen(c, 3); //TODO Set default opacity and width somewhere else.
+            pen.StartCap = LineCap.Round;
+            pen.EndCap = LineCap.Round;
+            shades = GetShades(c);
 
             // ADSR envelope
-            registerADSREnvelope(10, 1, 0.5, 10);
+            registerADSREnvelope(0, 0, 1, 0);
         }
 
-        public void SetShades(Color baseColor, int numberOfShades = 10)
+        public List<Color> GetShades(Color baseColor, int numberOfShades = 10)
         {
+            List<Color> shades = new List<Color>();
             Random random = new Random(); //TODO Don't allocate on each call.
             double offset = 0.25; //TODO Make into a parameter.
             for (int i = 1; i <= numberOfShades; ++i)
@@ -52,6 +56,7 @@ namespace EyePaint
                 baseColor.G + (int)Math.Floor(offset * random.Next(-baseColor.G, 255 - baseColor.G)),
                 baseColor.B + (int)Math.Floor(offset * random.Next(-baseColor.B, 255 - baseColor.B))
                 ));
+            return shades;
         }
 
         public void RandomShade()
@@ -69,7 +74,7 @@ namespace EyePaint
             rise.Interval = 1;
             rise.Tick += (object o, EventArgs e) =>
             {
-                Console.WriteLine("Amplitude: " + amplitude + ", Attack: " + a + ", Decay: " + d + ", Sustain: " + sustain + ", Release: " + r);
+                Console.WriteLine("Amplitude: " + amplitude + ", Attack: " + a + ", Decay: " + d + ", Sustain: " + sustain + ", Release: " + r); //TODO Remove.
                 if (a < attack)
                 {
                     ++a;

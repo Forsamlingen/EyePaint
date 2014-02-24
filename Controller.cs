@@ -65,14 +65,14 @@
         void startPainting()
         {
             track = true;
-            currentTool.StartPainting();
+            //currentTool.StartPainting(); TODO Enable envelope filter.
         }
 
         // User doesn't want to paint anymore.
         void stopPainting()
         {
             track = false;
-            currentTool.StopPainting();
+            //currentTool.StopPainting(); TODO Enable envelope filter.
         }
 
         // Rasterizes the model and returns an image object.
@@ -161,6 +161,7 @@
             {
                 case MouseButtons.Left:
                     startPainting();
+                    trackPoint(new Point(e.X, e.Y));
                     break;
                 default:
                     break;

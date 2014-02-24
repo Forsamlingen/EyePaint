@@ -7,7 +7,7 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
-    enum Model { Cloud, Tree, Square };
+    enum Model { Cloud, Tree, Square, Snowflake };
 
     // A factory element is a collection of groups of points, and a paint tool defining the appearance of the groups of points.
     abstract class FactoryElement
@@ -73,8 +73,8 @@ namespace EyePaint
     class Tree : FactoryElement
     {
         const int MAX_BRANCHES = 10;
-        const int MAX_AGE = 20;
-        const int MAX_BRANCH_LENGTH = 50;
+        const int MAX_AGE = 10;
+        const int MAX_BRANCH_LENGTH = 300;
 
         int age, rotation;
         Dictionary<Point, Point> parents;
@@ -87,28 +87,6 @@ namespace EyePaint
             leaves = new Point[] { p };
             parents = new Dictionary<Point, Point>();
             rotation = random.Next((int)(2 * Math.PI));
-        }
-
-        public Point GetParent(Point leaf)
-        {
-            return parents[leaf];
-        }
-
-        public Point[] GetLeaves()
-        {
-            return leaves;
-        }
-
-        public Point[] GetHull()
-        {
-            if (leaves.Length > 0)
-            {
-                Point[] hull = new Point[leaves.Length + 1];
-                leaves.CopyTo(hull, 0); //TODO Don't copy arrays.
-                hull[hull.Length - 1] = leaves[0];
-                return hull;
-            }
-            else return new Point[] { };
         }
 
         // Add new leaves for each current leaf, effectively branching out the tree.
@@ -127,10 +105,8 @@ namespace EyePaint
             foreach (var leaf in leaves) for (int j = 0; j < branches; ++j)
                 {
                     // Determine endpoint displacement.
-                    int dx = (int)Math.Round(branchLength * Math.Cos(angle * idx + rotation));
-                    int dy = (int)Math.Round(branchLength * Math.Sin(angle * idx + rotation));
-                    //int dx = (int)Math.Round(random.Next(branchLength) * Math.Cos(angle * idx + rotation));
-                    //int dy = (int)Math.Round(random.Next(branchLength) * Math.Sin(angle * idx + rotation));
+                    int dx = (int)Math.Round(random.Next(branchLength) * Math.Cos(angle * idx + rotation));
+                    int dy = (int)Math.Round(random.Next(branchLength) * Math.Sin(angle * idx + rotation));
 
                     // Construct and store branch's endpoint.
                     var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
@@ -144,6 +120,56 @@ namespace EyePaint
         }
     }
 
+    class Snowflake : FactoryElement
+    {
+        const int MAX_BRANCHES = 10;
+        const int MAX_AGE = 5;
+        const int MAX_BRANCH_LENGTH = 100;
+
+        int age;
+        Dictionary<Point, Point> parents;
+        Point[] leaves;
+
+        public Snowflake(Point p, PaintTool pt)
+            : base(p, pt)
+        {
+            age = 0;
+            leaves = new Point[] { p };
+            parents = new Dictionary<Point, Point>();
+
+        }
+
+        // Add new leaves for each current leaf, effectively branching out the tree.
+        public override void Grow()
+        {
+            ++age;
+            if (age >= MAX_AGE) return;
+            int branches = MAX_BRANCHES / age;
+            int branchLength = random.Next(MAX_BRANCH_LENGTH);
+
+            // Go through each leaf and branch out the tree, distributed evenly.
+            Point[] newLeaves = new Point[leaves.Length * branches];
+            Dictionary<Point, Point> newParents = new Dictionary<Point, Point>();
+            int idx = 0;
+            double angle = (2 * Math.PI) / (double)newLeaves.Length;
+            int rotation = random.Next((int)(2 * Math.PI));
+            foreach (var leaf in leaves) for (int j = 0; j < branches; ++j)
+                {
+                    // Determine endpoint displacement.
+                    int dx = (int)Math.Round(branchLength * Math.Cos(angle * idx + rotation));
+                    int dy = (int)Math.Round(branchLength * Math.Sin(angle * idx + rotation));
+
+                    // Construct and store branch's endpoint.
+                    var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
+                    newLeaves[idx++] = newLeaf;
+                    newParents[newLeaf] = leaf;
+                    pointGroups.Enqueue(new Point[] { newLeaf, leaf });
+                }
+
+            parents = newParents;
+            leaves = newLeaves;
+        }
+    }
 
     class Square : FactoryElement
     {
@@ -162,7 +188,7 @@ namespace EyePaint
         public override void Grow()
         {
             if (size > MAX_SIZE) return;
-            size += random.Next(MAX_SIZE-size);
+            size += random.Next(MAX_SIZE - size);
             pointGroups.Enqueue(new Point[] { 
                 new Point(center.X - size, center.Y - size), 
                 new Point(center.X - size, center.Y + size), 
@@ -175,7 +201,7 @@ namespace EyePaint
     // A factory creates and maintains several factory elements at once.
     class Factory
     {
-        const int MAX_ELEMENTS = 3;
+        const int MAX_ELEMENTS = 10;
         static Random random = new Random();
         internal readonly LinkedList<FactoryElement> elements;
 
@@ -197,6 +223,9 @@ namespace EyePaint
                     break;
                 case Model.Square:
                     elements.AddLast(new Square(p, pt));
+                    break;
+                case Model.Snowflake:
+                    elements.AddLast(new Snowflake(p, pt));
                     break;
             }
         }

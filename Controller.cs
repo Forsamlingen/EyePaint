@@ -111,7 +111,7 @@
                 paintTools.Add(new PaintTool(
                     "Dummy paint tool " + i,
                     null,
-                    new Pen(Color.FromArgb(r.Next(255), r.Next(255), r.Next(255), r.Next(255)), r.Next(10)),
+                    new Pen(Color.FromArgb(55+r.Next(200), r.Next(255), r.Next(255), r.Next(255)), 1+r.Next(5)),
                     models[r.Next(models.Length)],
                     r.NextDouble() > 0.5,
                     r.Next(10),

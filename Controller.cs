@@ -131,7 +131,7 @@
             {
                 // Create a button for the paint tool.
                 Button button = new Button();
-                button.Click += (object s, EventArgs e) => { currentTool = paintTool; button.FlatAppearance.BorderColor = Color.White; };
+                button.Click += (object s, EventArgs e) => { currentTool = paintTool; button.FlatAppearance.BorderColor = Color.White; PaintToolsPanel.Visible = false; };
                 button.LostFocus += (object s, EventArgs e) => { button.FlatAppearance.BorderColor = Color.Black; };
                 const int rows = 6; // TODO Make into a property.
                 button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);

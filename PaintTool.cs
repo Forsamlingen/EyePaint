@@ -35,7 +35,7 @@ namespace EyePaint
 
             // Colors
             var c = Color.FromArgb(50, color);
-            pen = new Pen(c, 3); //TODO Set default opacity and width somewhere else.
+            pen = new Pen(c, 10); //TODO Set default opacity and width somewhere else.
             pen.StartCap = LineCap.Round;
             pen.EndCap = LineCap.Round;
             shades = GetShades(c);
@@ -48,7 +48,7 @@ namespace EyePaint
         {
             List<Color> shades = new List<Color>();
             Random random = new Random(); //TODO Don't allocate on each call.
-            double offset = 0.25; //TODO Make into a parameter.
+            double offset = 0.5; //TODO Make into a parameter.
             for (int i = 1; i <= numberOfShades; ++i)
                 shades.Add(Color.FromArgb(
                 baseColor.A + (int)Math.Floor(offset * random.Next(-baseColor.A, 255 - baseColor.A)),

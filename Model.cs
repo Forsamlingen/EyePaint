@@ -101,7 +101,7 @@ namespace EyePaint
         {
             ++age;
 
-            if (age > 5) return; //TODO Investigate performance hit.
+            if (age > 10) return; //TODO Investigate performance hit.
 
             // Interpret paint tool amplitude as branch length and number of new branches.
             const int MAX_BRANCHES = 7; //TODO Set this somewhere else.

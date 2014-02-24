@@ -24,7 +24,7 @@
         Factory<Tree> factory;
         Rasterizer<Tree> rasterizer;
         Timer paint;
-        PaintTool currentTool = new PaintTool("DEFAULT", null, Color.White);
+        PaintTool currentTool = new PaintTool("DEFAULT", null, Color.Red);
 
         public EyePaintingForm()
         {
@@ -109,10 +109,15 @@
             {
                 // Create a button for the paint tool.
                 Button button = new Button();
-                button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
+                button.Click += (object s, EventArgs e) => { 
+                    currentTool = paintTool;
+                    button.FlatAppearance.BorderColor = (button.FlatAppearance.BorderColor == Color.Black) ? Color.White : Color.Black;
+                };
                 int rows = 2; // TODO Make into a property.
                 button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);
                 button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                button.FlatAppearance.BorderSize = 10;
+                button.FlatAppearance.BorderColor = Color.Black;
                 button.Margin = new Padding(0);
 
                 // Create sample drawing for the button thumbnail, if a paint tool icon doesn't already exist.

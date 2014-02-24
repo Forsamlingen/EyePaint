@@ -16,6 +16,9 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                context.Dispose();
+                rasterizer.Dispose();
+                currentTool.Dispose();
             }
             base.Dispose(disposing);
         }

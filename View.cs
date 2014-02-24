@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    class Rasterizer<T> where T : FactoryElement
+    class Rasterizer<T> : IDisposable where T : FactoryElement
     {
         protected Image image, background;
 
@@ -51,6 +51,11 @@ namespace EyePaint
         public Image GetImage()
         {
             return image;
+        }
+
+        public void Dispose()
+        {
+            image.Dispose();
         }
     }
 }

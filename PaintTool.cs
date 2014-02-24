@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace EyePaint
 {
-    class PaintTool
+    class PaintTool : IDisposable
     {
         internal string name;
         internal Image icon;
@@ -124,6 +124,13 @@ namespace EyePaint
         {
             r = 0;
             fall.Enabled = true;
+        }
+
+        public void Dispose()
+        {
+            pen.Dispose();
+            rise.Dispose();
+            fall.Dispose();
         }
     }
 

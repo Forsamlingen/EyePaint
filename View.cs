@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace EyePaint
 {
-    class Rasterizer<T> : IDisposable where T : FactoryElement
+    class Rasterizer
     {
         protected Image image, background;
 
@@ -18,15 +18,15 @@ namespace EyePaint
             image = new Bitmap(background);
         }
 
-        public void RasterizeModel(Factory<T> f)
+        public void RasterizeModel(Factory f)
         {
-            using (Graphics g = Graphics.FromImage(image))
-                foreach (var e in f.Consume())
+            using (Graphics g = Graphics.FromImage(image)) foreach (var e in f.elements)
                 {
                     var pt = e.GetPaintTool();
                     var pen = pt.pen;
-                   // pt.RandomShade();
                     var w = pen.Width;
+
+                    // Rasterize element's point groups.
                     while (e.CanConsume())
                     {
                         var points = e.Consume();
@@ -38,7 +38,11 @@ namespace EyePaint
                             if (pt.drawPolygon) g.DrawPolygon(pen, points);
                         }
 
-                        if (pt.drawEllipses) foreach (var p in points) g.DrawEllipse(pen, p.X - w / 2, p.Y - w / 2, w, w);
+                        foreach (var p in points)
+                        {
+                            if (pt.drawEllipses) g.DrawEllipse(pen, p.X - w / 2, p.Y - w / 2, w, w);
+                            if (pt.drawStamps) g.DrawImage(pt.stamp, p);
+                        }
                     }
                 }
         }
@@ -51,11 +55,6 @@ namespace EyePaint
         public Image GetImage()
         {
             return image;
-        }
-
-        public void Dispose()
-        {
-            image.Dispose();
         }
     }
 }

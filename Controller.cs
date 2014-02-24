@@ -11,6 +11,8 @@
 
     partial class EyePaintingForm : Form, IDisposable
     {
+        static Random r = new Random();
+
         // Eye tracking engine
         InteractionContext context;
         readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -18,13 +20,13 @@
 
         // User input
         enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
-        bool track = false;
+        bool trackInput = false;
 
         // Painting
-        Factory<Tree> factory;
-        Rasterizer<Tree> rasterizer;
+        Factory factory;
+        Rasterizer rasterizer;
         Timer paint;
-        PaintTool currentTool = new PaintTool("DEFAULT", null, Color.Red);
+        PaintTool currentTool = new PaintTool("hej", null, new Pen(Color.AliceBlue, 1), Model.Tree); //TODO
 
         public EyePaintingForm()
         {
@@ -44,8 +46,8 @@
             context.RegisterEventHandler(HandleInteractionEvent);
 
             // Initialize model and view classes.
-            rasterizer = new Rasterizer<Tree>(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            factory = new Factory<Tree>();
+            rasterizer = new Rasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            factory = new Factory();
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
@@ -64,15 +66,17 @@
         // User wants to paint.
         void startPainting()
         {
-            track = true;
-            //currentTool.StartPainting(); TODO Enable envelope filter.
+            if (currentTool == null) return;
+            trackInput = true;
+            //currentTool.StartPainting();
         }
 
         // User doesn't want to paint anymore.
         void stopPainting()
         {
-            track = false;
-            //currentTool.StopPainting(); TODO Enable envelope filter.
+            if (currentTool == null) return;
+            trackInput = false;
+            // currentTool.StopPainting();
         }
 
         // Rasterizes the model and returns an image object.
@@ -96,25 +100,40 @@
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        // Populates the paint tools toolbox with user selectable paint tools.
+        // Populate the paint tools toolbox with user selectable paint tools.
         void setupPaintTools()
         {
             //TODO Get all paint tools from a data store instead of automatically generating tools below.
             List<PaintTool> paintTools = new List<PaintTool>();
-            Random r = new Random();
-            for (int i = 0; i < 20; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, null, Color.FromArgb(255, r.Next(255), r.Next(255), r.Next(255))));
+            Model[] models = (Model[])Enum.GetValues(typeof(Model));
+            for (int i = 0; i < 100; ++i)
+            {
+                paintTools.Add(new PaintTool(
+                    "Dummy paint tool " + i,
+                    null,
+                    new Pen(Color.FromArgb(r.Next(255), r.Next(255), r.Next(255), r.Next(255)), r.Next(10)),
+                    models[r.Next(models.Length)],
+                    r.NextDouble() > 0.5,
+                    r.Next(10),
+                    r.NextDouble(),
+                    r.NextDouble() > 0.5,
+                    r.NextDouble() > 0.5,
+                    r.NextDouble() > 0.5,
+                    r.NextDouble() > 0.5,
+                    false,
+                    null
+                    )
+                );
+            }
 
             // Create buttons in paint tools toolbox.
             foreach (var paintTool in paintTools)
             {
                 // Create a button for the paint tool.
                 Button button = new Button();
-                button.Click += (object s, EventArgs e) =>
-                {
-                    currentTool = paintTool;
-                    button.FlatAppearance.BorderColor = (button.FlatAppearance.BorderColor == Color.Black) ? Color.White : Color.Black;
-                };
-                int rows = 2; // TODO Make into a property.
+                button.Click += (object s, EventArgs e) => { currentTool = paintTool; button.FlatAppearance.BorderColor = Color.White; };
+                button.LostFocus += (object s, EventArgs e) => { button.FlatAppearance.BorderColor = Color.Black; };
+                const int rows = 6; // TODO Make into a property.
                 button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);
                 button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
                 button.FlatAppearance.BorderSize = 10;
@@ -124,11 +143,12 @@
                 // Create sample drawing for the button thumbnail, if a paint tool icon doesn't already exist.
                 if (paintTool.icon == null)
                 {
-                    //TODO Switch factory based on user choice.
-                    Factory<Tree> sampleFactory = new Factory<Tree>();
-                    Rasterizer<Tree> sampleRasterizer = new Rasterizer<Tree>(button.Width, button.Height);
+                    Factory sampleFactory = new Factory();
+                    Rasterizer sampleRasterizer = new Rasterizer(button.Width, button.Height);
                     sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool);
-                    for (int i = 0; i < 5; ++i) sampleFactory.Grow();
+                    //paintTool.StartPainting(); TODO
+                    for (int i = 0; i < 10; ++i) sampleFactory.Grow();
+                    //paintTool.StopPainting(); TODO
                     sampleRasterizer.RasterizeModel(sampleFactory);
                     paintTool.icon = sampleRasterizer.GetImage();
                 }
@@ -137,14 +157,12 @@
                 // Add button to toolbox.
                 PaintToolsPanel.Controls.Add(button);
             }
-
-            // TODO Append "Get random tool" button.
         }
 
         // Store a new point in the model, if painting is enabled.
         void trackPoint(Point p)
         {
-            if (track)
+            if (trackInput && currentTool != null)
             {
                 factory.Add(p, currentTool);
             }

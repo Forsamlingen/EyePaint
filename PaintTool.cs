@@ -8,83 +8,77 @@ using System.Windows.Forms;
 
 namespace EyePaint
 {
-    class PaintTool : IDisposable
+    class PaintTool
     {
-        internal string name;
-        internal Image icon;
+        static readonly Random random = new Random();
+        internal readonly string name;
+        internal Image icon, stamp;
         internal readonly Pen pen; // Contains settings for opacity, base color, width, etc.
-        internal readonly List<Color> shades;
-        internal bool drawEllipses, drawLines, drawPolygon, drawCurves, drawStamps;
-
-        // ADSR envelope
+        readonly List<Color> shades;
+        internal readonly bool randomizeColor, drawEllipses, drawLines, drawPolygon, drawCurves, drawBeziers, drawStamps;
+        internal readonly Model model;
         internal double amplitude; // [0.0..1.0]
         int a, d, r;
         Timer rise, fall;
-        public bool done;
 
-        public PaintTool(string name, Image icon, Color color)
+        public PaintTool(string name, Image icon, Pen pen, Model model = Model.Cloud, bool randomizeColor = true, int shadesCount = 10, double colorVariance = 0.25, bool drawEllipses = true, bool drawLines = true, bool drawCurves = false, bool drawPolygon = false, bool drawStamps = false, Image stamp = null, int attack = 0, int decay = 0, double sustain = 1.0, int release = 100)
         {
+            // Meta information
             this.name = name;
+            this.icon = icon;
 
-            // Shapes
-            drawLines = true;
-            drawPolygon = false;
-            drawEllipses = false;
-            drawCurves = false;
-            drawStamps = false; //TODO Implement.
+            // Model
+            this.model = model;
 
             // Colors
-            var c = Color.FromArgb(50, color);
-            pen = new Pen(c, 1); //TODO Set default opacity and width somewhere else.
-            pen.StartCap = LineCap.Round;
-            pen.EndCap = LineCap.Round;
-            shades = GetShades(c);
+            this.shades = getShades(pen.Color, colorVariance, shadesCount);
+            this.pen = pen;
+            this.randomizeColor = randomizeColor;
+
+            // Shapes
+            this.drawEllipses = drawEllipses;
+            this.drawLines = drawLines;
+            this.drawCurves = drawCurves;
+            this.drawPolygon = drawPolygon;
+
+            // Stamps
+            this.drawStamps = drawStamps;
+            this.stamp = stamp;
 
             // ADSR envelope
-            registerADSREnvelope(0, 0, 1, 0);
+            //registerADSREnvelope(attack, decay, sustain, release);
+            registerADSREnvelope(0, 0, 1.0, 0);
         }
 
-        public List<Color> GetShades(Color baseColor, int numberOfShades = 10)
+        List<Color> getShades(Color baseColor, double colorVariance = 0.25, int shadesCount = 10)
         {
             List<Color> shades = new List<Color>();
-            Random random = new Random(); //TODO Don't allocate on each call.
-            double offset = 0.5; //TODO Make into a parameter.
-            for (int i = 1; i <= numberOfShades; ++i)
+            for (int i = 1; i <= shadesCount; ++i)
                 shades.Add(Color.FromArgb(
-                baseColor.A + (int)Math.Floor(offset * random.Next(-baseColor.A, 255 - baseColor.A)),
-                baseColor.R + (int)Math.Floor(offset * random.Next(-baseColor.R, 255 - baseColor.R)),
-                baseColor.G + (int)Math.Floor(offset * random.Next(-baseColor.G, 255 - baseColor.G)),
-                baseColor.B + (int)Math.Floor(offset * random.Next(-baseColor.B, 255 - baseColor.B))
+                baseColor.A + (int)Math.Floor(colorVariance * random.Next(-baseColor.A, 255 - baseColor.A)),
+                baseColor.R + (int)Math.Floor(colorVariance * random.Next(-baseColor.R, 255 - baseColor.R)),
+                baseColor.G + (int)Math.Floor(colorVariance * random.Next(-baseColor.G, 255 - baseColor.G)),
+                baseColor.B + (int)Math.Floor(colorVariance * random.Next(-baseColor.B, 255 - baseColor.B))
                 ));
             return shades;
         }
 
-        public void RandomShade()
-        {
-            Random random = new Random(); //TODO Don't allocate on each call.
-            pen.Color = shades[random.Next(0, shades.Count() - 1)];
-        }
-
-        //TODO Use threads instead of timers. Timers lack precise timing.
+        //TODO Use threads instead of timers. Timers lack precise enough timing.
         void registerADSREnvelope(int attack, int decay, double sustain, int release)
         {
-            done = false;
             rise = new Timer();
             rise.Enabled = false;
             rise.Interval = 1;
             rise.Tick += (object o, EventArgs e) =>
             {
-                Console.WriteLine("Amplitude: " + amplitude + ", Attack: " + a + ", Decay: " + d + ", Sustain: " + sustain + ", Release: " + r); //TODO Remove.
-                if (a < attack)
+                if (++a < attack)
                 {
-                    ++a;
-                    amplitude += 1.0 / attack;
+                    amplitude += 1.0 / (double)attack;
                     return;
                 }
-                else if (d < decay)
+                else if (++d < decay)
                 {
-                    ++d;
-                    amplitude -= (1.0 - sustain) / decay;
+                    amplitude -= (1.0 - sustain) / (double)decay;
                     return;
                 }
                 else
@@ -99,17 +93,15 @@ namespace EyePaint
             fall.Interval = 1;
             fall.Tick += (object o, EventArgs e) =>
             {
-                if (r < release)
+                if (++r < release)
                 {
-                    ++r;
-                    amplitude -= (sustain / release);
+                    amplitude -= sustain / (double)release;
                     return;
                 }
                 else
                 {
                     amplitude = 0;
                     fall.Enabled = false;
-                    done = true;
                 }
             };
         }
@@ -117,6 +109,7 @@ namespace EyePaint
         public void StartPainting()
         {
             a = d = 0;
+            if (randomizeColor) pen.Color = shades[random.Next(0, shades.Count() - 1)];
             rise.Enabled = true;
         }
 
@@ -125,13 +118,5 @@ namespace EyePaint
             r = 0;
             fall.Enabled = true;
         }
-
-        public void Dispose()
-        {
-            pen.Dispose();
-            rise.Dispose();
-            fall.Dispose();
-        }
     }
-
 }

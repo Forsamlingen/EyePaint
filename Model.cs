@@ -201,7 +201,7 @@ namespace EyePaint
     // A factory creates and maintains several factory elements at once.
     class Factory
     {
-        const int MAX_ELEMENTS = 10;
+        const int MAX_ELEMENTS = 3;
         static Random random = new Random();
         internal readonly LinkedList<FactoryElement> elements;
 

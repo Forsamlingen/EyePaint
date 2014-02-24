@@ -29,7 +29,7 @@ namespace EyePaint
             // Shapes
             drawLines = true;
             drawPolygon = false;
-            drawEllipses = true;
+            drawEllipses = false;
             drawCurves = false;
             drawStamps = false; //TODO Implement.
 

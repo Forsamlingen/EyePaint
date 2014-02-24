@@ -51,7 +51,7 @@
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
             paint = new System.Windows.Forms.Timer();
             paint.Enabled = true;
-            paint.Interval = 33; //TODO Make into property.
+            paint.Interval = 1;
             paint.Tick += (object s, EventArgs e) => { factory.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
@@ -101,15 +101,16 @@
         {
             //TODO Get all paint tools from a data store instead of automatically generating tools below.
             List<PaintTool> paintTools = new List<PaintTool>();
-            Random rng = new Random();
-            for (int i = 0; i < 20; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, null, Color.FromArgb(255, rng.Next(255), rng.Next(255), rng.Next(255))));
+            Random r = new Random();
+            for (int i = 0; i < 20; ++i) paintTools.Add(new PaintTool("Test paint tool" + i, null, Color.FromArgb(255, r.Next(255), r.Next(255), r.Next(255))));
 
             // Create buttons in paint tools toolbox.
             foreach (var paintTool in paintTools)
             {
                 // Create a button for the paint tool.
                 Button button = new Button();
-                button.Click += (object s, EventArgs e) => { 
+                button.Click += (object s, EventArgs e) =>
+                {
                     currentTool = paintTool;
                     button.FlatAppearance.BorderColor = (button.FlatAppearance.BorderColor == Color.Black) ? Color.White : Color.Black;
                 };
@@ -150,7 +151,7 @@
             else
             {
                 //TODO Animate opening and closing?
-                if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
+                if (p.Y < 50) PaintToolsPanel.Visible = true;
                 else PaintToolsPanel.Visible = false;
             }
         }
@@ -194,15 +195,6 @@
                     break;
                 case Keys.Back:
                     resetPainting();
-                    break;
-                case Keys.R:
-                    currentTool = new PaintTool("Red", null, Color.Crimson);
-                    break;
-                case Keys.G:
-                    currentTool = new PaintTool("Red", null, Color.ForestGreen);
-                    break;
-                case Keys.B:
-                    currentTool = new PaintTool("Red", null, Color.CornflowerBlue);
                     break;
                 case Keys.S:
                     storePainting();

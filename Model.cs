@@ -101,11 +101,9 @@ namespace EyePaint
         {
             ++age;
 
-            if (age > 10) return; //TODO Investigate performance hit.
-
             // Interpret paint tool amplitude as branch length and number of new branches.
             const int MAX_BRANCHES = 7; //TODO Set this somewhere else.
-            const int MAX_BRANCH_LENGTH = 50; //TODO Set this somewhere else.
+            const int MAX_BRANCH_LENGTH = 25; //TODO Set this somewhere else.
             int branches = MAX_BRANCHES / age;
             int branchLength = random.Next(MAX_BRANCH_LENGTH);
 
@@ -124,11 +122,20 @@ namespace EyePaint
                     var newLeaf = new Point(leaf.X + dx, leaf.Y + dy);
                     newLeaves[idx++] = newLeaf;
                     newParents[newLeaf] = leaf;
-                    pointGroups.Enqueue(new Point[] { newLeaf, leaf });
+                    pointGroups.Enqueue(new Point[] { newLeaf, leaf }); //TODO
                 }
 
             parents = newParents;
             leaves = newLeaves;
+
+            // Convex hull. TODO Place somewhere else.
+            if (leaves.Length > 0)
+            {
+                Point[] hull = new Point[leaves.Length + 1];
+                leaves.CopyTo(hull, 0);
+                hull[hull.Length - 1] = leaves[0];
+                pointGroups.Enqueue(hull);
+            }
         }
     }
 
@@ -157,7 +164,6 @@ namespace EyePaint
         {
             //TODO Collision detection.
             foreach (T e in elements) e.Grow();
-            //if (elements.Count > 0) elements.Last.Value.Grow(); TODO
         }
 
         public LinkedList<T> Consume()

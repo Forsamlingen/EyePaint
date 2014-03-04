@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LinearAlgebra.cs" />
+    <Compile Include="RenderObject.cs" />
     <Compile Include="SettingFactory.cs" />
     <Compile Include="View.cs" />
     <Compile Include="Controller.cs">

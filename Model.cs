@@ -13,28 +13,7 @@ namespace EyePaint
         public abstract void Grow();
     }
 
- 
-    internal struct Tree
-    {
-        internal readonly Color color;
-        internal readonly Point root;
-        internal int generation;
-        internal Point[] previousGen; //Parents of the present leaves
-        internal Point[] leaves;
-        internal readonly int edgeLength;
-        internal readonly int nLeaves;// TODO Warning need to be >2
 
-        public Tree(Color color, Point root, int edgeLength, int nLeaves, Point[] previousGen, Point[] startLeaves)
-        {
-            this.color = color;
-            this.root = root;
-            this.edgeLength = edgeLength;
-            this.nLeaves = nLeaves; //Warning need to be >2
-            this.previousGen = previousGen; 
-            leaves = startLeaves;
-            generation = 0;
-        }
-    }
 
     class TreeFactory : BaseFactory
     {
@@ -47,6 +26,10 @@ namespace EyePaint
         private Random random = new Random();
         private Tree currentTree;
         private bool treeAdded = false;
+
+        private int BranchWidth = 5;
+        private int HullWidth = 5;
+        private int LeafSize = 5;
 
         public TreeFactory()
         {
@@ -120,7 +103,8 @@ namespace EyePaint
                 v += 2 * Math.PI / nLeaves;
             }
 
-            return new Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
+           // return new Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
+            return new PolyTree(color, root, edgeLength, nLeaves, previousGen, startLeaves, BranchWidth, HullWidth, LeafSize);
         }
 
         /*
@@ -143,7 +127,8 @@ namespace EyePaint
                     Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root);
                     newLeaves[i] = newLeaf;
                 }
-                Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
+                //Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
+                Tree grownTree = new PolyTree(lastTree.color, lastTree.root, lastTree.branchLength, lastTree.nLeaves, lastTree.leaves, newLeaves, BranchWidth, HullWidth, LeafSize);
                 grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
                 renderQueue.AddLast(currentTree);

@@ -68,6 +68,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SettingFactory.cs" />
     <Compile Include="View.cs" />
     <Compile Include="Controller.cs">
       <SubType>Form</SubType>

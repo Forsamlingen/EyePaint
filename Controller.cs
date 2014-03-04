@@ -34,6 +34,10 @@
         internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
         private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
+        internal readonly Dictionary<int, PaintTool> paintTools;
+        internal readonly Dictionary<int, ColorTool> colorTools;
+
+
         public EyePaintingForm()
         {
             InitializeComponent();
@@ -78,6 +82,9 @@
                 default:
                     goto case ModelType.TREE;
             }
+            SettingFactory sf = new SettingFactory();
+            paintTools = sf.getPaintTools();
+            colorTools = sf.getColorTools();
 
             // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
             Paint += OnPaint;

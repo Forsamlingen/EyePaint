@@ -23,7 +23,8 @@ namespace EyePaint
         /**
          * Return a dictionary where available paintTools are mapped to their Id
          **/
-        //TODO switch to read in after dubug
+        //TODO switch to read from file after dubug
+        //Todo first see that settings get right
         internal Dictionary<int, PaintTool> getPaintTools()
         {
             Dictionary<int, PaintTool> paintTools = new Dictionary<int, PaintTool>();
@@ -46,7 +47,7 @@ namespace EyePaint
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
                                         "",
-                                        "CellNetTree", 5, 4, 800, 100, 2, 5, 0);
+                                        "CellNetTree", 15, 50, 800, 100, 2, 5, 0);
 
 
             paintTools.Add(woolTool.id, woolTool);
@@ -84,13 +85,13 @@ namespace EyePaint
         {
             Dictionary<int, ColorTool> colorTools = new Dictionary<int, ColorTool>();
 
-            //Todo change to read in ColorTools
+            //Todo change to read ColorTools from file
             double minHue = 0;
             double maxHue = 360;
-            double minSaturation = 90;
-            double maxSaturation = 100;
-            double minValue = 50;
-            double maxValue = 100;
+            double minSaturation = 0.9;
+            double maxSaturation = 1;
+            double minValue = 0.5;
+            double maxValue = 1;
             ColorTool randomColorTool = new ColorTool(1, "random", Color.Gold, minHue, maxHue, minSaturation, maxSaturation, minValue, maxValue);
 
             colorTools.Add(randomColorTool.id, randomColorTool);
@@ -187,29 +188,20 @@ namespace EyePaint
             this.maxHue = maxHue;
             this.minSaturation = minSaturation;
             this.maxSaturation = maxSaturation;
-            this.minValue = maxValue;
+            this.minValue = minValue;
             this.maxValue = maxValue;
 
         }
 
         public Color getRandomShade(int opacity)
         {
-            double randomHue = minHue + rng.NextDouble() * (maxHue - minHue);
-            double randomSaturation = minSaturation + rng.NextDouble() * (maxSaturation - minSaturation);
-            double randomValue = minValue + rng.NextDouble() * (maxValue - minValue);
+            double randomHue = minHue + (rng.NextDouble() * (maxHue - minHue));
+            double randomSaturation = minSaturation + (rng.NextDouble() * (maxSaturation - minSaturation));
+            double randomValue = minValue + (rng.NextDouble() * (maxValue - minValue));
             Color c = ColorFromHSV(opacity, randomHue, randomSaturation, randomValue);
             return c;
         }
 
-        private void ColorToHSV(int opacity, Color color, out double hue, out double saturation, out double value)
-        {
-            int max = Math.Max(color.R, Math.Max(color.G, color.B));
-            int min = Math.Min(color.R, Math.Min(color.G, color.B));
-
-            hue = color.GetHue();
-            saturation = (max == 0) ? 0 : 1d - (1d * min / max);
-            value = max / 255d;
-        }
 
         private Color ColorFromHSV(int opacity, double hue, double saturation, double value)
         {
@@ -221,7 +213,6 @@ namespace EyePaint
             int p = Convert.ToInt32(value * (1 - saturation));
             int q = Convert.ToInt32(value * (1 - f * saturation));
             int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
-
 
             if (hi == 0)
                 return Color.FromArgb(opacity, v, t, p);

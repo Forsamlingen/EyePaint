@@ -7,75 +7,233 @@ using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
-    abstract class BaseFactory
+    /**
+     * This class represent a model that constructs renderObjects that could
+     * rasterize themself on a given bitmap.
+     * Which renderObjects that are created  depend on the present PaintTool used.
+     * 
+     **/
+
+    class Model
     {
-        public abstract void Add(Point p, Color c, bool alwaysAdd = false);
-        public abstract void Grow();
-    }
+        Dictionary<PaintToolType, BaseFactory> Factories;
+        BaseFactory presentFactory;
+        ColorTool presentColorTool;
 
-
-
-    class TreeFactory : BaseFactory
-    {
-        internal List<Tree> oldTrees;
-        private LinkedList<Tree> renderQueue;
-        private int maxGenerations = 100;           // controls the max size of a single tree
-        private int offset_distance = 30;           // distance from the convex hull
-        private readonly int edgeLength = 25;       // constant to experiment with
-        private readonly int nLeaves = 7;           //constant to experiment with
-        private Random random = new Random();
-        private Tree currentTree;
-        private bool treeAdded = false;
-
-        private int BranchWidth = 5;
-        private int HullWidth = 5;
-        private int LeafSize = 5;
-
-        public TreeFactory()
+        /**
+         * Construct a model with the given PaintTool as start PaintTool 
+         **/
+        internal Model(PaintTool initPaintTool, ColorTool initColorTool)
         {
-            oldTrees = new List<Tree>();
-            renderQueue = new LinkedList<Tree>();
+            setUpFactories(initColorTool);
+            presentFactory = Factories[initPaintTool.type];
+            presentFactory.ChangePaintTool(initPaintTool, initColorTool);
+            presentColorTool = initColorTool;
+        }
+
+        internal Queue<RenderObject> GetRenderQueue()
+        {
+            return presentFactory.GetRenderQueue();
         }
 
         internal void ClearRenderQueue()
         {
+            presentFactory.ClearRenderQueue();
+        }
+        internal void ChangePaintTool(PaintTool newPaintTool)
+        {
+            ClearRenderQueue();
+
+            Factories[newPaintTool.type].ChangePaintTool(newPaintTool, presentColorTool);
+            presentFactory = Factories[newPaintTool.type];
+
+        }
+        internal void ChangeColorTool(ColorTool newColorTool)
+        {
+            presentColorTool = newColorTool;
+            presentFactory.changeColorTool(presentColorTool);
+
+        }
+        /**
+         * Add a point to the model
+         */
+        internal void Add(Point point, bool alwaysAdd)
+        {
+            presentFactory.Add(point, alwaysAdd);
+        }
+
+        /**
+         * Grow the present renderObject 
+         */
+        internal void Grow()
+        {
+            presentFactory.Grow();
+        }
+
+
+
+        /**
+         * Set up the factories dictionary with all available PaintoolTypes mapped to their Factory.
+         **/
+        //TODO Add more factories here when more toolTypes are added
+        private void setUpFactories(ColorTool initColorTool)
+        {
+            Factories = new Dictionary<PaintToolType, BaseFactory>();
+            Factories.Add(PaintToolType.TREE, new TreeFactory(initColorTool));
+
+        }
+
+    }
+    abstract class BaseFactory
+    {
+        protected ColorTool presentColorTool;
+
+        protected BaseFactory(ColorTool initColorTool)
+        {
+            presentColorTool = initColorTool;
+        }
+
+        internal abstract void Add(Point p, bool alwaysAdd = false);
+        internal abstract void Grow();
+
+        internal abstract Queue<RenderObject> GetRenderQueue();
+
+        internal abstract void ClearRenderQueue();
+
+        //TODO see if logic for this could be done clearer
+        internal abstract void ChangePaintTool(PaintTool newTool, ColorTool presentColorTool);
+
+        internal abstract void changeColorTool(ColorTool newColorTool);
+
+    }
+
+    class TreeFactory : BaseFactory
+    {
+        //Todo check if possible to use tree instead
+        private Queue<RenderObject> renderQueue;
+
+        private int offset_distance = 0;           // distance from the convex hull
+
+        private Random random = new Random();
+        private Tree currentTree;
+        private bool treeAdded = false;
+        private TreeTool presentTreeTool;
+
+        internal TreeFactory(ColorTool initColorTool)
+            : base(initColorTool)
+        {
+            renderQueue = new Queue<RenderObject>();
+            presentColorTool = initColorTool;
+        }
+
+
+        internal override void ClearRenderQueue()
+        {
             renderQueue.Clear();
         }
 
-        internal LinkedList<Tree> getRenderQueue()
+        internal override Queue<RenderObject> GetRenderQueue()
         {
             return renderQueue;
         }
 
-        internal Boolean HasQueued()
-        {
-            if (renderQueue.Count() == 0)
-                return false;
-            else
-                return true;
-        }
-        /**
-         * Return a stack with the points in the convex hull of the tree.
-         * If number of leaves in the tree is less then 3 an empty stack is returned
-         **/ 
-        internal Stack<Point> GetConvexHull(Tree tree)
-        {
-            Stack<Point> s = new Stack<Point>();
-            if(tree.nLeaves<3) return s;
-            else return LinearAlgebra.GetConvexHull(tree.leaves);
-            
-        }
 
-        public override void Add(Point root, Color c, bool alwaysAdd = false)
+        internal override void Add(Point root, bool alwaysAdd = false)
         {
             if (alwaysAdd || !PointInsideTree(root))
             {
-                oldTrees.Add(currentTree);
-                Tree tree = CreateDefaultTree(root, c);
+
+                Tree tree = CreateDefaultTree(root);
                 currentTree = tree;
-                renderQueue.AddLast(tree);
+                renderQueue.Enqueue(tree);
                 treeAdded = true;
             }
+        }
+
+        /*
+         * Update renderQuee with a EP-tree representing the next generation of the last tree created
+         */
+        internal override void Grow()
+        {
+            if (treeAdded)
+            {
+                int maxGenerations = presentTreeTool.maxGeneration;
+                int nLeaves = presentTreeTool.nLeaves;
+
+                if (currentTree.generation > maxGenerations)
+                {
+                    return;
+                }
+
+                Tree lastTree = currentTree;
+                Point[] newLeaves = new Point[nLeaves];
+                // Grow all branches
+                for (int i = 0; i < nLeaves; i++)
+                {
+                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root, presentTreeTool.branchLength);
+                    newLeaves[i] = newLeaf;
+                }
+                Tree grownTree = CreateTree(lastTree.color, lastTree.root, newLeaves, lastTree.leaves);
+                grownTree.generation = currentTree.generation + 1;
+                currentTree = grownTree;
+                renderQueue.Enqueue(currentTree);
+            }
+        }
+
+        /**
+         * Apply the new tool to the Factory 
+         */
+        internal override void ChangePaintTool(PaintTool newTreeTool, ColorTool presentColorTool)
+        {
+            TreeTool newTool = (TreeTool)newTreeTool; // TODO Is there any way TODO this without casting?
+
+            treeAdded = false;
+
+            this.presentTreeTool = newTool;
+            this.presentColorTool = presentColorTool;
+
+
+
+        }
+        internal override void changeColorTool(ColorTool newColorTool)
+        {
+            presentColorTool = newColorTool;
+        }
+
+
+        private Tree CreateTree(Color color, Point root, Point[] leaves, Point[] parents)
+        {
+            int branchLength = presentTreeTool.branchLength;
+            int maxGeneration = presentTreeTool.maxGeneration;
+
+            int branchWidth = presentTreeTool.branchWidth;
+            int hullWidth = presentTreeTool.hullWidth;
+            int leafSize = presentTreeTool.leafSize;
+
+            //TODO How do this cleaner
+            Tree tree = new PolyTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+
+            switch (presentTreeTool.renderObjectName)
+            {
+                case "PolyTree":
+                    tree = new PolyTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+                    break;
+
+                case "WoolTree":
+                    tree = new WoolTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+                    break;
+                case "CellNetTree":
+                    tree = new CellNetTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+                    break;
+                case "ModernArtTree":
+                    tree = new ModernArtTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+                    break;
+                default:
+                    break;
+            }
+            return tree;
+
+
         }
 
         /*
@@ -83,8 +241,11 @@ namespace EyePaint
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
 
-        private Tree CreateDefaultTree(Point root, Color color)
+        private Tree CreateDefaultTree(Point root)
         {
+            int nLeaves = presentTreeTool.nLeaves;
+            int branchLength = presentTreeTool.branchLength;
+
             // All the start leaves will have the root as parent
             Point[] previousGen = new Point[nLeaves];
             for (int i = 0; i < nLeaves; i++)
@@ -96,50 +257,23 @@ namespace EyePaint
             // Create a set number of leaves with the root of of the tree as parent to all of them
             for (int i = 0; i < nLeaves; i++)
             {
-                int x = Convert.ToInt32(edgeLength * Math.Cos(v)) + root.X;
-                int y = Convert.ToInt32(edgeLength * Math.Sin(v)) + root.Y;
+                int x = Convert.ToInt32(branchLength * Math.Cos(v)) + root.X;
+                int y = Convert.ToInt32(branchLength * Math.Sin(v)) + root.Y;
                 Point leaf = new Point(x, y);
                 startLeaves[i] = leaf;
                 v += 2 * Math.PI / nLeaves;
             }
 
-           // return new Tree(color, root, edgeLength, nLeaves, previousGen, startLeaves);
-            return new PolyTree(color, root, edgeLength, nLeaves, previousGen, startLeaves, BranchWidth, HullWidth, LeafSize);
+            Color treeColor = presentColorTool.getRandomShade(presentTreeTool.opacity);
+            return CreateTree(treeColor, root, startLeaves, previousGen);
         }
 
-        /*
-         * Update renderQuee with a EP-tree representing the next generation of the last tree created
-         */
-        public override void Grow()
-        {
-            if (treeAdded)
-            {
-                if (currentTree.generation > maxGenerations)
-                {
-                    return;
-                }
-
-                Tree lastTree = currentTree;
-                Point[] newLeaves = new Point[nLeaves];
-                // Grow all branches
-                for (int i = 0; i < nLeaves; i++)
-                {
-                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root);
-                    newLeaves[i] = newLeaf;
-                }
-                //Tree grownTree = new Tree(lastTree.color, lastTree.root, lastTree.edgeLength, lastTree.nLeaves, lastTree.leaves, newLeaves);
-                Tree grownTree = new PolyTree(lastTree.color, lastTree.root, lastTree.branchLength, lastTree.nLeaves, lastTree.leaves, newLeaves, BranchWidth, HullWidth, LeafSize);
-                grownTree.generation = currentTree.generation + 1;
-                currentTree = grownTree;
-                renderQueue.AddLast(currentTree);
-            }
-        }
 
         /*
          * Return a point representing a leaf that is 
          * grown outwards from the root.
          */
-        private Point GetLeaf(Point parent, Point root)
+        private Point GetLeaf(Point parent, Point root, int branchLength)
         {
             //Declare an origo point
             Point origo = new Point(0, 0);
@@ -155,7 +289,7 @@ namespace EyePaint
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
-            double r = LinearAlgebra.Get2DVectorLength(parentVector); 
+            double r = LinearAlgebra.Get2DVectorLength(parentVector);
 
             //Calculate the angle v1 between parent vector and the x-axis vector
             //using the dot-product.
@@ -167,7 +301,7 @@ namespace EyePaint
                 v1 = 2 * Math.PI - v1;
             }
             // x is the maximal angle possible between the parent vector and the child vector if the tree is not alloved to grow inwards.
-            double x = Math.Atan(edgeLength / r);
+            double x = Math.Atan(branchLength / r);
             //v2 is the angle between the child vector and the positve x-axis.
             //it is chosen randomly between the interval that only allows the tree to grow outwards
             double v2 = random.NextDouble() * 2 * x + (v1 - x);
@@ -175,11 +309,11 @@ namespace EyePaint
             //child vector and the parent vector
             double v3 = v2 - v1;
             // v4 is the angle opposite to the parent vector in triangle T
-            double v4 = Math.Asin(r * Math.Sin(v3) / edgeLength);
+            double v4 = Math.Asin(r * Math.Sin(v3) / branchLength);
             // v5 is the last angle in triangle T. It is the angle opposite to the child vector.
             double v5 = Math.PI - v4 - v3;
             // c is the length of the child vector
-            double c = edgeLength * Math.Sin(v5) / Math.Sin(v3);
+            double c = branchLength * Math.Sin(v5) / Math.Sin(v3);
 
             // Calculate the coordinates for the leaf and transform them back to the original coordinate system
             childVector[0] = Convert.ToInt32(c * Math.Cos(v2));
@@ -207,15 +341,15 @@ namespace EyePaint
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
                 Point p = LinearAlgebra.TransformCoordinates(currentTree.root, currentTree.leaves[i]);
-                points[i] = LinearAlgebra.Offset(p,offset_distance);
+                points[i] = LinearAlgebra.Offset(p, offset_distance);
             }
 
             evalPoint = LinearAlgebra.TransformCoordinates(currentTree.root, evalPoint);
-            
+
 
 
             Stack<Point> s = LinearAlgebra.GetConvexHull(points);
-            
+
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
             Point p1 = hullStart;
@@ -241,84 +375,5 @@ namespace EyePaint
 
     }
 
-    class Cloud
-    {
-        internal readonly Color color;
-        internal readonly List<Point> points;
-        private int radius;
 
-        internal Cloud(Point root, Color color)
-        {
-            this.points = new List<Point> { root };
-            this.color = color;
-            this.radius = 1;
-        }
-
-        internal void IncreaseRadius()
-        {
-            radius++;
-        }
-
-        internal int GetRadius()
-        {
-            return radius;
-        }
-    }
-
-    class CloudFactory : BaseFactory
-    {
-        internal readonly Stack<Cloud> clouds;
-        private Queue<Point> renderQueue;
-        private Random randomNumberGenerator;
-
-        public CloudFactory()
-        {
-            clouds = new Stack<Cloud>();
-            renderQueue = new Queue<Point>(); //TODO Exchange for buffer. Will probably require restructuring of program.
-            randomNumberGenerator = new Random();
-        }
-
-        public override void Add(Point center, Color color, bool alwaysAdd = false)
-        {
-            Cloud c = new Cloud(center, color);
-            clouds.Push(c);
-        }
-
-        internal void GrowCloud(Cloud c, int amount)
-        {
-            c.IncreaseRadius();
-            int radius = c.GetRadius();
-
-            for (int i = 0; i < amount; i++)
-            {
-                int x = randomNumberGenerator.Next(c.points[0].X - radius, c.points[0].X + radius);
-                int y = randomNumberGenerator.Next(c.points[0].Y - radius, c.points[0].Y + radius);
-                c.points.Add(new Point(x, y)); //TODO Memory management!
-                renderQueue.Enqueue(new Point(x, y));
-            }
-        }
-
-        public override void Grow()
-        {
-            GrowCloud(clouds.Peek(), randomNumberGenerator.Next(10));
-        }
-
-        internal bool HasQueued()
-        {
-            if (renderQueue.Count > 0)
-                return true;
-            else
-                return false;
-        }
-
-        internal Point GetQueued()
-        {
-            return renderQueue.Dequeue();
-        }
-
-        internal int GetQueueLength()
-        {
-            return renderQueue.Count;
-        }
-    }
 }

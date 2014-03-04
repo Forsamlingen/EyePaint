@@ -11,6 +11,7 @@
 
     public partial class EyePaintingForm : Form, IDisposable
     {
+
         // Eye tracking.
         private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
         private InteractionContext context;
@@ -24,18 +25,15 @@
         private bool greenButtonPressed;
 
         // Painting.
-        private BaseFactory factory;
-        private BaseRasterizer rasterizer;
         private Timer paint;
-        private Color currentColor;
-        private Color DEFAULT_COLOR = Color.Crimson; //TODO Make into property.
-        private const bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true; //TODO Make into property.
-        private const bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false; //TODO Make into property.
-        internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
-        private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
-        internal readonly Dictionary<int, PaintTool> paintTools;
-        internal readonly Dictionary<int, ColorTool> colorTools;
+        private readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
+        private readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
+
+        private PaintTool presentPaintTool;
+        private ColorTool presentColorTool;
+        private Model model;
+        private View view;
 
 
         public EyePaintingForm()
@@ -62,29 +60,23 @@
             greenButtonPressed = false;
             gazePoint = new Point(0, 0);
             latestPoint = new Point(0, 0);
-            currentColor = DEFAULT_COLOR;
 
             // Program resolution.
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
 
-            // Initialize model and view classes.
-            switch (modelType) //TODO Use Activator instead.
-            {
-                case ModelType.CLOUD:
-                    factory = new CloudFactory();
-                    rasterizer = new CloudRasterizer(width, height);
-                    break;
-                case ModelType.TREE:
-                    factory = new TreeFactory();
-                    rasterizer = new TreeRasterizer(width, height);
-                    break;
-                default:
-                    goto case ModelType.TREE;
-            }
+            //Initialize Model and View
             SettingFactory sf = new SettingFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
+
+            //TODO Change when we agreed on how init paintTool is chosed
+            int randPaintToolId = getRandomPaintToolID();
+            int randColorToolId = getRandomColorToolID();
+            presentPaintTool = paintTools[randPaintToolId];
+            presentColorTool = colorTools[randColorToolId];
+            model = new Model(presentPaintTool, presentColorTool);
+            view = new View(width, height);
 
             // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
             Paint += OnPaint;
@@ -94,13 +86,32 @@
             paint.Tick += onTick;
         }
 
+        //Todo Take away after testing
+        private int getRandomPaintToolID()
+        {
+            List<int> toolIDs = new List<int>(paintTools.Keys);
+            Random rng = new Random();
+            int randomIdIndex = rng.Next(toolIDs.Count);
+            int randomID = toolIDs[randomIdIndex];
+            return randomID;
+        }
+
+        //Todo Take away after testing
+        private int getRandomColorToolID()
+        {
+            List<int> toolIDs = new List<int>(colorTools.Keys);
+            Random rng = new Random();
+            int randomIdIndex = rng.Next(toolIDs.Count);
+            int randomID = toolIDs[randomIdIndex];
+            return randomID;
+        }
+
+
         // Grows the model and refreshes the canvas
         private void onTick(object sender, System.EventArgs e)
         {
-            factory.Grow();
+            model.Grow();
             Invalidate();
-
-            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY) setRandomPaintTool();
         }
 
         // Starts the timer, enabling tick events
@@ -109,8 +120,6 @@
             if (paint.Enabled) return;
 
             if (!stableGaze) return;
-
-            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE) setRandomPaintTool();
 
             paint.Enabled = true;
         }
@@ -124,22 +133,17 @@
         // Rasterizes the model and returns an image object
         private Image getPainting()
         {
-            Image image = rasterizer.Rasterize(factory);
+            Image image = view.Rasterize(model.GetRenderQueue());
+            model.ClearRenderQueue();
             return image;
         }
 
         // Clears the canvas
         private void resetPainting()
         {
-            rasterizer.Undo();
+            model.ClearRenderQueue();
+            view.Clear();
             Invalidate();
-        }
-
-        private void setRandomPaintTool()
-        {
-            //TODO Set more settings randomly than just the tool color.
-            Random rng = new Random();
-            currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
         }
 
         // Writes rasterized image to a file
@@ -179,6 +183,7 @@
             }
         }
 
+
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -189,14 +194,14 @@
                 case Keys.Back:
                     OnRedButtonDown(sender, e);
                     break;
+                //TODO Take away after test
                 case Keys.R:
-                    currentColor = Color.Crimson;
+                    int newRandomToolID = getRandomPaintToolID();
+                    ChangePaintTool(newRandomToolID);
                     break;
                 case Keys.G:
-                    currentColor = Color.ForestGreen;
                     break;
                 case Keys.B:
-                    currentColor = Color.CornflowerBlue;
                     break;
                 case Keys.S:
                     storePainting();
@@ -268,7 +273,7 @@
         // Adds a new point to the model.
         private void AddPoint(Point p, bool alwaysAdd = false)
         {
-            factory.Add(p, currentColor, alwaysAdd);
+            model.Add(p, alwaysAdd);
         }
 
         // Stores a new point in 'latestPoint' and determines whether or not to add it.
@@ -294,6 +299,29 @@
         private void OnShown(object sender, EventArgs e)
         {
             BringToFront();
+        }
+
+        //TODO Maybe change after agree on type of id for PaintTools
+        private void ChangePaintTool(int newPaintToolID)
+        {
+
+            //Check if the new paint tool is the same as the present do nothing
+            if (presentPaintTool.id == newPaintToolID)
+            {
+                return;
+            }
+
+
+            //Apply change to model
+            model.ChangePaintTool(paintTools[newPaintToolID]);
+
+            //Set present PaintTool to the new one
+            presentPaintTool = paintTools[newPaintToolID];
+
+        }
+        private void ChangeColorTool(int newColorToolID)
+        {
+            model.ChangeColorTool(colorTools[newColorToolID]);
         }
 
         private void OpenControlPanelClick(object sender, EventArgs e)

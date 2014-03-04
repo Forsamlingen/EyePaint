@@ -194,46 +194,4 @@ namespace EyePaint
     }
 
 
-
-    //TODD Change Name!!
-    internal class ImageObject
-    {
-        internal Image image;
-        Pen pen = new Pen(Color.White);
-
-        internal ImageObject(Image image)
-        {
-            this.image = image;
-        }
-
-        internal void DrawLine(Color color, int width, Point p1, Point p2)
-        {
-            pen.Color = color;
-            pen.Width = width;
-
-            using (Graphics g = Graphics.FromImage(image))
-                g.DrawLine(pen, p1, p2);
-        }
-
-        internal void DrawElipse(Color color, int radius, Point point)
-        {
-            pen.Color = color;
-            using (Graphics g = Graphics.FromImage(image))
-                g.DrawEllipse(
-                    pen,
-                    point.X + radius,
-                    point.Y + radius,
-                    pen.Width,
-                    pen.Width
-                    );
-        }
-
-        internal void DrawPolygon(Color color, Point[] vertices)
-        {
-            SolidBrush b = new SolidBrush(color);
-            using (Graphics g = Graphics.FromImage(image))
-                g.FillPolygon(b, vertices);
-        }
-
-    }
 }

@@ -79,7 +79,7 @@ namespace EyePaint
         {
             Stack<Point> s = new Stack<Point>();
             if(tree.nLeaves<3) return s;
-            else return GrahamScan(tree.leaves);
+            else return LinearAlgebra.GetConvexHull(tree.leaves);
             
         }
 
@@ -162,19 +162,19 @@ namespace EyePaint
             int[] xAxisVector = new int[2] { 1, 0 };
 
             //Transform to cooridninatesystem where root is origo
-            parent = TransformCoordinates(root, parent);
+            parent = LinearAlgebra.TransformCoordinates(root, parent);
             // parentVector is the vector between the origo and the parent-point
-            int[] parentVector = GetVector(origo, parent);
+            int[] parentVector = LinearAlgebra.GetVector(origo, parent);
 
             // the child vector is the vector between the root and the leaf we want calculate the coordinates for 
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
-            double r = GetVectorLength(parentVector); 
+            double r = LinearAlgebra.Get2DVectorLength(parentVector); 
 
             //Calculate the angle v1 between parent vector and the x-axis vector
             //using the dot-product.
-            double v1 = GetAngleBetweenVectors(parentVector, xAxisVector);
+            double v1 = LinearAlgebra.GetAngleBetweenVectors(parentVector, xAxisVector);
 
             // If v1 is in the 3rd or 4th quadrant, we calculate the radians between the positive x-axis and the parent vector anti-clockwise
             if (parentVector[1] < 0)
@@ -221,15 +221,15 @@ namespace EyePaint
             //Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
-                Point p = TransformCoordinates(currentTree.root, currentTree.leaves[i]);
-                points[i] = Offset(p);
+                Point p = LinearAlgebra.TransformCoordinates(currentTree.root, currentTree.leaves[i]);
+                points[i] = LinearAlgebra.Offset(p,offset_distance);
             }
 
-            evalPoint = TransformCoordinates(currentTree.root, evalPoint);
+            evalPoint = LinearAlgebra.TransformCoordinates(currentTree.root, evalPoint);
             
 
 
-            Stack<Point> s = GrahamScan(points);
+            Stack<Point> s = LinearAlgebra.GetConvexHull(points);
             
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
@@ -239,14 +239,14 @@ namespace EyePaint
             while (s.Count() != 0)
             {
                 p2 = s.Pop();
-                if (LineSegmentIntersect(origo, evalPoint, p1, p2))
+                if (LinearAlgebra.LineSegmentIntersect(origo, evalPoint, p1, p2))
                 {
                     return false;
                 }
                 p1 = p2;
             }
 
-            if (LineSegmentIntersect(origo, evalPoint, hullStart, p2))
+            if (LinearAlgebra.LineSegmentIntersect(origo, evalPoint, hullStart, p2))
             {
                 return false;
             }
@@ -254,219 +254,6 @@ namespace EyePaint
             return true;
         }
 
-        private bool LineSegmentIntersect(Point A, Point B, Point C, Point D)
-        {
-            //check if any of the vectors are the 0-vector
-            if ((A.X == B.X && A.Y == B.Y) || (C.X == D.X) && (C.Y == D.Y))
-            {
-                return false;
-            }
-            //  Fail if the segments share an end point.
-
-            if (A.X == C.X && A.Y == C.Y || B.X == C.X && B.Y == C.Y
-                || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
-            {
-                return false;
-            }
-            //Trnsform all points to a coordinate system where A is origo
-            B = TransformCoordinates(A, B);
-            C = TransformCoordinates(A, C);
-            D = TransformCoordinates(A, D);
-            A = TransformCoordinates(A, A);
-
-            //  Discover the length of segment A-B.
-            double distAB = GetVectorLength(GetVector(A, B));
-            //Change to double
-            double Cx = C.X; double Cy = C.Y;
-            double Dx = D.X; double Dy = D.Y;
-            //  (2) Rotate the system so that point B is on the positive X axis.
-            double theCos = B.X / distAB;
-            double theSin = B.Y / distAB;
-            double newX = Cx * theCos + Cy * theSin;
-            Cy = Cy * theCos - Cx * theSin; Cx = newX;
-            newX = Dx * theCos + Dy * theSin;
-            Dy = Dy * theCos - Dx * theSin; Dx = newX;
-            //  Fail if segment C-D doesn't cross line A-B.
-            if (Cy < 0 && Dy < 0 || Cy >= 0 && Dy >= 0) return false;
-            //  (3) Discover the position of the intersection point along line A-B.
-            double ABpos = Dx + (Cx - Dx) * Dy / (Dy - Cy);
-            //  Fail if segment C-D crosses line A-B outside of segment A-B.
-            if (ABpos < 0 || ABpos > distAB) return false;
-            //The line segments intersect
-            return true;
-        }
-
-        
-        private Stack<Point> GrahamScan(Point[] points)
-        {
-            //Find point with lowex Y-coordinate
-
-            Point minPoint = GetLowestPoint(points);
-            //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
-            Point refPoint = new Point(minPoint.X + 10, minPoint.Y);
-
-            //Create a vector of GrahamPoints by calculate the angle a for each point in points
-            //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
-
-            int size = points.Count();
-
-            GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
-            GrahamPoint[] grahamPoints = new GrahamPoint[size];
-            grahamPoints[0] = minGrahamPoint;
-            int gpIndex = 1;
-            for (int i = 0; i < points.Count(); i++)
-            {
-                if (!(points[i].X == minPoint.X && points[i].Y == minPoint.Y))
-                {
-                    double a = GetAngleBetweenVectors(GetVector(minPoint, refPoint), GetVector(minPoint, points[i]));
-                    GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
-                    grahamPoints[gpIndex] = grahamPoint;
-                    gpIndex++;
-                }
-            }
-
-            Array.Sort(grahamPoints);
-            Stack<Point> s = new Stack<Point>();
-
-            s.Push(GrahamPointToPoint(grahamPoints[0]));
-            s.Push(GrahamPointToPoint(grahamPoints[1]));
-            s.Push(GrahamPointToPoint(grahamPoints[2]));
-
-            Point top;
-            Point nextToTop;
-            for (int i = 3; i < grahamPoints.Count(); i++)
-            {
-                bool notPushed = true;
-                while (notPushed)
-                {
-                    top = s.Pop();
-                    nextToTop = s.Peek();
-                    if (Ccw(nextToTop, top, grahamPoints[i].point) >= 0 || s.Count() < 2)
-                    {
-                        s.Push(top);
-                        s.Push(grahamPoints[i].point);
-                        notPushed = false;
-                    }
-                }
-            }
-            return s;
-        }
-
-        //Create struct to able to sort points by there angle a
-        private struct GrahamPoint : IComparable<GrahamPoint>
-        {
-            public double angle;
-            public Point point;
-
-            public GrahamPoint(double angle, Point point)
-            {
-                this.angle = angle;
-                this.point = point;
-            }
-
-            public int CompareTo(GrahamPoint p1)
-            {
-                if (angle == p1.angle)
-                {
-                    return 0;
-                }
-
-                if (angle < p1.angle)
-                {
-                    return -1;
-                }
-
-                else //if(angle > p1.angle)
-                {
-                    return 1;
-                }
-            }
-        }
-
-        // Use cross-product to calculate if three points are a counter-clockwise. 
-        // They are counter-clockwise if ccw > 0, clockwise if
-        // ccw < 0, and collinear if ccw == 0
-        private int Ccw(Point p1, Point p2, Point p3)
-        {
-            return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
-        }
-        /*
-         * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
-         * If any of the vectors is of length zero, return zero
-         */
-        private double GetAngleBetweenVectors(int[] P, int[] Q)
-        {
-            double lP = GetVectorLength(P);
-            double lQ = GetVectorLength(Q);
-            
-            if (lP == 0 || lQ == 0) return 0;
-            
-            double v = Math.Acos((P[0] * Q[0] + P[1] * Q[1]) / (lP * lQ));
-            return v;
-        }
-
-        private double GetVectorLength(int[] vector)
-        {
-            double l = Math.Sqrt(Math.Pow(vector[0], 2) + Math.Pow(vector[1], 2));
-            return l;
-        }
-
-        private int[] GetVector(Point p1, Point p2)
-        {
-            int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
-            return vector;
-        }
-
-        // Offsets the point 'p' 'distance' pixels from origo
-        private Point Offset(Point p)
-        {
-            Point origo = new Point(0, 0);
-            int[] op = GetVector(origo, p);
-            double old_l = GetVectorLength(op);
-            double new_l = old_l + offset_distance;
-            double ratio = new_l / old_l;
-            int x = Convert.ToInt32(p.X * ratio);
-            int y = Convert.ToInt32(p.Y * ratio);
-            return new Point(x, y);
-        }
-
-        //Transfor the point to a coordinate system where the argumet origo have the 
-        //cooridinate (0,0)
-        private Point TransformCoordinates(Point origo, Point point)
-        {
-            point.X -= origo.X;
-            point.Y -= origo.Y;
-            return point;
-        }
-
-        private Point GetLowestPoint(Point[] points)
-        {
-            Point minPoint = points[0];
-
-            for (int i = 0; i < points.Count(); i++)
-            {
-                if (points[i].Y < minPoint.Y)
-                {
-                    minPoint = points[i];
-                }
-                // if equal Y-coordinate, compare by X
-                else if (minPoint.Y == points[i].Y)
-                {
-
-                    if (points[i].X < minPoint.X)
-                    {
-                        minPoint = points[i];
-                    }
-                }
-            }
-            return minPoint;
-        }
-
-        private Point GrahamPointToPoint(GrahamPoint grahamPoint)
-        {
-            Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);
-            return point;
-        }
     }
 
     class Cloud

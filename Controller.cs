@@ -11,26 +11,33 @@
 
     public partial class EyePaintingForm : Form, IDisposable
     {
-        // Eye tracking.
+        // Eye tracking engine.
         private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
         private InteractionContext context;
         private InteractionSnapshot globalInteractorSnapshot;
-        private bool stableGaze;
-        private Point gazePoint, latestPoint;
-        private const int keyhole = 120; //TODO Make into property.
 
-        // User input.
-        private bool useMouse;
-        private bool greenButtonPressed;
+        // User input alternatives.
+        internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
         // Painting.
         private BaseFactory factory;
         private BaseRasterizer rasterizer;
         private Timer paint;
-        private Color currentColor;
-        private Color DEFAULT_COLOR = Color.Crimson; //TODO Make into property.
-        private const bool CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE = true; //TODO Make into property.
-        private const bool CHANGE_TOOL_RANDOMLY_CONSTANTLY = false; //TODO Make into property.
+
+        //TODO Move into its own file.
+        internal struct PaintTool
+        {
+            public string name;
+            public Color color;
+
+            public PaintTool(string name, Color color)
+            {
+                this.name = name;
+                this.color = color;
+            }
+        }
+        private PaintTool currentTool;
+
         internal enum ModelType { TREE, CLOUD }; //TODO Move logic into Model and View.
         private const ModelType modelType = ModelType.TREE; //TODO Make into property (but make sure the property always resolves into some ModelType to avoid the program crashing).
 
@@ -38,101 +45,74 @@
         {
             InitializeComponent();
 
-            Shown += OnShown;
-            Move += OnMove;
-            KeyDown += OnKeyDown;
-            KeyUp += OnKeyUp;
-            MouseMove += OnMouseMove;
-            MouseDown += OnMouseDown;
-            MouseUp += OnMouseUp;
+            // Setup paint tools and toolbox panel.
+            setupPaintTools();
 
-            // Create a context and enable the connection to the eye tracking engine.
+            // Choose user input mode and register event handlers, etc.
+            useInputMode(InputMode.MOUSE_AND_KEYBOARD);
+
+            // Create an interactor context for the eye tracker engine.
             context = new InteractionContext(false);
             InitializeGlobalInteractorSnapshot();
+            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
             context.ConnectionStateChanged += OnConnectionStateChanged;
             context.RegisterEventHandler(HandleInteractionEvent);
-            context.EnableConnection();
-
-            // Start values.
-            stableGaze = false;
-            greenButtonPressed = false;
-            gazePoint = new Point(0, 0);
-            latestPoint = new Point(0, 0);
-            currentColor = DEFAULT_COLOR;
-
-            // Program resolution.
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
 
             // Initialize model and view classes.
             switch (modelType) //TODO Use Activator instead.
             {
                 case ModelType.CLOUD:
                     factory = new CloudFactory();
-                    rasterizer = new CloudRasterizer(width, height);
+                    rasterizer = new CloudRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 case ModelType.TREE:
                     factory = new TreeFactory();
-                    rasterizer = new TreeRasterizer(width, height);
+                    rasterizer = new TreeRasterizer(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     break;
                 default:
                     goto case ModelType.TREE;
             }
 
-            // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
-            Paint += OnPaint;
+            // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
+            Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
             paint = new System.Windows.Forms.Timer();
-            paint.Interval = 33; //TODO Make into property.
             paint.Enabled = false;
-            paint.Tick += onTick;
+            paint.Interval = 33; //TODO Make into property.
+            paint.Tick += (object s, EventArgs e) => { factory.Grow(); Invalidate(); };
+
+            // Register setup panel button click handlers.
+            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
+            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
+            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
+            CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
         }
 
-        // Grows the model and refreshes the canvas
-        private void onTick(object sender, System.EventArgs e)
-        {
-            factory.Grow();
-            Invalidate();
-
-            if (CHANGE_TOOL_RANDOMLY_CONSTANTLY) setRandomPaintTool();
-        }
-
-        // Starts the timer, enabling tick events
-        private void startPaintingTimer()
+        // Starts the paint timer.
+        private void startPainting()
         {
             if (paint.Enabled) return;
-
-            if (!stableGaze) return;
-
-            if (CHANGE_TOOL_RANDOMLY_EACH_NEW_STROKE) setRandomPaintTool();
-
-            paint.Enabled = true;
+            else paint.Enabled = true;
         }
 
-        // Stops the timer, disabling tick events
-        private void stopPaintingTimer()
+        // Stops the timer.
+        private void stopPainting()
         {
             paint.Enabled = false;
         }
 
-        // Rasterizes the model and returns an image object
+        // Rasterizes the model and returns an image object.
         private Image getPainting()
         {
             Image image = rasterizer.Rasterize(factory);
             return image;
         }
 
-        // Clears the canvas
+        // Clears the canvas.
         private void resetPainting()
         {
+            //TODO Clear model as well.
             rasterizer.Undo();
             Invalidate();
-        }
-
-        private void setRandomPaintTool()
-        {
-            //TODO Set more settings randomly than just the tool color.
-            Random rng = new Random();
-            currentColor = Color.FromArgb(55 + rng.Next(200), rng.Next(255), rng.Next(255), rng.Next(255));
         }
 
         // Writes rasterized image to a file
@@ -142,33 +122,84 @@
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        private void OnMouseUp(object sender, MouseEventArgs e)
+        // Populates the paint tools toolbox with user selectable paint tools.
+        private void setupPaintTools()
         {
-            if (useMouse)
+            //TODO Get all paint tools from a data store instead of automatically generating tools below.
+            List<PaintTool> paintTools = new List<PaintTool>();
+            Random rng = new Random();
+            for (int i = 0; i < 20; ++i)
             {
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonUp(sender, e);
-                        break;
-                    default:
-                        break;
-                }
+                paintTools.Add(new PaintTool("Test paint tool" + i, Color.FromArgb(255, rng.Next(255), rng.Next(255), rng.Next(255))));
             }
+
+            int rows = 2; // TODO Make into property.
+
+            // Create buttons in paint tools toolbox.
+            foreach (var paintTool in paintTools)
+            {
+                // Create a button for the paint tool.
+                Button button = new Button();
+                button.Click += (object s, EventArgs e) => { currentTool = paintTool; };
+                button.Height = button.Width = Screen.PrimaryScreen.Bounds.Width / (paintTools.Count / rows + 1);
+                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                button.Margin = new Padding(0);
+
+                // Create sample drawing for the button thumbnail.
+                BaseFactory sampleFactory = new TreeFactory();
+                BaseRasterizer sampleRasterizer = new TreeRasterizer(button.Width, button.Height);
+                sampleFactory.Add(new Point(button.Width / 2, button.Height / 2), paintTool.color, false);
+                for (int i = 0; i < 5; ++i) sampleFactory.Grow();
+                button.BackgroundImage = sampleRasterizer.Rasterize(sampleFactory);
+
+                // Add button to toolbox.
+                PaintToolsPanel.Controls.Add(button);
+            }
+
+            // TODO Append "Get random tool" button.
+        }
+
+        // Store a new point in the model, if painting is enabled.
+        private void TrackPoint(Point p)
+        {
+            if (paint.Enabled)
+            {
+                factory.Add(p, currentTool.color, true);
+            }
+            else
+            {
+                //TODO Animate opening and closing?
+                if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
+                else PaintToolsPanel.Visible = false;
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            TrackPoint(new Point(e.X, e.Y));
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
-            if (useMouse)
+            switch (e.Button)
             {
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonDown(sender, e);
-                        break;
-                    default:
-                        break;
-                }
+                case MouseButtons.Left:
+                    startPainting();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OnMouseUp(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    stopPainting();
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -177,19 +208,19 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonDown(sender, e);
+                    startPainting();
                     break;
                 case Keys.Back:
-                    OnRedButtonDown(sender, e);
+                    resetPainting();
                     break;
                 case Keys.R:
-                    currentColor = Color.Crimson;
+                    currentTool.color = Color.Crimson;
                     break;
                 case Keys.G:
-                    currentColor = Color.ForestGreen;
+                    currentTool.color = Color.ForestGreen;
                     break;
                 case Keys.B:
-                    currentColor = Color.CornflowerBlue;
+                    currentTool.color = Color.CornflowerBlue;
                     break;
                 case Keys.S:
                     storePainting();
@@ -207,108 +238,38 @@
             switch (e.KeyCode)
             {
                 case Keys.Space:
-                    OnGreenButtonUp(sender, e);
-                    break;
-                case Keys.Back:
-                    OnRedButtonUp(sender, e);
+                    stopPainting();
                     break;
                 default:
                     break;
             }
         }
 
-        private void OnGreenButtonDown(object sender, EventArgs e)
+        private void useInputMode(InputMode inputMode)
         {
-            if (greenButtonPressed) return;
+            // Deregister all input event handlers.
+            if (context != null) context.DisableConnection();
+            KeyDown -= OnKeyDown;
+            KeyUp -= OnKeyUp;
+            MouseMove -= OnMouseMove;
+            MouseDown -= OnMouseDown;
+            MouseUp -= OnMouseUp;
 
-            greenButtonPressed = true;
-            gazePoint = latestPoint;
-            AddPoint(gazePoint, true);
-            startPaintingTimer();
-        }
-
-        private void OnGreenButtonUp(object sender, EventArgs e)
-        {
-            greenButtonPressed = false;
-            gazePoint = latestPoint;
-            stopPaintingTimer();
-        }
-
-        private void OnRedButtonDown(object sender, EventArgs e)
-        {
-            resetPainting();
-        }
-
-        private void OnRedButtonUp(object sender, EventArgs e)
-        {
-            return;
-        }
-
-        private void OnMove(object sender, EventArgs e)
-        {
-            stableGaze = false; //TODO Neccessary?
-        }
-
-        private void OnPaint(object sender, PaintEventArgs e)
-        {
-            Image image = getPainting();
-            if (image != null)
+            switch (inputMode)
             {
-                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
+                case InputMode.EYE_TRACKER: // Register event handlers for the eye tracker.
+                    context.EnableConnection();
+                    goto case InputMode.MOUSE_AND_KEYBOARD; // TODO Buy USB buttons and use them instead for the keyboard.
+                case InputMode.MOUSE_AND_KEYBOARD: // Register event handlers for mouse and keyboard.
+                    KeyDown += OnKeyDown;
+                    KeyUp += OnKeyUp;
+                    MouseMove += OnMouseMove;
+                    MouseDown += OnMouseDown;
+                    MouseUp += OnMouseUp;
+                    break;
+                default:
+                    throw new ArgumentException();
             }
-        }
-
-        // Adds a new point to the model.
-        private void AddPoint(Point p, bool alwaysAdd = false)
-        {
-            factory.Add(p, currentColor, alwaysAdd);
-        }
-
-        // Stores a new point in 'latestPoint' and determines whether or not to add it.
-        private void TrackPoint(Point p)
-        {
-            stableGaze = true;
-            latestPoint = p;
-
-            double distance = Math.Sqrt(Math.Pow(gazePoint.X - p.X, 2) + Math.Pow(gazePoint.Y - p.Y, 2));
-
-            if (distance > keyhole)
-            {
-                gazePoint = p;
-                if (greenButtonPressed) AddPoint(gazePoint);
-            }
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (useMouse) TrackPoint(new Point(e.X, e.Y));
-        }
-
-        private void OnShown(object sender, EventArgs e)
-        {
-            BringToFront();
-        }
-
-        private void OpenControlPanelClick(object sender, EventArgs e)
-        {
-            Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); //TODO Don't assume default install location.
-        }
-
-        private void CloseInfoPanelClick(object sender, EventArgs e)
-        {
-            SetupPanel.Visible = SetupPanel.Enabled = false;
-        }
-
-        private void UseEyeTrackerClick(object sender, EventArgs e)
-        {
-            useMouse = false;
-            SetupPanel.Visible = SetupPanel.Enabled = false;
-        }
-
-        private void UseMouseClick(object sender, EventArgs e)
-        {
-            useMouse = true;
-            SetupPanel.Visible = SetupPanel.Enabled = false;
         }
 
         private void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
@@ -317,11 +278,19 @@
             {
                 case ConnectionState.Connected:
                     globalInteractorSnapshot.Commit(OnSnapshotCommitted);
-                    Invoke(new Action(() =>
-                    {
-                        SetupMessage.Text = "Status: " + e.State.ToString();
-                        SetupPanel.Visible = SetupPanel.Enabled = false;
-                    }));
+
+                    Action a1 = () => SetupMessage.Text = "Status: " + e.State.ToString();
+                    if (SetupMessage.InvokeRequired)
+                        SetupMessage.Invoke(a1);
+                    else
+                        a1.Invoke();
+
+                    Action a2 = () => SetupPanel.Visible = SetupPanel.Enabled = false;
+                    if (SetupPanel.InvokeRequired)
+                        SetupPanel.Invoke(a2);
+                    else
+                        a2.Invoke();
+
                     break;
                 case ConnectionState.Disconnected:
                     break;
@@ -330,10 +299,11 @@
                 case ConnectionState.ServerVersionTooLow:
                     break;
                 case ConnectionState.TryingToConnect:
-                    Invoke(new Action(() =>
-                    {
-                        SetupPanel.Visible = SetupPanel.Enabled = true;
-                    }));
+                    Action a = () => SetupPanel.Visible = SetupPanel.Enabled = true;
+                    if (SetupPanel.InvokeRequired)
+                        SetupPanel.Invoke(a);
+                    else
+                        a.Invoke();
                     break;
                 default:
                     break;
@@ -356,9 +326,36 @@
             globalInteractorSnapshot.Commit(OnSnapshotCommitted);
         }
 
+        private void HandleQueryOnUiThread(Rectangle queryBounds)
+        {
+            var windowId = Handle.ToString();
+
+            var snapshot = context.CreateSnapshot();
+            snapshot.AddWindowId(windowId);
+
+            var bounds = snapshot.CreateBounds(InteractionBoundsType.Rectangular);
+            bounds.SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+
+            var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+
+            foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect);
+
+            snapshot.Commit(OnSnapshotCommitted);
+        }
+
         private void OnSnapshotCommitted(InteractionSnapshotResult result)
         {
             Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
+        }
+
+        private void HandleQuery(InteractionQuery query)
+        {
+            var queryBounds = query.Bounds;
+            double x, y, w, h;
+            if (queryBounds.TryGetRectangularData(out x, out y, out w, out h))
+            {
+                BeginInvoke(new Action<Rectangle>(HandleQueryOnUiThread), new Rectangle((int)x, (int)y, (int)w, (int)h));
+            }
         }
 
         private void HandleInteractionEvent(InteractionEvent e)
@@ -367,23 +364,39 @@
                 switch (behavior.BehaviorType)
                 {
                     case InteractionBehaviorType.GazePointData:
-                        OnGazePointData(behavior);
+                        GazePointDataEventParams eventParams;
+                        if (behavior.TryGetGazePointDataEventParams(out eventParams))
+                            TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
                         break;
-                    default: // TODO Investigate which other interaction events are possible in EyeX.
+                    case InteractionBehaviorType.GazeAware:
+                        GazeAwareEventParams gazeAwareEventParams;
+                        if (behavior.TryGetGazeAwareEventParams(out gazeAwareEventParams))
+                        {
+                            Button c = (Button)PaintToolsPanel.Controls[e.InteractorId]; // TODO Out of bounds?
+                            bool hasGaze = gazeAwareEventParams.HasGaze != EyeXBoolean.False; //TODO Remove line?
+                            Action a = () => c.PerformClick();
+                            BeginInvoke(a);
+                        }
+                        break;
+                    default:
                         break;
                 }
         }
 
-        private void OnGazePointData(InteractionBehavior behavior)
+        private void CreateGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
         {
-            GazePointDataEventParams eventParams;
-            if (behavior.TryGetGazePointDataEventParams(out eventParams))
+            var controlRect = control.Bounds;
+            controlRect = control.Parent.RectangleToScreen(controlRect);
+
+            if (controlRect.IntersectsWith(queryBoundsRect))
             {
-                TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y));
-            }
-            else
-            {
-                Console.WriteLine("Failed to interpret gaze data event packet.");
+                var interactor = snapshot.CreateInteractor(control.Name, parentId, windowId);
+                interactor.SetZ(z);
+
+                var bounds = interactor.CreateBounds(InteractionBoundsType.Rectangular);
+                bounds.SetRectangularData(controlRect.Left, controlRect.Top, controlRect.Width, controlRect.Height);
+
+                interactor.CreateBehavior(InteractionBehaviorType.GazeAware);
             }
         }
     }

@@ -262,7 +262,7 @@
     <value>0, 0, 0, 0</value>
   </data>
   <data name="SetupMessage.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 480</value>
+    <value>640, 430</value>
   </data>
   <data name="SetupMessage.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -289,13 +289,13 @@
     <value>Fill</value>
   </data>
   <data name="SetupPanel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
+    <value>0, 50</value>
   </data>
   <data name="SetupPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="SetupPanel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 480</value>
+    <value>640, 430</value>
   </data>
   <data name="SetupPanel.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -310,7 +310,181 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;SetupPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="ProgramControlPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ProgramControlPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Name" xml:space="preserve">
+    <value>NewPaintingButton</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Name" xml:space="preserve">
+    <value>SavePaintingButton</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.ZOrder" xml:space="preserve">
     <value>1</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Name" xml:space="preserve">
+    <value>ClearPaintingButton</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Name" xml:space="preserve">
+    <value>ToolPaneToggleButton</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="ProgramControlPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ProgramControlPanel.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
+    <value>TopDown</value>
+  </data>
+  <data name="ProgramControlPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ProgramControlPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>224, 50</value>
+  </data>
+  <data name="ProgramControlPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ProgramControlPanel.Name" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;ProgramControlPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ProgramControlPanel.Parent" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="&gt;&gt;ProgramControlPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="NewPaintingButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="NewPaintingButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>50, 50</value>
+  </data>
+  <data name="NewPaintingButton.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Name" xml:space="preserve">
+    <value>NewPaintingButton</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;NewPaintingButton.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="SavePaintingButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="SavePaintingButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>59, 3</value>
+  </data>
+  <data name="SavePaintingButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>50, 50</value>
+  </data>
+  <data name="SavePaintingButton.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Name" xml:space="preserve">
+    <value>SavePaintingButton</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;SavePaintingButton.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="ClearPaintingButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="ClearPaintingButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>115, 3</value>
+  </data>
+  <data name="ClearPaintingButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>50, 50</value>
+  </data>
+  <data name="ClearPaintingButton.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Name" xml:space="preserve">
+    <value>ClearPaintingButton</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;ClearPaintingButton.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="ToolPaneToggleButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="ToolPaneToggleButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>171, 3</value>
+  </data>
+  <data name="ToolPaneToggleButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>50, 50</value>
+  </data>
+  <data name="ToolPaneToggleButton.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Name" xml:space="preserve">
+    <value>ToolPaneToggleButton</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.Parent" xml:space="preserve">
+    <value>ProgramControlPanel</value>
+  </data>
+  <data name="&gt;&gt;ToolPaneToggleButton.ZOrder" xml:space="preserve">
+    <value>3</value>
   </data>
   <data name="PaintToolsPanel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -318,23 +492,56 @@
   <data name="PaintToolsPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="PaintToolsPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Top</value>
+  <data name="ColorToolsPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
-  <data name="PaintToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="ColorToolsPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="ColorToolsPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="ColorToolsPanel.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
+    <value>TopDown</value>
+  </data>
+  <data name="ColorToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="ColorToolsPanel.Size" type="System.Drawing.Size, System.Drawing">
     <value>0, 0</value>
   </data>
-  <data name="PaintToolsPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
+  <data name="ColorToolsPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="ColorToolsPanel.Visible" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;ColorToolsPanel.Name" xml:space="preserve">
+    <value>ColorToolsPanel</value>
+  </data>
+  <data name="&gt;&gt;ColorToolsPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ColorToolsPanel.Parent" xml:space="preserve">
+    <value>PaintToolsPanel</value>
+  </data>
+  <data name="&gt;&gt;ColorToolsPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="PaintToolsPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="PaintToolsPanel.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
+    <value>TopDown</value>
+  </data>
+  <data name="PaintToolsPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>634, 0</value>
   </data>
   <data name="PaintToolsPanel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 0</value>
+    <value>6, 50</value>
   </data>
   <data name="PaintToolsPanel.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
-  </data>
-  <data name="PaintToolsPanel.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
+    <value>0</value>
   </data>
   <data name="&gt;&gt;PaintToolsPanel.Name" xml:space="preserve">
     <value>PaintToolsPanel</value>
@@ -343,10 +550,40 @@
     <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;PaintToolsPanel.Parent" xml:space="preserve">
-    <value>$this</value>
+    <value>Menu</value>
   </data>
   <data name="&gt;&gt;PaintToolsPanel.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
+  </data>
+  <data name="Menu.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="Menu.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Top</value>
+  </data>
+  <data name="Menu.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="Menu.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="Menu.Size" type="System.Drawing.Size, System.Drawing">
+    <value>640, 50</value>
+  </data>
+  <data name="Menu.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;Menu.Name" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="&gt;&gt;Menu.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Panel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Menu.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;Menu.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>

@@ -11,18 +11,18 @@
 
     public partial class EyePaintingForm : Form, IDisposable
     {
-        // Eye tracking engine.
-        readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
+        // Eye tracking engine
+        readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
         InteractionContext context;
         InteractionSnapshot globalInteractorSnapshot;
 
-        // User input.
+        // User input
         internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
-        // Painting.
+        // Painting
         Timer paint;
-        readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
-        readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
+        readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID //TODO Spellcheck!
+        readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID //TODO Spellcheck!
         PaintTool currentPaintTool;
         ColorTool currentColorTool;
         Model model;
@@ -43,16 +43,16 @@
             // Choose user input mode and register event handlers, etc.
             useInputMode(InputMode.MOUSE_AND_KEYBOARD);
 
-            // Program resolution.
+            // Program resolution
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
 
-            //Initialize Model and View
+            // Initialize Model and View.
             SettingFactory sf = new SettingFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
 
-            //TODO Change when we agreed on how init paintTool is chosed
+            //TODO Change when we agreed on how init paintTool is chosed //TODO Clarify preceeding todo.
             int randPaintToolId = getRandomPaintToolID();
             int randColorToolId = getRandomColorToolID();
             currentPaintTool = paintTools[randPaintToolId];
@@ -68,13 +68,16 @@
             paint.Tick += (object s, EventArgs e) => { model.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
-            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume default install location.
+            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume the default install location.
             EnableEyeTrackerButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
             EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
             CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
+
+            // Populate GUI with gaze enabled buttons.
+            loadMenu();
         }
 
-        //Todo Take away after testing
+        //TODO Remove
         int getRandomPaintToolID()
         {
             List<int> toolIDs = new List<int>(paintTools.Keys);
@@ -84,7 +87,7 @@
             return randomID;
         }
 
-        //Todo Take away after testing
+        //TODO Remove
         int getRandomColorToolID()
         {
             List<int> toolIDs = new List<int>(colorTools.Keys);
@@ -94,28 +97,28 @@
             return randomID;
         }
 
-        // Starts the timer, enabling tick events.
+        // Start painting.
         void startPainting()
         {
             if (paint.Enabled) return;
             else paint.Enabled = true;
         }
 
-        // Stops the timer, disabling tick events.
+        // Stop painting.
         void stopPainting()
         {
             paint.Enabled = false;
         }
 
-        // Rasterizes the model and returns an image object.
+        // Rasterize the model and return an image object.
         Image getPainting()
         {
             Image image = view.Rasterize(model.GetRenderQueue());
-            // model.ClearRenderQueue();
+            // model.ClearRenderQueue(); TODO Is this dead code? If so: remove!
             return image;
         }
 
-        // Clears the canvas.
+        // Clear view, model and canvas.
         void resetPainting()
         {
             model.ResetModel();
@@ -123,20 +126,120 @@
             Invalidate();
         }
 
-        // Writes rasterized image to a file.
+        // Write rasterized image to a file.
         void storePainting()
         {
             Image image = getPainting();
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        void setupPaintToolsToolbox()
+        // Add a new point to the model.
+        void trackPoint(Point p)
         {
-            //TODO
-            throw new NotImplementedException();
+            if (paint.Enabled)
+            {
+                model.Add(p, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.
+            }
+            else
+            {
+                //TODO Animate opening and closing?
+                // if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
+                //else PaintToolsPanel.Visible = false;
+            }
         }
 
-        void OnMouseDown(object sender, MouseEventArgs e)
+        //TODO Maybe change after agree on type of id for PaintTools
+        void changePaintTool(int newPaintToolID)
+        {
+            //Check if the new paint tool is the same as the present do nothing
+            if (currentPaintTool.id == newPaintToolID) return;
+
+            //Apply change to model
+            model.ChangePaintTool(paintTools[newPaintToolID]);
+
+            //Set present PaintTool to the new one
+            currentPaintTool = paintTools[newPaintToolID];
+        }
+
+        //TODO Possible to merge with changePaintTool?
+        void changeColorTool(int newColorToolID)
+        {
+            model.ChangeColorTool(colorTools[newColorToolID]);
+        }
+
+        // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
+        void loadMenu()
+        {
+            // Register click event handlers for the program menu.
+            NewPaintingButton.Click += (object s, EventArgs e) => { }; //TODO Show confirmation dialog before committing to exiting the program.
+            SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
+            ClearPaintingButton.Click += (object s, EventArgs e) => { }; //TODO Show confirmation dialog before clearing the drawing.
+            ToolPaneToggleButton.Click += (object s, EventArgs e) => {
+                //ToolPaneToggleButton.BackgroundImage = ... //TODO Load button icon from file directory.
+
+                PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
+                ColorToolsPanel.Visible = !ColorToolsPanel.Visible;
+            };
+
+            // Populate the GUI with available paint tools and color tools.
+            Action<Panel, int, EventHandler> appendButton = (Panel parent, int size, EventHandler click) =>
+            {
+                Button button = new Button();
+                button.Click += click;
+                button.Width = button.Height = size;
+                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                button.Margin = new Padding(0);
+                //button.BackgroundImage = ... //TODO Load button icon from file directory.
+                parent.Controls.Add(button);
+            };
+
+            foreach (var pt in paintTools)
+            {
+                appendButton(
+                    PaintToolsPanel,
+                    PaintToolsPanel.Width / paintTools.Count,
+                    (object s, EventArgs e) => { } //TODO Implement click event.
+                );
+            }
+
+            foreach (var ct in colorTools)
+            {
+                appendButton(
+                    ColorToolsPanel,
+                    ColorToolsPanel.Width / colorTools.Count,
+                    (object s, EventArgs e) => { } //TODO Implement click event.
+                );
+            }
+        }
+
+        void useInputMode(InputMode inputMode)
+        {
+            // Deregister all input event handlers.
+            if (context != null) context.DisableConnection();
+            KeyDown -= onKeyDown;
+            KeyUp -= onKeyUp;
+            MouseMove -= onMouseMove;
+            MouseDown -= onMouseDown;
+            MouseUp -= onMouseUp;
+
+            switch (inputMode)
+            {
+                case InputMode.EYE_TRACKER: // Register event handlers for the eye tracker.
+                    context.EnableConnection();
+                    goto case InputMode.MOUSE_AND_KEYBOARD; // TODO Buy USB buttons and use them instead for the keyboard.
+                case InputMode.MOUSE_AND_KEYBOARD: // Register event handlers for mouse and keyboard.
+                    KeyDown += onKeyDown;
+                    KeyUp += onKeyUp;
+                    MouseMove += onMouseMove;
+                    MouseDown += onMouseDown;
+                    MouseUp += onMouseUp;
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        void onMouseDown(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -148,7 +251,7 @@
             }
         }
 
-        void OnMouseUp(object sender, MouseEventArgs e)
+        void onMouseUp(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -160,12 +263,12 @@
             }
         }
 
-        void OnMouseMove(object sender, MouseEventArgs e)
+        void onMouseMove(object sender, MouseEventArgs e)
         {
-            TrackPoint(new Point(e.X, e.Y));
+            trackPoint(new Point(e.X, e.Y));
         }
 
-        void OnKeyDown(object sender, KeyEventArgs e)
+        void onKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -190,7 +293,7 @@
             }
         }
 
-        void OnKeyUp(object sender, KeyEventArgs e)
+        void onKeyUp(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -200,66 +303,6 @@
                 default:
                     break;
             }
-        }
-
-        void useInputMode(InputMode inputMode)
-        {
-            // Deregister all input event handlers.
-            if (context != null) context.DisableConnection();
-            KeyDown -= OnKeyDown;
-            KeyUp -= OnKeyUp;
-            MouseMove -= OnMouseMove;
-            MouseDown -= OnMouseDown;
-            MouseUp -= OnMouseUp;
-
-            switch (inputMode)
-            {
-                case InputMode.EYE_TRACKER: // Register event handlers for the eye tracker.
-                    context.EnableConnection();
-                    goto case InputMode.MOUSE_AND_KEYBOARD; // TODO Buy USB buttons and use them instead for the keyboard.
-                case InputMode.MOUSE_AND_KEYBOARD: // Register event handlers for mouse and keyboard.
-                    KeyDown += OnKeyDown;
-                    KeyUp += OnKeyUp;
-                    MouseMove += OnMouseMove;
-                    MouseDown += OnMouseDown;
-                    MouseUp += OnMouseUp;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
-        }
-
-        // Adds a new point to the model.
-        void TrackPoint(Point p)
-        {
-            if (paint.Enabled)
-            {
-                model.Add(p, true); //TODO alwaysAdd
-            }
-            else
-            {
-                //TODO Animate opening and closing?
-                // if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
-                //else PaintToolsPanel.Visible = false;
-            }
-        }
-
-        //TODO Maybe change after agree on type of id for PaintTools
-        void changePaintTool(int newPaintToolID)
-        {
-            //Check if the new paint tool is the same as the present do nothing
-            if (currentPaintTool.id == newPaintToolID) return;
-
-            //Apply change to model
-            model.ChangePaintTool(paintTools[newPaintToolID]);
-
-            //Set present PaintTool to the new one
-            currentPaintTool = paintTools[newPaintToolID];
-        }
-
-        void changeColorTool(int newColorToolID)
-        {
-            model.ChangeColorTool(colorTools[newColorToolID]);
         }
 
         void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
@@ -356,7 +399,7 @@
                     case InteractionBehaviorType.GazePointData:
                         GazePointDataEventParams eventParams;
                         if (behavior.TryGetGazePointDataEventParams(out eventParams))
-                            TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
+                            trackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
                         break;
                     case InteractionBehaviorType.GazeAware:
                         GazeAwareEventParams gazeAwareEventParams;

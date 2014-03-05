@@ -51,7 +51,7 @@ namespace EyePaint
         internal void ChangeColorTool(ColorTool newColorTool)
         {
             presentColorTool = newColorTool;
-            presentFactory.changeColorTool(presentColorTool);
+            presentFactory.ChangeColorTool(presentColorTool);
 
         }
         /**
@@ -70,7 +70,11 @@ namespace EyePaint
             presentFactory.Grow();
         }
 
-
+        internal void ResetModel()
+        {
+            presentFactory.ClearRenderQueue();
+            presentFactory.ResetFactory();
+        }
 
         /**
          * Set up the factories dictionary with all available PaintoolTypes mapped to their Factory.
@@ -83,6 +87,7 @@ namespace EyePaint
 
         }
 
+
     }
     abstract class BaseFactory
     {
@@ -93,7 +98,7 @@ namespace EyePaint
             presentColorTool = initColorTool;
         }
 
-        internal abstract void Add(Point p, bool alwaysAdd = false);
+        internal abstract void Add(Point p, bool alwaysAdd);
         internal abstract void Grow();
 
         internal abstract Queue<RenderObject> GetRenderQueue();
@@ -103,7 +108,9 @@ namespace EyePaint
         //TODO see if logic for this could be done clearer
         internal abstract void ChangePaintTool(PaintTool newTool, ColorTool presentColorTool);
 
-        internal abstract void changeColorTool(ColorTool newColorTool);
+        internal abstract void ChangeColorTool(ColorTool newColorTool);
+
+        internal abstract void ResetFactory();
 
     }
 
@@ -138,7 +145,7 @@ namespace EyePaint
         }
 
 
-        internal override void Add(Point root, bool alwaysAdd = false)
+        internal override void Add(Point root, bool alwaysAdd)
         {
             if (alwaysAdd || !PointInsideTree(root))
             {
@@ -149,6 +156,8 @@ namespace EyePaint
                 treeAdded = true;
             }
         }
+
+        
 
         /*
          * Update renderQuee with a EP-tree representing the next generation of the last tree created
@@ -195,11 +204,15 @@ namespace EyePaint
 
 
         }
-        internal override void changeColorTool(ColorTool newColorTool)
+        internal override void ChangeColorTool(ColorTool newColorTool)
         {
             presentColorTool = newColorTool;
         }
 
+        internal override void ResetFactory()
+        {
+            treeAdded = false;
+        }
 
         private Tree CreateTree(Color color, Point root, Point[] leaves, Point[] parents)
         {

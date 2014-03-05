@@ -134,14 +134,14 @@
         private Image getPainting()
         {
             Image image = view.Rasterize(model.GetRenderQueue());
-            model.ClearRenderQueue();
+           // model.ClearRenderQueue();
             return image;
         }
 
         // Clears the canvas
         private void resetPainting()
         {
-            model.ClearRenderQueue();
+            model.ResetModel();
             view.Clear();
             Invalidate();
         }

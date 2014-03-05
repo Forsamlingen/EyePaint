@@ -6,14 +6,12 @@ using System.Drawing;
 
 namespace EyePaint
 {
-
     internal class View
     {
         internal Image background;
-        internal ImageObject imageObject;
+        internal Canvas imageObject;
 
-        private SolidBrush bgBrush = new SolidBrush(Color.Black);
-        private String RasterizerName;
+        private SolidBrush bgBrush = new SolidBrush(Color.White);
 
         internal View(int width, int height)
         {
@@ -22,16 +20,17 @@ namespace EyePaint
             using (Graphics g = Graphics.FromImage(background))
                 g.FillRectangle(bgBrush, 0, 0, width, height);
 
-            imageObject = new ImageObject(new Bitmap(background));
-
+            imageObject = new Canvas(new Bitmap(background));
         }
 
         internal Image Rasterize(Queue<RenderObject> renderQueue)
         {
-            foreach (RenderObject renderObject in renderQueue)
+            while (renderQueue.Count() != 0)
             {
+                RenderObject renderObject = renderQueue.Dequeue();
                 renderObject.Rasterize(ref imageObject);
             }
+
             return imageObject.image;
         }
 
@@ -45,13 +44,12 @@ namespace EyePaint
         }
     }
 
-    //TODD Change Name!!
-    internal class ImageObject
+    internal class Canvas
     {
         internal Image image;
         Pen pen = new Pen(Color.White);
 
-        internal ImageObject(Image image)
+        internal Canvas(Image image)
         {
             this.image = image;
         }

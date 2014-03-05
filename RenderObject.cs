@@ -8,7 +8,7 @@ namespace EyePaint
 {
     abstract class RenderObject
     {
-        internal abstract void Rasterize(ref ImageObject imageObeject);
+        internal abstract void Rasterize(ref Canvas imageObeject);
     }
 
     abstract class Tree : RenderObject
@@ -47,11 +47,10 @@ namespace EyePaint
             this.hullWidth = hullWidth;
             this.leafSize = leafSize;
         }
-        internal abstract override void Rasterize(ref ImageObject imageObject);
+        internal abstract override void Rasterize(ref Canvas imageObject);
 
-        protected void DrawBranches(ref ImageObject imageObject)
+        protected void DrawBranches(ref Canvas imageObject)
         {
-
             for (int i = 0; i < previousGen.Count(); i++)
             {
                 Point parent = new Point(previousGen[i].X, previousGen[i].Y);
@@ -60,7 +59,7 @@ namespace EyePaint
             }
         }
 
-        protected void DrawHull(ref ImageObject imageObject)
+        protected void DrawHull(ref Canvas imageObject)
         {
             Stack<Point> convexHull = LinearAlgebra.GetConvexHull(leaves);
             Point startPoint = convexHull.Pop();
@@ -77,13 +76,13 @@ namespace EyePaint
             }
         }
 
-        protected void FillHull(ref ImageObject imageObject)
+        protected void FillHull(ref Canvas imageObject)
         {
             Stack<Point> convexHull = LinearAlgebra.GetConvexHull(leaves);
             imageObject.DrawPolygon(color, convexHull.ToArray());
         }
 
-        protected void DrawLeaves(ref ImageObject imageObject)
+        protected void DrawLeaves(ref Canvas imageObject)
         {
             for (int i = 0; i < leaves.Count(); i++)
             {
@@ -95,7 +94,6 @@ namespace EyePaint
 
     class PolyTree : Tree
     {
-
         internal PolyTree(
                      Color color,
                      Point root,
@@ -109,16 +107,13 @@ namespace EyePaint
             : base(
                      color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
         {
-
         }
 
-        internal override void Rasterize(ref ImageObject imageObject)
+        internal override void Rasterize(ref Canvas imageObject)
         {
 
             FillHull(ref imageObject);
         }
-
-
     }
 
     class WoolTree : Tree
@@ -136,13 +131,12 @@ namespace EyePaint
             : base(
                      color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
         {
-
         }
-        internal override void Rasterize(ref ImageObject imageObject)
+        internal override void Rasterize(ref Canvas imageObject)
         {
             DrawBranches(ref imageObject);
+            FillHull(ref imageObject);
         }
-
     }
 
     class CellNetTree : Tree
@@ -162,10 +156,9 @@ namespace EyePaint
         {
 
         }
-        internal override void Rasterize(ref ImageObject imageObject)
+        internal override void Rasterize(ref Canvas imageObject)
         {
             DrawBranches(ref imageObject);
-            DrawLeaves(ref imageObject);
         }
     }
 
@@ -186,12 +179,10 @@ namespace EyePaint
         {
 
         }
-        internal override void Rasterize(ref ImageObject imageObject)
+        internal override void Rasterize(ref Canvas imageObject)
         {
             DrawHull(ref imageObject);
             DrawBranches(ref imageObject);
         }
     }
-
-
 }

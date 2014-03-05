@@ -13,12 +13,12 @@ namespace EyePaint
      * Which renderObjects that are created  depend on the present PaintTool used.
      * 
      **/
-
     class Model
     {
         Dictionary<PaintToolType, BaseFactory> Factories;
-        BaseFactory presentFactory;
-        ColorTool presentColorTool;
+        
+        BaseFactory currentFactory;
+        ColorTool currentColorTool;
 
         /**
          * Construct a model with the given PaintTool as start PaintTool 
@@ -26,54 +26,9 @@ namespace EyePaint
         internal Model(PaintTool initPaintTool, ColorTool initColorTool)
         {
             setUpFactories(initColorTool);
-            presentFactory = Factories[initPaintTool.type];
-            presentFactory.ChangePaintTool(initPaintTool, initColorTool);
-            presentColorTool = initColorTool;
-        }
-
-        internal Queue<RenderObject> GetRenderQueue()
-        {
-            return presentFactory.GetRenderQueue();
-        }
-
-        internal void ClearRenderQueue()
-        {
-            presentFactory.ClearRenderQueue();
-        }
-        internal void ChangePaintTool(PaintTool newPaintTool)
-        {
-            ClearRenderQueue();
-
-            Factories[newPaintTool.type].ChangePaintTool(newPaintTool, presentColorTool);
-            presentFactory = Factories[newPaintTool.type];
-
-        }
-        internal void ChangeColorTool(ColorTool newColorTool)
-        {
-            presentColorTool = newColorTool;
-            presentFactory.ChangeColorTool(presentColorTool);
-
-        }
-        /**
-         * Add a point to the model
-         */
-        internal void Add(Point point, bool alwaysAdd)
-        {
-            presentFactory.Add(point, alwaysAdd);
-        }
-
-        /**
-         * Grow the present renderObject 
-         */
-        internal void Grow()
-        {
-            presentFactory.Grow();
-        }
-
-        internal void ResetModel()
-        {
-            presentFactory.ClearRenderQueue();
-            presentFactory.ResetFactory();
+            currentFactory = Factories[initPaintTool.type];
+            currentFactory.ChangePaintTool(initPaintTool, initColorTool);
+            currentColorTool = initColorTool;
         }
 
         /**
@@ -84,10 +39,52 @@ namespace EyePaint
         {
             Factories = new Dictionary<PaintToolType, BaseFactory>();
             Factories.Add(PaintToolType.TREE, new TreeFactory(initColorTool));
-
+        }
+        internal Queue<RenderObject> GetRenderQueue()
+        {
+            return currentFactory.GetRenderQueue();
         }
 
+        internal void ClearRenderQueue()
+        {
+            currentFactory.ClearRenderQueue();
+        }
 
+        internal void ChangePaintTool(PaintTool newPaintTool)
+        {
+            ClearRenderQueue();
+
+            Factories[newPaintTool.type].ChangePaintTool(newPaintTool, currentColorTool);
+            currentFactory = Factories[newPaintTool.type];
+        }
+
+        internal void ChangeColorTool(ColorTool newColorTool)
+        {
+            currentColorTool = newColorTool;
+            currentFactory.ChangeColorTool(currentColorTool);
+        }
+       
+        /**
+         * Add a point to the model
+         */
+        internal void Add(Point point, bool alwaysAdd)
+        {
+            currentFactory.Add(point, alwaysAdd);
+        }
+
+        /**
+         * Grow the present renderObject 
+         */
+        internal void Grow()
+        {
+            currentFactory.Grow();
+        }
+
+        internal void ResetModel()
+        {
+            currentFactory.ClearRenderQueue();
+            currentFactory.ResetFactory();
+        }
     }
     abstract class BaseFactory
     {
@@ -111,7 +108,6 @@ namespace EyePaint
         internal abstract void ChangeColorTool(ColorTool newColorTool);
 
         internal abstract void ResetFactory();
-
     }
 
     class TreeFactory : BaseFactory
@@ -133,7 +129,6 @@ namespace EyePaint
             presentColorTool = initColorTool;
         }
 
-
         internal override void ClearRenderQueue()
         {
             renderQueue.Clear();
@@ -143,13 +138,10 @@ namespace EyePaint
         {
             return renderQueue;
         }
-
-
         internal override void Add(Point root, bool alwaysAdd)
         {
             if (alwaysAdd || !PointInsideTree(root))
             {
-
                 Tree tree = CreateDefaultTree(root);
                 currentTree = tree;
                 renderQueue.Enqueue(tree);
@@ -157,8 +149,7 @@ namespace EyePaint
             }
         }
 
-        
-
+   
         /*
          * Update renderQuee with a EP-tree representing the next generation of the last tree created
          */
@@ -173,7 +164,6 @@ namespace EyePaint
                 {
                     return;
                 }
-
                 Tree lastTree = currentTree;
                 Point[] newLeaves = new Point[nLeaves];
                 // Grow all branches
@@ -200,9 +190,6 @@ namespace EyePaint
 
             this.presentTreeTool = newTool;
             this.presentColorTool = presentColorTool;
-
-
-
         }
         internal override void ChangeColorTool(ColorTool newColorTool)
         {
@@ -218,14 +205,11 @@ namespace EyePaint
         {
             int branchLength = presentTreeTool.branchLength;
             int maxGeneration = presentTreeTool.maxGeneration;
-
             int branchWidth = presentTreeTool.branchWidth;
             int hullWidth = presentTreeTool.hullWidth;
             int leafSize = presentTreeTool.leafSize;
-
-            //TODO How do this cleaner
+            //TODO change to GetType and Activator instead of switch
             Tree tree = new PolyTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
-
             switch (presentTreeTool.renderObjectName)
             {
                 case "PolyTree":
@@ -245,8 +229,6 @@ namespace EyePaint
                     break;
             }
             return tree;
-
-
         }
 
         /*
@@ -258,7 +240,6 @@ namespace EyePaint
         {
             int nLeaves = presentTreeTool.nLeaves;
             int branchLength = presentTreeTool.branchLength;
-
             // All the start leaves will have the root as parent
             Point[] previousGen = new Point[nLeaves];
             for (int i = 0; i < nLeaves; i++)
@@ -266,7 +247,6 @@ namespace EyePaint
 
             Point[] startLeaves = new Point[nLeaves];
             double v = 0;
-
             // Create a set number of leaves with the root of of the tree as parent to all of them
             for (int i = 0; i < nLeaves; i++)
             {
@@ -280,8 +260,6 @@ namespace EyePaint
             Color treeColor = presentColorTool.getRandomShade(presentTreeTool.opacity);
             return CreateTree(treeColor, root, startLeaves, previousGen);
         }
-
-
         /*
          * Return a point representing a leaf that is 
          * grown outwards from the root.
@@ -359,8 +337,6 @@ namespace EyePaint
 
             evalPoint = LinearAlgebra.TransformCoordinates(currentTree.root, evalPoint);
 
-
-
             Stack<Point> s = LinearAlgebra.GetConvexHull(points);
 
             //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
@@ -387,6 +363,5 @@ namespace EyePaint
         }
 
     }
-
 
 }

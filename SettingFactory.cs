@@ -13,18 +13,14 @@ namespace EyePaint
 
     internal class SettingFactory
     {
-
         internal SettingFactory()
         {
-
         }
-
 
         /**
          * Return a dictionary where available paintTools are mapped to their Id
          **/
-        //TODO switch to read from file after dubug
-        //Todo first see that settings get right
+        //TODO switch to read from file 
         internal Dictionary<int, PaintTool> getPaintTools()
         {
             Dictionary<int, PaintTool> paintTools = new Dictionary<int, PaintTool>();
@@ -47,15 +43,10 @@ namespace EyePaint
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
                                         "",
-                                        "CellNetTree", 15, 50, 800, 100, 2, 5, 0);
-
-
+                                        "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
             paintTools.Add(woolTool.id, woolTool);
-
             paintTools.Add(polyTool.id, polyTool);
-
             paintTools.Add(modernArtTool.id, modernArtTool);
-
             paintTools.Add(cellNetTool.id, cellNetTool);
             return paintTools;
         }
@@ -66,17 +57,10 @@ namespace EyePaint
 
                 case "TREE":
                     return PaintToolType.TREE;
-
                 default:
                     throw new System.ArgumentException(type + " is an invalid tool PaintToolType");
-
-
             }
         }
-
-
-
-
 
         /**
          * Return a dictionary where available colorTools are mapped to their Id
@@ -97,11 +81,7 @@ namespace EyePaint
             colorTools.Add(randomColorTool.id, randomColorTool);
 
             return colorTools;
-
-
         }
-
-
     }
 
 
@@ -119,7 +99,6 @@ namespace EyePaint
             this.type = type;
             this.iconImage = pathToIconImage;
             this.renderObjectName = renderObjectName;
-
         }
     }
 
@@ -153,7 +132,6 @@ namespace EyePaint
             this.hullWidth = hullWidth;
             this.leafSize = leafSize;
         }
-
     }
 
 
@@ -190,7 +168,6 @@ namespace EyePaint
             this.maxSaturation = maxSaturation;
             this.minValue = minValue;
             this.maxValue = maxValue;
-
         }
 
         public Color getRandomShade(int opacity)
@@ -227,8 +204,6 @@ namespace EyePaint
             else
                 return Color.FromArgb(opacity, v, p, q);
         }
-
-
     }
 }
 

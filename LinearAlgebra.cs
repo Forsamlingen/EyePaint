@@ -9,7 +9,6 @@ namespace EyePaint
 {
     public static class LinearAlgebra
     {
-
         /**
          *Evaluates if the line between point A and B and the line between point C and D intersects
          *
@@ -55,8 +54,6 @@ namespace EyePaint
             //The line segments intersect
             return true;
         }
-
-
         /**
          * Return the convex hull for the given list of points 
          **/
@@ -231,12 +228,10 @@ namespace EyePaint
             }
             return minPoint;
         }
-
         private static Point GrahamPointToPoint(GrahamPoint grahamPoint)
         {
             Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);
             return point;
         }
-
     }
 }

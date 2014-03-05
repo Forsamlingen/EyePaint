@@ -30,8 +30,8 @@
         private readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
         private readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
 
-        private PaintTool presentPaintTool;
-        private ColorTool presentColorTool;
+        private PaintTool currentPaintTool;
+        private ColorTool currentColorTool;
         private Model model;
         private View view;
 
@@ -73,9 +73,9 @@
             //TODO Change when we agreed on how init paintTool is chosed
             int randPaintToolId = getRandomPaintToolID();
             int randColorToolId = getRandomColorToolID();
-            presentPaintTool = paintTools[randPaintToolId];
-            presentColorTool = colorTools[randColorToolId];
-            model = new Model(presentPaintTool, presentColorTool);
+            currentPaintTool = paintTools[randPaintToolId];
+            currentColorTool = colorTools[randColorToolId];
+            model = new Model(currentPaintTool, currentColorTool);
             view = new View(width, height);
 
             // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
@@ -306,7 +306,7 @@
         {
 
             //Check if the new paint tool is the same as the present do nothing
-            if (presentPaintTool.id == newPaintToolID)
+            if (currentPaintTool.id == newPaintToolID)
             {
                 return;
             }
@@ -316,7 +316,7 @@
             model.ChangePaintTool(paintTools[newPaintToolID]);
 
             //Set present PaintTool to the new one
-            presentPaintTool = paintTools[newPaintToolID];
+            currentPaintTool = paintTools[newPaintToolID];
 
         }
         private void ChangeColorTool(int newColorToolID)

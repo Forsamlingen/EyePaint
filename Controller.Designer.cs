@@ -5,7 +5,7 @@
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        System.ComponentModel.IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -26,7 +26,7 @@
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
+        void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyePaintingForm));
             this.SetupPanel = new System.Windows.Forms.Panel();
@@ -113,13 +113,13 @@
 
         #endregion
 
-        private System.Windows.Forms.Panel SetupPanel;
-        private System.Windows.Forms.Button OpenControlPanelButton;
-        private System.Windows.Forms.Label SetupMessage;
-        private System.Windows.Forms.Button CloseSetupPanelButton;
-        private System.Windows.Forms.Button EnableMouseButton;
-        private System.Windows.Forms.Button EnableEyeTrackerButton;
-        private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
+        System.Windows.Forms.Panel SetupPanel;
+        System.Windows.Forms.Button OpenControlPanelButton;
+        System.Windows.Forms.Label SetupMessage;
+        System.Windows.Forms.Button CloseSetupPanelButton;
+        System.Windows.Forms.Button EnableMouseButton;
+        System.Windows.Forms.Button EnableEyeTrackerButton;
+        System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
     }
 }
 

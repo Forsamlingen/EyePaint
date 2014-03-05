@@ -113,7 +113,7 @@ namespace EyePaint
         }
 
         //Create struct to able to sort points by there angle a
-        private struct GrahamPoint : IComparable<GrahamPoint>
+        struct GrahamPoint : IComparable<GrahamPoint>
         {
             public double angle;
             public Point point;
@@ -146,7 +146,7 @@ namespace EyePaint
         // Use cross-product to calculate if three points are a counter-clockwise. 
         // They are counter-clockwise if ccw > 0, clockwise if
         // ccw < 0, and collinear if ccw == 0
-        private static int Ccw(Point p1, Point p2, Point p3)
+        static int Ccw(Point p1, Point p2, Point p3)
         {
             return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
         }
@@ -206,7 +206,7 @@ namespace EyePaint
             return point;
         }
 
-        private static Point GetLowestPoint(Point[] points)
+        static Point GetLowestPoint(Point[] points)
         {
             Point minPoint = points[0];
 
@@ -228,7 +228,7 @@ namespace EyePaint
             }
             return minPoint;
         }
-        private static Point GrahamPointToPoint(GrahamPoint grahamPoint)
+        static Point GrahamPointToPoint(GrahamPoint grahamPoint)
         {
             Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);
             return point;

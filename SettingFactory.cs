@@ -4,11 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-
-
 namespace EyePaint
 {
-
     internal enum PaintToolType { TREE }
 
     internal class SettingFactory
@@ -50,7 +47,7 @@ namespace EyePaint
             paintTools.Add(cellNetTool.id, cellNetTool);
             return paintTools;
         }
-        private PaintToolType stringToToolType(string type)
+        PaintToolType stringToToolType(string type)
         {
             switch (type)
             {
@@ -83,7 +80,6 @@ namespace EyePaint
             return colorTools;
         }
     }
-
 
     internal class PaintTool
     {
@@ -140,14 +136,14 @@ namespace EyePaint
         internal readonly int id;
         internal readonly String name;
         internal readonly Color defaultColor;
-        private readonly double minHue;
-        private readonly double maxHue;
-        private readonly double minSaturation;
-        private readonly double maxSaturation;
-        private readonly double minValue;
-        private readonly double maxValue;
+        readonly double minHue;
+        readonly double maxHue;
+        readonly double minSaturation;
+        readonly double maxSaturation;
+        readonly double minValue;
+        readonly double maxValue;
 
-        private Random rng = new Random();
+        static Random rng = new Random();
 
         internal ColorTool(int id, string name,
                            Color defaultColor,
@@ -180,7 +176,7 @@ namespace EyePaint
         }
 
 
-        private Color ColorFromHSV(int opacity, double hue, double saturation, double value)
+        Color ColorFromHSV(int opacity, double hue, double saturation, double value)
         {
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
             double f = hue / 60 - Math.Floor(hue / 60);

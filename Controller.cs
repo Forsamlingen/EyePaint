@@ -11,23 +11,22 @@
 
     public partial class EyePaintingForm : Form, IDisposable
     {
-
         // Eye tracking engine.
-        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
-        private InteractionContext context;
-        private InteractionSnapshot globalInteractorSnapshot;
+        readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
+        InteractionContext context;
+        InteractionSnapshot globalInteractorSnapshot;
 
         // User input.
         internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
         // Painting.
-        private Timer paint;
-        private readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
-        private readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
-        private PaintTool currentPaintTool;
-        private ColorTool currentColorTool;
-        private Model model;
-        private View view;
+        Timer paint;
+        readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
+        readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
+        PaintTool currentPaintTool;
+        ColorTool currentColorTool;
+        Model model;
+        View view;
 
         public EyePaintingForm()
         {
@@ -76,7 +75,7 @@
         }
 
         //Todo Take away after testing
-        private int getRandomPaintToolID()
+        int getRandomPaintToolID()
         {
             List<int> toolIDs = new List<int>(paintTools.Keys);
             Random rng = new Random();
@@ -86,7 +85,7 @@
         }
 
         //Todo Take away after testing
-        private int getRandomColorToolID()
+        int getRandomColorToolID()
         {
             List<int> toolIDs = new List<int>(colorTools.Keys);
             Random rng = new Random();
@@ -96,20 +95,20 @@
         }
 
         // Starts the timer, enabling tick events.
-        private void startPainting()
+        void startPainting()
         {
             if (paint.Enabled) return;
             else paint.Enabled = true;
         }
 
         // Stops the timer, disabling tick events.
-        private void stopPainting()
+        void stopPainting()
         {
             paint.Enabled = false;
         }
 
         // Rasterizes the model and returns an image object.
-        private Image getPainting()
+        Image getPainting()
         {
             Image image = view.Rasterize(model.GetRenderQueue());
             // model.ClearRenderQueue();
@@ -117,7 +116,7 @@
         }
 
         // Clears the canvas.
-        private void resetPainting()
+        void resetPainting()
         {
             model.ResetModel();
             view.Clear();
@@ -125,19 +124,19 @@
         }
 
         // Writes rasterized image to a file.
-        private void storePainting()
+        void storePainting()
         {
             Image image = getPainting();
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        private void setupPaintToolsToolbox()
+        void setupPaintToolsToolbox()
         {
             //TODO
             throw new NotImplementedException();
         }
 
-        private void OnMouseDown(object sender, MouseEventArgs e)
+        void OnMouseDown(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -149,7 +148,7 @@
             }
         }
 
-        private void OnMouseUp(object sender, MouseEventArgs e)
+        void OnMouseUp(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -161,12 +160,12 @@
             }
         }
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
+        void OnMouseMove(object sender, MouseEventArgs e)
         {
             TrackPoint(new Point(e.X, e.Y));
         }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
+        void OnKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -191,7 +190,7 @@
             }
         }
 
-        private void OnKeyUp(object sender, KeyEventArgs e)
+        void OnKeyUp(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -203,7 +202,7 @@
             }
         }
 
-        private void useInputMode(InputMode inputMode)
+        void useInputMode(InputMode inputMode)
         {
             // Deregister all input event handlers.
             if (context != null) context.DisableConnection();
@@ -231,7 +230,7 @@
         }
 
         // Adds a new point to the model.
-        private void TrackPoint(Point p)
+        void TrackPoint(Point p)
         {
             if (paint.Enabled)
             {
@@ -246,7 +245,7 @@
         }
 
         //TODO Maybe change after agree on type of id for PaintTools
-        private void changePaintTool(int newPaintToolID)
+        void changePaintTool(int newPaintToolID)
         {
             //Check if the new paint tool is the same as the present do nothing
             if (currentPaintTool.id == newPaintToolID) return;
@@ -256,15 +255,14 @@
 
             //Set present PaintTool to the new one
             currentPaintTool = paintTools[newPaintToolID];
-
         }
 
-        private void changeColorTool(int newColorToolID)
+        void changeColorTool(int newColorToolID)
         {
             model.ChangeColorTool(colorTools[newColorToolID]);
         }
 
-        private void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
+        void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
         {
             switch (e.State)
             {
@@ -302,7 +300,7 @@
             }
         }
 
-        private void InitializeGlobalInteractorSnapshot()
+        void InitializeGlobalInteractorSnapshot()
         {
             globalInteractorSnapshot = context.CreateSnapshot();
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
@@ -318,7 +316,7 @@
             globalInteractorSnapshot.Commit(OnSnapshotCommitted);
         }
 
-        private void HandleQueryOnUiThread(Rectangle queryBounds)
+        void HandleQueryOnUiThread(Rectangle queryBounds)
         {
             var windowId = Handle.ToString();
 
@@ -335,12 +333,12 @@
             snapshot.Commit(OnSnapshotCommitted);
         }
 
-        private void OnSnapshotCommitted(InteractionSnapshotResult result)
+        void OnSnapshotCommitted(InteractionSnapshotResult result)
         {
             Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
         }
 
-        private void HandleQuery(InteractionQuery query)
+        void HandleQuery(InteractionQuery query)
         {
             var queryBounds = query.Bounds;
             double x, y, w, h;
@@ -350,7 +348,7 @@
             }
         }
 
-        private void HandleInteractionEvent(InteractionEvent e)
+        void HandleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
                 switch (behavior.BehaviorType)
@@ -377,7 +375,7 @@
                 }
         }
 
-        private void CreateGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
+        void CreateGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
         {
             var controlRect = control.Bounds;
             controlRect = control.Parent.RectangleToScreen(controlRect);

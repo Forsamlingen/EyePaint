@@ -87,7 +87,7 @@
             // PaintToolsPanel
             // 
             resources.ApplyResources(this.PaintToolsPanel, "PaintToolsPanel");
-            this.PaintToolsPanel.BackColor = System.Drawing.Color.Transparent;
+            this.PaintToolsPanel.BackColor = System.Drawing.Color.Black;
             this.PaintToolsPanel.Name = "PaintToolsPanel";
             // 
             // EyePaintingForm

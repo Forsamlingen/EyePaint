@@ -35,12 +35,14 @@
             this.CloseSetupPanelButton = new System.Windows.Forms.Button();
             this.OpenControlPanelButton = new System.Windows.Forms.Button();
             this.SetupMessage = new System.Windows.Forms.Label();
+            this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.SetupPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // SetupPanel
             // 
             resources.ApplyResources(this.SetupPanel, "SetupPanel");
+            this.SetupPanel.BackColor = System.Drawing.Color.White;
             this.SetupPanel.Controls.Add(this.EnableEyeTrackerButton);
             this.SetupPanel.Controls.Add(this.EnableMouseButton);
             this.SetupPanel.Controls.Add(this.CloseSetupPanelButton);
@@ -55,7 +57,6 @@
             resources.ApplyResources(this.EnableEyeTrackerButton, "EnableEyeTrackerButton");
             this.EnableEyeTrackerButton.Name = "EnableEyeTrackerButton";
             this.EnableEyeTrackerButton.UseVisualStyleBackColor = true;
-            this.EnableEyeTrackerButton.Click += new System.EventHandler(this.UseEyeTrackerClick);
             // 
             // EnableMouseButton
             // 
@@ -63,7 +64,6 @@
             resources.ApplyResources(this.EnableMouseButton, "EnableMouseButton");
             this.EnableMouseButton.Name = "EnableMouseButton";
             this.EnableMouseButton.UseVisualStyleBackColor = true;
-            this.EnableMouseButton.Click += new System.EventHandler(this.UseMouseClick);
             // 
             // CloseSetupPanelButton
             // 
@@ -71,7 +71,6 @@
             this.CloseSetupPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.CloseSetupPanelButton.Name = "CloseSetupPanelButton";
             this.CloseSetupPanelButton.UseVisualStyleBackColor = true;
-            this.CloseSetupPanelButton.Click += new System.EventHandler(this.CloseInfoPanelClick);
             // 
             // OpenControlPanelButton
             // 
@@ -79,19 +78,25 @@
             resources.ApplyResources(this.OpenControlPanelButton, "OpenControlPanelButton");
             this.OpenControlPanelButton.Name = "OpenControlPanelButton";
             this.OpenControlPanelButton.UseVisualStyleBackColor = true;
-            this.OpenControlPanelButton.Click += new System.EventHandler(this.OpenControlPanelClick);
             // 
             // SetupMessage
             // 
             resources.ApplyResources(this.SetupMessage, "SetupMessage");
             this.SetupMessage.Name = "SetupMessage";
             // 
+            // PaintToolsPanel
+            // 
+            resources.ApplyResources(this.PaintToolsPanel, "PaintToolsPanel");
+            this.PaintToolsPanel.BackColor = System.Drawing.Color.Black;
+            this.PaintToolsPanel.Name = "PaintToolsPanel";
+            // 
             // EyePaintingForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
+            this.BackColor = System.Drawing.Color.Black;
             this.ControlBox = false;
+            this.Controls.Add(this.PaintToolsPanel);
             this.Controls.Add(this.SetupPanel);
             this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
@@ -114,6 +119,7 @@
         private System.Windows.Forms.Button CloseSetupPanelButton;
         private System.Windows.Forms.Button EnableMouseButton;
         private System.Windows.Forms.Button EnableEyeTrackerButton;
+        private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
     }
 }
 

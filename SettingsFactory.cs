@@ -64,15 +64,10 @@ namespace EyePaint
             List<ColorTool> colorTools = new List<ColorTool>();
 
             //TODO Load color tools from a data store instead.
-            double minHue = 0;
-            double maxHue = 360;
-            double minSaturation = 0.9;
-            double maxSaturation = 1;
-            double minValue = 0.5;
-            double maxValue = 1;
-            ColorTool randomColorTool = new ColorTool(1, "random", Color.Gold, minHue, maxHue, minSaturation, maxSaturation, minValue, maxValue);
-
-            colorTools.Add(randomColorTool);
+            colorTools.Add(new ColorTool(1, "random", Color.Red, 0, 360, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Blue, 0, 360, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Yellow, 0, 360, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Green, 0, 360, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
@@ -132,7 +127,7 @@ namespace EyePaint
     {
         internal readonly int id;
         internal readonly String name;
-        internal readonly Color defaultColor;
+        internal readonly Color baseColor;
         readonly double minHue;
         readonly double maxHue;
         readonly double minSaturation;
@@ -154,7 +149,7 @@ namespace EyePaint
         {
             this.id = id;
             this.name = name;
-            this.defaultColor = defaultColor;
+            this.baseColor = defaultColor;
             this.minHue = minHue;
             this.maxHue = maxHue;
             this.minSaturation = minSaturation;

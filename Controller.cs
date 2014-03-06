@@ -11,20 +11,13 @@
 
     public partial class EyePaintingForm : Form
     {
-        // Eye tracking engine
-        readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
         InteractionContext context;
-        InteractionSnapshot globalInteractorSnapshot;
-
-        // User input
+        InteractionSnapshot globalInteractor;
         Point gaze;
-        internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
-
-        // Painting
         bool paint;
         Timer paintTimer;
-        readonly List<PaintTool> paintTools;
-        readonly List<ColorTool> colorTools;
+        List<PaintTool> paintTools;
+        List<ColorTool> colorTools;
         Model model;
         View view;
 
@@ -34,16 +27,20 @@
 
             // Create an interactor context for the eye tracker engine.
             context = new InteractionContext(false);
-            initializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += onConnectionStateChanged;
-            context.RegisterQueryHandlerForCurrentProcess(handleQuery);
+            initializeGlobalInteractor();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => Debug.WriteLine("Eye tracker state: " + e.State.ToString());
+            context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
             context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
 
-            // Choose user input mode and register event handlers, etc.
-            useInputMode(InputMode.MOUSE_AND_KEYBOARD);
+            // Register user input event handlers.        
+            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) startPainting(); };
+            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) stopPainting(); };
+            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint);
+            MouseDown += (object s, MouseEventArgs e) => startPainting();
+            MouseUp += (object s, MouseEventArgs e) => stopPainting();
 
-            // Initialize Model and View.
+            // Initialize model and view.
             SettingsFactory sf = new SettingsFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
@@ -51,28 +48,21 @@
             view = new View(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
-            Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
+            Paint += (object s, PaintEventArgs e) => { e.Graphics.DrawImage(getPainting(), 0, 0); };
             paintTimer = new System.Windows.Forms.Timer();
             paintTimer.Interval = 30;
             paintTimer.Enabled = true;
             paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
 
-            // Register setup panel button click handlers.
-            SetupPanel.VisibleChanged += (object s, EventArgs e) => { Menu.Visible = !SetupPanel.Visible; };
-            OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume the default install location.
-            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = false; };
-            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = false; };
-            CloseSetupPanelButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = false; };
-
             // Populate GUI with gaze enabled buttons.
-            loadMenu();
+            initializeMenu();
         }
 
         // Start painting.
         void startPainting()
         {
             paint = true;
-            addPoint(gaze);
+            trackGaze(gaze, paint);
         }
 
         // Stop painting.
@@ -105,14 +95,14 @@
         }
 
         // Track gaze point, and add it to the model if the user wants to.
-        void addPoint(Point p)
+        void trackGaze(Point p, bool add = false)
         {
             gaze = p;
-            if (paint) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+            if (add) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
-        void loadMenu()
+        void initializeMenu()
         {
             // Register click event handlers for the program menu.
             NewSessionButton.Click += (object s, EventArgs e) => { Application.Restart(); }; //TODO Show confirmation dialog before committing to exiting the program.
@@ -165,181 +155,50 @@
             }
         }
 
-        void useInputMode(InputMode inputMode)
+        // Create a global interactor for listening on the gaze point data stream.
+        void initializeGlobalInteractor()
         {
-            // Deregister all input event handlers.
-            if (context != null) context.DisableConnection();
-            KeyDown -= onKeyDown;
-            KeyUp -= onKeyUp;
-            MouseMove -= onMouseMove;
-            MouseDown -= onMouseDown;
-            MouseUp -= onMouseUp;
+            globalInteractor = context.CreateSnapshot();
+            globalInteractor.CreateBounds(InteractionBoundsType.None);
+            globalInteractor.AddWindowId(Literals.GlobalInteractorWindowId);
+            globalInteractor.Commit((InteractionSnapshotResult result) => Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage));
 
-            switch (inputMode)
-            {
-                case InputMode.EYE_TRACKER: // Register event handlers for the eye tracker.
-                    context.EnableConnection();
-                    goto case InputMode.MOUSE_AND_KEYBOARD; // TODO Buy USB buttons and use them instead for the keyboard.
-                case InputMode.MOUSE_AND_KEYBOARD: // Register event handlers for mouse and keyboard.
-                    KeyDown += onKeyDown;
-                    KeyUp += onKeyUp;
-                    MouseMove += onMouseMove;
-                    MouseDown += onMouseDown;
-                    MouseUp += onMouseUp;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
-        }
-
-        void onMouseDown(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    startPainting();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void onMouseUp(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    stopPainting();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void onMouseMove(object sender, MouseEventArgs e)
-        {
-            addPoint(new Point(e.X, e.Y));
-        }
-
-        void onKeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.Space:
-                    startPainting();
-                    break;
-                case Keys.Back:
-                    resetPainting();
-                    break;
-                case Keys.S:
-                    storePainting();
-                    break;
-                case Keys.Escape:
-                    SetupPanel.Visible = SetupPanel.Enabled = true; Menu.Visible = false;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void onKeyUp(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.Space:
-                    stopPainting();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void onConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
-        {
-            switch (e.State)
-            {
-                case ConnectionState.Connected:
-                    globalInteractorSnapshot.Commit(onSnapshotCommitted);
-
-                    Action a1 = () => { SetupMessage.Text = "Status: " + e.State.ToString(); };
-                    if (SetupMessage.InvokeRequired)
-                        SetupMessage.Invoke(a1);
-                    else
-                        a1.Invoke();
-
-                    Action a2 = () => { SetupPanel.Visible = false; Menu.Visible = true; };
-                    if (SetupPanel.InvokeRequired)
-                        SetupPanel.Invoke(a2);
-                    else
-                        a2.Invoke();
-
-                    break;
-                case ConnectionState.Disconnected:
-                    break;
-                case ConnectionState.ServerVersionTooHigh:
-                    break;
-                case ConnectionState.ServerVersionTooLow:
-                    break;
-                case ConnectionState.TryingToConnect:
-                    Action a = () => { SetupPanel.Visible = SetupPanel.Enabled = true; Menu.Visible = false; };
-                    if (SetupPanel.InvokeRequired)
-                        SetupPanel.Invoke(a);
-                    else
-                        a.Invoke();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void initializeGlobalInteractorSnapshot()
-        {
-            globalInteractorSnapshot = context.CreateSnapshot();
-            globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
-            globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
-
-            var interactor = globalInteractorSnapshot.CreateInteractor(interactorId, Literals.RootId, Literals.GlobalInteractorWindowId);
+            var interactor = globalInteractor.CreateInteractor(
+                Application.ProductName + System.Threading.Thread.CurrentThread.ManagedThreadId,
+                Literals.RootId,
+                Literals.GlobalInteractorWindowId
+            );
             interactor.CreateBounds(InteractionBoundsType.None);
 
             var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);
             var behaviorParams = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
             behavior.SetGazePointDataOptions(ref behaviorParams);
-
-            globalInteractorSnapshot.Commit(onSnapshotCommitted);
         }
 
-        void handleQueryOnUiThread(Rectangle queryBounds)
+        // TODO
+        void handleInteractionQuery(InteractionQuery q)
         {
-            var windowId = Handle.ToString();
-
-            var snapshot = context.CreateSnapshot();
-            snapshot.AddWindowId(windowId);
-
-            var bounds = snapshot.CreateBounds(InteractionBoundsType.Rectangular);
-            bounds.SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-
-            var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-
-            //foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect); TODO Generate interactor for each menu button.
-
-            snapshot.Commit(onSnapshotCommitted);
-        }
-
-        void onSnapshotCommitted(InteractionSnapshotResult result)
-        {
-            Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
-        }
-
-        void handleQuery(InteractionQuery query)
-        {
-            var queryBounds = query.Bounds;
-            double x, y, w, h;
-            if (queryBounds.TryGetRectangularData(out x, out y, out w, out h))
+            Action<Rectangle> a = (Rectangle queryBounds) =>
             {
-                BeginInvoke(new Action<Rectangle>(handleQueryOnUiThread), new Rectangle((int)x, (int)y, (int)w, (int)h));
+                var windowId = Handle.ToString();
+                var snapshot = context.CreateSnapshot();
+                snapshot.AddWindowId(windowId);
+                var bounds = snapshot.CreateBounds(InteractionBoundsType.Rectangular);
+                bounds.SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+                var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+                //foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect); TODO Generate interactor for each menu button.
+                snapshot.Commit((InteractionSnapshotResult result) => Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage));
+            };
+
+            double x, y, w, h;
+            if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
+            {
+                var r = new Rectangle((int)x, (int)y, (int)w, (int)h);
+                BeginInvoke(a, r);
             }
         }
 
+        // TODO
         void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
@@ -348,7 +207,7 @@
                     case InteractionBehaviorType.GazePointData:
                         GazePointDataEventParams eventParams;
                         if (behavior.TryGetGazePointDataEventParams(out eventParams))
-                            addPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
+                            trackGaze(new Point((int)eventParams.X, (int)eventParams.Y), paint);
                         break;
                     case InteractionBehaviorType.GazeAware:
                         GazeAwareEventParams gazeAwareEventParams;
@@ -367,10 +226,10 @@
                 }
         }
 
-        void createGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
+        // TODO
+        void addInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
         {
-            var controlRect = control.Bounds;
-            controlRect = control.Parent.RectangleToScreen(controlRect);
+            var controlRect = control.Parent.RectangleToScreen(control.Bounds);
 
             if (controlRect.IntersectsWith(queryBoundsRect))
             {

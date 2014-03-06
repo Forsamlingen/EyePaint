@@ -117,304 +117,49 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Name" xml:space="preserve">
-    <value>EnableEyeTrackerButton</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Name" xml:space="preserve">
-    <value>EnableMouseButton</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Name" xml:space="preserve">
-    <value>CloseSetupPanelButton</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Name" xml:space="preserve">
-    <value>OpenControlPanelButton</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Name" xml:space="preserve">
-    <value>SetupMessage</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="SetupPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="SetupPanel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
-  </data>
-  <data name="SetupPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
-  </data>
-  <data name="SetupPanel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>640, 480</value>
-  </data>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="SetupPanel.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;SetupPanel.Name" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;SetupPanel.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Panel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;SetupPanel.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;SetupPanel.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="EnableEyeTrackerButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="EnableEyeTrackerButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="EnableEyeTrackerButton.Location" type="System.Drawing.Point, System.Drawing">
-    <value>239, 11</value>
-  </data>
-  <data name="EnableEyeTrackerButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="EnableEyeTrackerButton.Size" type="System.Drawing.Size, System.Drawing">
-    <value>110, 30</value>
-  </data>
-  <data name="EnableEyeTrackerButton.TabIndex" type="System.Int32, mscorlib">
-    <value>5</value>
-  </data>
-  <data name="EnableEyeTrackerButton.Text" xml:space="preserve">
-    <value>Use Eye Tracker</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Name" xml:space="preserve">
-    <value>EnableEyeTrackerButton</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;EnableEyeTrackerButton.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
-  <data name="EnableMouseButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="EnableMouseButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="EnableMouseButton.Location" type="System.Drawing.Point, System.Drawing">
-    <value>145, 11</value>
-  </data>
-  <data name="EnableMouseButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="EnableMouseButton.Size" type="System.Drawing.Size, System.Drawing">
-    <value>90, 30</value>
-  </data>
-  <data name="EnableMouseButton.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
-  </data>
-  <data name="EnableMouseButton.Text" xml:space="preserve">
-    <value>Use Mouse</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Name" xml:space="preserve">
-    <value>EnableMouseButton</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;EnableMouseButton.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="CloseSetupPanelButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
-  </data>
-  <data name="CloseSetupPanelButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="CloseSetupPanelButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="CloseSetupPanelButton.Location" type="System.Drawing.Point, System.Drawing">
-    <value>599, 11</value>
-  </data>
-  <data name="CloseSetupPanelButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="CloseSetupPanelButton.Size" type="System.Drawing.Size, System.Drawing">
-    <value>30, 30</value>
-  </data>
-  <data name="CloseSetupPanelButton.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
-  </data>
-  <data name="CloseSetupPanelButton.Text" xml:space="preserve">
-    <value>X</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Name" xml:space="preserve">
-    <value>CloseSetupPanelButton</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;CloseSetupPanelButton.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="OpenControlPanelButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
-    <value>Popup</value>
-  </data>
-  <data name="OpenControlPanelButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="OpenControlPanelButton.Location" type="System.Drawing.Point, System.Drawing">
-    <value>11, 11</value>
-  </data>
-  <data name="OpenControlPanelButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>2, 2, 2, 2</value>
-  </data>
-  <data name="OpenControlPanelButton.Size" type="System.Drawing.Size, System.Drawing">
-    <value>130, 30</value>
-  </data>
-  <data name="OpenControlPanelButton.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
-  </data>
-  <data name="OpenControlPanelButton.Text" xml:space="preserve">
-    <value>Setup Eye Tracker</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Name" xml:space="preserve">
-    <value>OpenControlPanelButton</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;OpenControlPanelButton.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
-  <data name="SetupMessage.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="SetupMessage.Location" type="System.Drawing.Point, System.Drawing">
-    <value>9, 43</value>
-  </data>
-  <data name="SetupMessage.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
-  </data>
-  <data name="SetupMessage.Size" type="System.Drawing.Size, System.Drawing">
-    <value>340, 20</value>
-  </data>
-  <data name="SetupMessage.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="SetupMessage.Text" xml:space="preserve">
-    <value>...</value>
-  </data>
-  <data name="SetupMessage.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleCenter</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Name" xml:space="preserve">
-    <value>SetupMessage</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.Parent" xml:space="preserve">
-    <value>SetupPanel</value>
-  </data>
-  <data name="&gt;&gt;SetupMessage.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
   <data name="ProgramControlPanel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="ProgramControlPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="NewPaintingButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+  <data name="NewSessionButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
   </data>
-  <data name="NewPaintingButton.AutoSize" type="System.Boolean, mscorlib">
+  <data name="NewSessionButton.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="NewPaintingButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+  <data name="NewSessionButton.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Flat</value>
   </data>
-  <data name="NewPaintingButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+  <data name="NewSessionButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
-  <data name="NewPaintingButton.Location" type="System.Drawing.Point, System.Drawing">
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="NewSessionButton.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
-  <data name="NewPaintingButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="NewSessionButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
-  <data name="NewPaintingButton.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="NewSessionButton.Size" type="System.Drawing.Size, System.Drawing">
     <value>100, 100</value>
   </data>
-  <data name="NewPaintingButton.TabIndex" type="System.Int32, mscorlib">
+  <data name="NewSessionButton.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;NewPaintingButton.Name" xml:space="preserve">
-    <value>NewPaintingButton</value>
+  <data name="&gt;&gt;NewSessionButton.Name" xml:space="preserve">
+    <value>NewSessionButton</value>
   </data>
-  <data name="&gt;&gt;NewPaintingButton.Type" xml:space="preserve">
+  <data name="&gt;&gt;NewSessionButton.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;NewPaintingButton.Parent" xml:space="preserve">
+  <data name="&gt;&gt;NewSessionButton.Parent" xml:space="preserve">
     <value>ProgramControlPanel</value>
   </data>
-  <data name="&gt;&gt;NewPaintingButton.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;NewSessionButton.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <data name="SavePaintingButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
@@ -644,9 +389,6 @@
   </data>
   <data name="Menu.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
-  </data>
-  <data name="Menu.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
   </data>
   <data name="&gt;&gt;Menu.Name" xml:space="preserve">
     <value>Menu</value>

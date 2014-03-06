@@ -29,12 +29,6 @@
         void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EyePaintingForm));
-            this.SetupPanel = new System.Windows.Forms.Panel();
-            this.EnableEyeTrackerButton = new System.Windows.Forms.Button();
-            this.EnableMouseButton = new System.Windows.Forms.Button();
-            this.CloseSetupPanelButton = new System.Windows.Forms.Button();
-            this.OpenControlPanelButton = new System.Windows.Forms.Button();
-            this.SetupMessage = new System.Windows.Forms.Label();
             this.ProgramControlPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.NewSessionButton = new System.Windows.Forms.Button();
             this.SavePaintingButton = new System.Windows.Forms.Button();
@@ -43,55 +37,9 @@
             this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.ColorToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.Menu = new System.Windows.Forms.Panel();
-            this.SetupPanel.SuspendLayout();
             this.ProgramControlPanel.SuspendLayout();
             this.Menu.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // SetupPanel
-            // 
-            this.SetupPanel.BackColor = System.Drawing.Color.White;
-            this.SetupPanel.Controls.Add(this.EnableEyeTrackerButton);
-            this.SetupPanel.Controls.Add(this.EnableMouseButton);
-            this.SetupPanel.Controls.Add(this.CloseSetupPanelButton);
-            this.SetupPanel.Controls.Add(this.OpenControlPanelButton);
-            this.SetupPanel.Controls.Add(this.SetupMessage);
-            this.SetupPanel.Cursor = System.Windows.Forms.Cursors.Arrow;
-            resources.ApplyResources(this.SetupPanel, "SetupPanel");
-            this.SetupPanel.Name = "SetupPanel";
-            // 
-            // EnableEyeTrackerButton
-            // 
-            this.EnableEyeTrackerButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            resources.ApplyResources(this.EnableEyeTrackerButton, "EnableEyeTrackerButton");
-            this.EnableEyeTrackerButton.Name = "EnableEyeTrackerButton";
-            this.EnableEyeTrackerButton.UseVisualStyleBackColor = true;
-            // 
-            // EnableMouseButton
-            // 
-            this.EnableMouseButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            resources.ApplyResources(this.EnableMouseButton, "EnableMouseButton");
-            this.EnableMouseButton.Name = "EnableMouseButton";
-            this.EnableMouseButton.UseVisualStyleBackColor = true;
-            // 
-            // CloseSetupPanelButton
-            // 
-            resources.ApplyResources(this.CloseSetupPanelButton, "CloseSetupPanelButton");
-            this.CloseSetupPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.CloseSetupPanelButton.Name = "CloseSetupPanelButton";
-            this.CloseSetupPanelButton.UseVisualStyleBackColor = true;
-            // 
-            // OpenControlPanelButton
-            // 
-            this.OpenControlPanelButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            resources.ApplyResources(this.OpenControlPanelButton, "OpenControlPanelButton");
-            this.OpenControlPanelButton.Name = "OpenControlPanelButton";
-            this.OpenControlPanelButton.UseVisualStyleBackColor = true;
-            // 
-            // SetupMessage
-            // 
-            resources.ApplyResources(this.SetupMessage, "SetupMessage");
-            this.SetupMessage.Name = "SetupMessage";
             // 
             // ProgramControlPanel
             // 
@@ -103,12 +51,12 @@
             this.ProgramControlPanel.Controls.Add(this.ToolPaneToggleButton);
             this.ProgramControlPanel.Name = "ProgramControlPanel";
             // 
-            // NewPaintingButton
+            // NewSessionButton
             // 
-            resources.ApplyResources(this.NewSessionButton, "NewPaintingButton");
+            resources.ApplyResources(this.NewSessionButton, "NewSessionButton");
             this.NewSessionButton.FlatAppearance.BorderSize = 0;
             this.NewSessionButton.Image = global::EyePaint.Properties.Resources.exit_program;
-            this.NewSessionButton.Name = "NewPaintingButton";
+            this.NewSessionButton.Name = "NewSessionButton";
             this.NewSessionButton.UseVisualStyleBackColor = true;
             // 
             // SavePaintingButton
@@ -163,7 +111,6 @@
             this.BackColor = System.Drawing.Color.White;
             this.ControlBox = false;
             this.Controls.Add(this.Menu);
-            this.Controls.Add(this.SetupPanel);
             this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -171,7 +118,6 @@
             this.Name = "EyePaintingForm";
             this.ShowIcon = false;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.SetupPanel.ResumeLayout(false);
             this.ProgramControlPanel.ResumeLayout(false);
             this.ProgramControlPanel.PerformLayout();
             this.Menu.ResumeLayout(false);
@@ -183,12 +129,6 @@
 
         #endregion
 
-        System.Windows.Forms.Panel SetupPanel;
-        System.Windows.Forms.Button OpenControlPanelButton;
-        System.Windows.Forms.Label SetupMessage;
-        System.Windows.Forms.Button CloseSetupPanelButton;
-        System.Windows.Forms.Button EnableMouseButton;
-        System.Windows.Forms.Button EnableEyeTrackerButton;
         private System.Windows.Forms.FlowLayoutPanel ProgramControlPanel;
         private System.Windows.Forms.Button NewSessionButton;
         private System.Windows.Forms.Button SavePaintingButton;

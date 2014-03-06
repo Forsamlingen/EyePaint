@@ -21,10 +21,8 @@
 
         // Painting
         Timer paint;
-        readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID //TODO Spellcheck!
-        readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID //TODO Spellcheck!
-        PaintTool currentPaintTool;
-        ColorTool currentColorTool;
+        readonly List<PaintTool> paintTools;
+        readonly List<ColorTool> colorTools;
         Model model;
         View view;
 
@@ -43,22 +41,12 @@
             // Choose user input mode and register event handlers, etc.
             useInputMode(InputMode.MOUSE_AND_KEYBOARD);
 
-            // Program resolution
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
-
             // Initialize Model and View.
-            SettingFactory sf = new SettingFactory();
+            SettingsFactory sf = new SettingsFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
-
-            //TODO Change when we agreed on how init paintTool is chosed //TODO Clarify preceeding todo.
-            int randPaintToolId = getRandomPaintToolID();
-            int randColorToolId = getRandomColorToolID();
-            currentPaintTool = paintTools[randPaintToolId];
-            currentColorTool = colorTools[randColorToolId];
-            model = new Model(currentPaintTool, currentColorTool);
-            view = new View(width, height);
+            model = new Model(paintTools[0], colorTools[0]);
+            view = new View(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
@@ -68,33 +56,14 @@
             paint.Tick += (object s, EventArgs e) => { model.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
+            Action a = () => { SetupPanel.Visible = SetupPanel.Enabled = false; Menu.Visible = true; };
             OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume the default install location.
-            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = SetupPanel.Enabled = false; };
-            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = SetupPanel.Enabled = false; };
-            CloseSetupPanelButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = SetupPanel.Enabled = false; };
+            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); a.Invoke(); };
+            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); a.Invoke(); };
+            CloseSetupPanelButton.Click += (object s, EventArgs e) => { a.Invoke(); };
 
             // Populate GUI with gaze enabled buttons.
             loadMenu();
-        }
-
-        //TODO Remove
-        int getRandomPaintToolID()
-        {
-            List<int> toolIDs = new List<int>(paintTools.Keys);
-            Random rng = new Random();
-            int randomIdIndex = rng.Next(toolIDs.Count);
-            int randomID = toolIDs[randomIdIndex];
-            return randomID;
-        }
-
-        //TODO Remove
-        int getRandomColorToolID()
-        {
-            List<int> toolIDs = new List<int>(colorTools.Keys);
-            Random rng = new Random();
-            int randomIdIndex = rng.Next(toolIDs.Count);
-            int randomID = toolIDs[randomIdIndex];
-            return randomID;
         }
 
         // Start painting.
@@ -148,37 +117,18 @@
             }
         }
 
-        //TODO Maybe change after agree on type of id for PaintTools
-        void changePaintTool(int newPaintToolID)
-        {
-            //Check if the new paint tool is the same as the present do nothing
-            if (currentPaintTool.id == newPaintToolID) return;
-
-            //Apply change to model
-            model.ChangePaintTool(paintTools[newPaintToolID]);
-
-            //Set present PaintTool to the new one
-            currentPaintTool = paintTools[newPaintToolID];
-        }
-
-        //TODO Possible to merge with changePaintTool?
-        void changeColorTool(int newColorToolID)
-        {
-            model.ChangeColorTool(colorTools[newColorToolID]);
-        }
-
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
         void loadMenu()
         {
             // Register click event handlers for the program menu.
-            NewPaintingButton.Click += (object s, EventArgs e) => { }; //TODO Show confirmation dialog before committing to exiting the program.
+            NewPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before committing to exiting the program.
             SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
-            ClearPaintingButton.Click += (object s, EventArgs e) => { }; //TODO Show confirmation dialog before clearing the drawing.
-            ToolPaneToggleButton.Click += (object s, EventArgs e) => {
+            ClearPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before clearing the drawing.
+            ToolPaneToggleButton.Click += (object s, EventArgs e) =>
+            {
                 //ToolPaneToggleButton.BackgroundImage = ... //TODO Load button icon from file directory.
-
+                ColorToolsPanel.Visible = PaintToolsPanel.Visible;
                 PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
-                ColorToolsPanel.Visible = !ColorToolsPanel.Visible;
             };
 
             // Populate the GUI with available paint tools and color tools.
@@ -197,8 +147,8 @@
             {
                 appendButton(
                     PaintToolsPanel,
-                    PaintToolsPanel.Width / paintTools.Count,
-                    (object s, EventArgs e) => { } //TODO Implement click event.
+                    (Menu.Width - ProgramControlPanel.Width) / paintTools.Count,
+                    (object s, EventArgs e) => { model.ChangePaintTool(pt); }
                 );
             }
 
@@ -206,8 +156,8 @@
             {
                 appendButton(
                     ColorToolsPanel,
-                    ColorToolsPanel.Width / colorTools.Count,
-                    (object s, EventArgs e) => { } //TODO Implement click event.
+                    (Menu.Width - ProgramControlPanel.Width) / colorTools.Count,
+                    (object s, EventArgs e) => { model.ChangeColorTool(ct); }
                 );
             }
         }
@@ -278,15 +228,11 @@
                 case Keys.Back:
                     resetPainting();
                     break;
-                case Keys.R: //TODO Take away after test
-                    int newRandomToolID = getRandomPaintToolID();
-                    changePaintTool(newRandomToolID);
-                    break;
                 case Keys.S:
                     storePainting();
                     break;
                 case Keys.Escape:
-                    SetupPanel.Visible = SetupPanel.Enabled = true;
+                    SetupPanel.Visible = SetupPanel.Enabled = true; Menu.Visible = false;
                     break;
                 default:
                     break;
@@ -312,13 +258,13 @@
                 case ConnectionState.Connected:
                     globalInteractorSnapshot.Commit(OnSnapshotCommitted);
 
-                    Action a1 = () => SetupMessage.Text = "Status: " + e.State.ToString();
+                    Action a1 = () => { SetupMessage.Text = "Status: " + e.State.ToString(); };
                     if (SetupMessage.InvokeRequired)
                         SetupMessage.Invoke(a1);
                     else
                         a1.Invoke();
 
-                    Action a2 = () => SetupPanel.Visible = SetupPanel.Enabled = false;
+                    Action a2 = () => { SetupPanel.Visible = false; Menu.Visible = true; };
                     if (SetupPanel.InvokeRequired)
                         SetupPanel.Invoke(a2);
                     else
@@ -332,7 +278,7 @@
                 case ConnectionState.ServerVersionTooLow:
                     break;
                 case ConnectionState.TryingToConnect:
-                    Action a = () => SetupPanel.Visible = SetupPanel.Enabled = true;
+                    Action a = () => { SetupPanel.Visible = SetupPanel.Enabled = true; Menu.Visible = false; };
                     if (SetupPanel.InvokeRequired)
                         SetupPanel.Invoke(a);
                     else

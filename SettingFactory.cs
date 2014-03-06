@@ -8,19 +8,18 @@ namespace EyePaint
 {
     internal enum PaintToolType { TREE }
 
-    internal class SettingFactory
+    internal class SettingsFactory
     {
-        internal SettingFactory()
+        internal SettingsFactory()
         {
         }
 
-        /**
-         * Return a dictionary where available paintTools are mapped to their Id
-         **/
-        //TODO switch to read from file 
-        internal Dictionary<int, PaintTool> getPaintTools()
+
+        // Return available paintTools
+        internal List<PaintTool> getPaintTools()
         {
-            Dictionary<int, PaintTool> paintTools = new Dictionary<int, PaintTool>();
+            //TODO Load paint tools from a data store instead.
+            List<PaintTool> paintTools = new List<PaintTool>();
             TreeTool woolTool = new TreeTool(0,
                                         "woolPaint",
                                         stringToToolType("TREE"),
@@ -41,10 +40,10 @@ namespace EyePaint
                                         stringToToolType("TREE"),
                                         "",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
-            paintTools.Add(woolTool.id, woolTool);
-            paintTools.Add(polyTool.id, polyTool);
-            paintTools.Add(modernArtTool.id, modernArtTool);
-            paintTools.Add(cellNetTool.id, cellNetTool);
+            paintTools.Add(woolTool);
+            paintTools.Add(polyTool);
+            paintTools.Add(modernArtTool);
+            paintTools.Add(cellNetTool);
             return paintTools;
         }
         PaintToolType stringToToolType(string type)
@@ -59,14 +58,12 @@ namespace EyePaint
             }
         }
 
-        /**
-         * Return a dictionary where available colorTools are mapped to their Id
-         **/
-        internal Dictionary<int, ColorTool> getColorTools()
+        // Return available color tools    
+        internal List<ColorTool> getColorTools()
         {
-            Dictionary<int, ColorTool> colorTools = new Dictionary<int, ColorTool>();
+            List<ColorTool> colorTools = new List<ColorTool>();
 
-            //Todo change to read ColorTools from file
+            //TODO Load color tools from a data store instead.
             double minHue = 0;
             double maxHue = 360;
             double minSaturation = 0.9;
@@ -75,7 +72,7 @@ namespace EyePaint
             double maxValue = 1;
             ColorTool randomColorTool = new ColorTool(1, "random", Color.Gold, minHue, maxHue, minSaturation, maxSaturation, minValue, maxValue);
 
-            colorTools.Add(randomColorTool.id, randomColorTool);
+            colorTools.Add(randomColorTool);
 
             return colorTools;
         }

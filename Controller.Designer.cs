@@ -51,7 +51,6 @@
             // 
             // SetupPanel
             // 
-            resources.ApplyResources(this.SetupPanel, "SetupPanel");
             this.SetupPanel.BackColor = System.Drawing.Color.White;
             this.SetupPanel.Controls.Add(this.EnableEyeTrackerButton);
             this.SetupPanel.Controls.Add(this.EnableMouseButton);
@@ -59,6 +58,7 @@
             this.SetupPanel.Controls.Add(this.OpenControlPanelButton);
             this.SetupPanel.Controls.Add(this.SetupMessage);
             this.SetupPanel.Cursor = System.Windows.Forms.Cursors.Arrow;
+            resources.ApplyResources(this.SetupPanel, "SetupPanel");
             this.SetupPanel.Name = "SetupPanel";
             // 
             // EnableEyeTrackerButton
@@ -147,6 +147,7 @@
             this.Menu.BackColor = System.Drawing.Color.Maroon;
             this.Menu.Controls.Add(this.ProgramControlPanel);
             this.Menu.Controls.Add(this.PaintToolsPanel);
+            this.Menu.Controls.Add(this.ColorToolsPanel);
             this.Menu.Name = "Menu";
             // 
             // EyePaintingForm
@@ -171,7 +172,6 @@
             this.Menu.ResumeLayout(false);
             this.Menu.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

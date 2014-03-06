@@ -12,7 +12,7 @@
     public partial class EyePaintingForm : Form
     {
         InteractionContext context;
-        InteractionSnapshot globalInteractor;
+        InteractionSnapshot globalInteractorSnapshot;
         Point gaze;
         bool paint;
         Timer paintTimer;
@@ -25,10 +25,10 @@
         {
             InitializeComponent();
 
-            // Create an interactor context for the eye tracker engine.
+            // Initialize eye tracking.
             context = new InteractionContext(false);
-            initializeGlobalInteractor();
-            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => Debug.WriteLine("Eye tracker state: " + e.State.ToString());
+            initializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => { if (e.State == ConnectionState.Connected) globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { }); };
             context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
             context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
@@ -74,24 +74,22 @@
         // Rasterize the model and return an image object.
         Image getPainting()
         {
-            Image image = view.Rasterize(model.GetRenderQueue());
-            // model.ClearRenderQueue(); TODO Is this dead code? If so: remove!
-            return image;
+            return view.Rasterize(model.GetRenderQueue());
         }
 
-        // Clear view, model and canvas.
+        // Clear view and model.
         void resetPainting()
         {
             model.ResetModel();
             view.Clear();
-            Invalidate();
         }
 
         // Write rasterized image to a file.
         void storePainting()
         {
-            Image image = getPainting();
-            image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
+            string filename = DateTime.Now.TimeOfDay.TotalSeconds + ".png";
+            //TODO Check if file with same name already exists, and if so: increment new file with index.
+            getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
         // Track gaze point, and add it to the model if the user wants to.
@@ -155,92 +153,89 @@
             }
         }
 
-        // Create a global interactor for listening on the gaze point data stream.
-        void initializeGlobalInteractor()
+        // Initialize a global interactor snapshot that this application responds to the EyeX engine with whenever queried.
+        void initializeGlobalInteractorSnapshot()
         {
-            globalInteractor = context.CreateSnapshot();
-            globalInteractor.CreateBounds(InteractionBoundsType.None);
-            globalInteractor.AddWindowId(Literals.GlobalInteractorWindowId);
-            globalInteractor.Commit((InteractionSnapshotResult result) => Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage));
-
-            var interactor = globalInteractor.CreateInteractor(
-                Application.ProductName + System.Threading.Thread.CurrentThread.ManagedThreadId,
-                Literals.RootId,
-                Literals.GlobalInteractorWindowId
-            );
+            globalInteractorSnapshot = context.CreateSnapshot();
+            globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
+            globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
+            var interactor = globalInteractorSnapshot.CreateInteractor(Application.ProductName, Literals.RootId, Literals.GlobalInteractorWindowId);
             interactor.CreateBounds(InteractionBoundsType.None);
-
             var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);
-            var behaviorParams = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
-            behavior.SetGazePointDataOptions(ref behaviorParams);
+            var parameters = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
+            behavior.SetGazePointDataOptions(ref parameters);
         }
 
-        // TODO
+        // Create a snapshot for the EyeX engine when queried.
         void handleInteractionQuery(InteractionQuery q)
         {
-            Action<Rectangle> a = (Rectangle queryBounds) =>
-            {
-                var windowId = Handle.ToString();
-                var snapshot = context.CreateSnapshot();
-                snapshot.AddWindowId(windowId);
-                var bounds = snapshot.CreateBounds(InteractionBoundsType.Rectangular);
-                bounds.SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-                var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-                //foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect); TODO Generate interactor for each menu button.
-                snapshot.Commit((InteractionSnapshotResult result) => Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage));
-            };
-
             double x, y, w, h;
             if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
             {
-                var r = new Rectangle((int)x, (int)y, (int)w, (int)h);
-                BeginInvoke(a, r);
+                Action a = () =>
+                {
+                    // Prepare a new snapshot.
+                    var snapshot = context.CreateSnapshot();
+                    var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
+                    snapshot.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+                    var windowId = q.Handle.ToString();
+                    snapshot.AddWindowId(windowId);
+
+                    // Create a new gaze aware interactor for buttons within query bounds.
+                    foreach (Button b in ColorToolsPanel.Controls)
+                    {
+                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
+                        if (buttonBounds.IntersectsWith(queryBounds))
+                        {
+                            //TODO Get interactors from store when creating snapshots, instead of creating new interactors every time. Might improve performance.
+                            var interactor = snapshot.CreateInteractor(
+                                b.Name,
+                                Literals.RootId,
+                                windowId
+                            );
+                            interactor.SetZ(1); //TODO Set Z-index properly.
+                            interactor.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                                buttonBounds.Left,
+                                buttonBounds.Top,
+                                buttonBounds.Width,
+                                buttonBounds.Height
+                            );
+                            interactor.CreateBehavior(InteractionBehaviorType.GazeAware);
+                        }
+                    }
+
+                    // Send the snapshot to the eye tracking server.
+                    snapshot.Commit((InteractionSnapshotResult isr) => { });
+                };
+                BeginInvoke(a);
             }
         }
 
-        // TODO
+        // Handle events from the EyeX engine.
         void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
-                switch (behavior.BehaviorType)
+                if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
                 {
-                    case InteractionBehaviorType.GazePointData:
-                        GazePointDataEventParams eventParams;
-                        if (behavior.TryGetGazePointDataEventParams(out eventParams))
-                            trackGaze(new Point((int)eventParams.X, (int)eventParams.Y), paint);
-                        break;
-                    case InteractionBehaviorType.GazeAware:
-                        GazeAwareEventParams gazeAwareEventParams;
-                        if (behavior.TryGetGazeAwareEventParams(out gazeAwareEventParams))
-                        {
-                            /* TODO Handle interactors for each menu button.
-                            Button c = (Button)PaintToolsPanel.Controls[e.InteractorId]; // TODO Out of bounds?
-                            bool hasGaze = gazeAwareEventParams.HasGaze != EyeXBoolean.False; //TODO Remove line?
-                            Action a = () => c.PerformClick();
-                            BeginInvoke(a);
-                             */
-                        }
-                        break;
-                    default:
-                        break;
+                    GazePointDataEventParams r;
+                    if (behavior.TryGetGazePointDataEventParams(out r))
+                        trackGaze(new Point((int)r.X, (int)r.Y), paint);
                 }
-        }
+                else if (behavior.BehaviorType == InteractionBehaviorType.GazeAware)
+                {
+                    Console.WriteLine("HEJ"); // TODO Remove.
+                    GazeAwareEventParams r;
+                    if (behavior.TryGetGazeAwareEventParams(out r))
+                    {
+                        bool hasGaze = r.HasGaze != EyeXBoolean.False;
+                        if (hasGaze)
+                        {
+                            Button c = (Button)ColorToolsPanel.Controls[e.InteractorId];
+                            c.PerformClick(); //TODO Implement a visual countdown before click.
+                        }
+                    }
+                }
 
-        // TODO
-        void addInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
-        {
-            var controlRect = control.Parent.RectangleToScreen(control.Bounds);
-
-            if (controlRect.IntersectsWith(queryBoundsRect))
-            {
-                var interactor = snapshot.CreateInteractor(control.Name, parentId, windowId);
-                interactor.SetZ(z);
-
-                var bounds = interactor.CreateBounds(InteractionBoundsType.Rectangular);
-                bounds.SetRectangularData(controlRect.Left, controlRect.Top, controlRect.Width, controlRect.Height);
-
-                interactor.CreateBehavior(InteractionBehaviorType.GazeAware);
-            }
         }
     }
 }

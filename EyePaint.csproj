@@ -135,10 +135,21 @@
   <ItemGroup>
     <Content Include="lib\TobiiGazeSdk\TobiiGazeConfig32.dll" />
     <Content Include="lib\TobiiGazeSdk\TobiiGazeCore32.dll" />
-    <None Include="Resources\new.JPG" />
-    <None Include="Resources\color.JPG" />
-    <None Include="Resources\exit.JPG" />
-    <None Include="Resources\save.JPG" />
+    <Content Include="Resources\new.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\color.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\exit.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\save.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Icons\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

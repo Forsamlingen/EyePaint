@@ -64,10 +64,10 @@ namespace EyePaint
             List<ColorTool> colorTools = new List<ColorTool>();
 
             //TODO Load color tools from a data store instead.
-            colorTools.Add(new ColorTool(1, "random", Color.Red, 0, 360, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Blue, 0, 360, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Yellow, 0, 360, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Green, 0, 360, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Red, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Blue, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Yellow, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Green, 0, 0, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }

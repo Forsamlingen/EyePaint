@@ -9,7 +9,7 @@
     using Tobii.EyeX.Client.Interop;
     using Tobii.EyeX.Framework;
 
-    public partial class EyePaintingForm : Form, IDisposable
+    public partial class EyePaintingForm : Form
     {
         // Eye tracking engine
         readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -17,10 +17,12 @@
         InteractionSnapshot globalInteractorSnapshot;
 
         // User input
+        Point gaze;
         internal enum InputMode { MOUSE_AND_KEYBOARD, EYE_TRACKER };
 
         // Painting
-        Timer paint;
+        bool paint;
+        Timer paintTimer;
         readonly List<PaintTool> paintTools;
         readonly List<ColorTool> colorTools;
         Model model;
@@ -32,10 +34,10 @@
 
             // Create an interactor context for the eye tracker engine.
             context = new InteractionContext(false);
-            InitializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += OnConnectionStateChanged;
-            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
-            context.RegisterEventHandler(HandleInteractionEvent);
+            initializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += onConnectionStateChanged;
+            context.RegisterQueryHandlerForCurrentProcess(handleQuery);
+            context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
 
             // Choose user input mode and register event handlers, etc.
@@ -50,17 +52,17 @@
 
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { Image image = getPainting(); if (image != null) e.Graphics.DrawImageUnscaled(image, new Point(0, 0)); };
-            paint = new System.Windows.Forms.Timer();
-            paint.Interval = 33; //TODO Make into property.
-            paint.Enabled = false;
-            paint.Tick += (object s, EventArgs e) => { model.Grow(); Invalidate(); };
+            paintTimer = new System.Windows.Forms.Timer();
+            paintTimer.Interval = 30;
+            paintTimer.Enabled = true;
+            paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
 
             // Register setup panel button click handlers.
-            Action a = () => { SetupPanel.Visible = SetupPanel.Enabled = false; Menu.Visible = true; };
+            SetupPanel.VisibleChanged += (object s, EventArgs e) => { Menu.Visible = !SetupPanel.Visible; };
             OpenControlPanelButton.Click += (object s, EventArgs e) => { Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); }; //TODO Don't assume the default install location.
-            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); a.Invoke(); };
-            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); a.Invoke(); };
-            CloseSetupPanelButton.Click += (object s, EventArgs e) => { a.Invoke(); };
+            EnableEyeTrackerButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.EYE_TRACKER); SetupPanel.Visible = false; };
+            EnableMouseButton.Click += (object s, EventArgs e) => { useInputMode(InputMode.MOUSE_AND_KEYBOARD); SetupPanel.Visible = false; };
+            CloseSetupPanelButton.Click += (object s, EventArgs e) => { SetupPanel.Visible = false; };
 
             // Populate GUI with gaze enabled buttons.
             loadMenu();
@@ -69,14 +71,14 @@
         // Start painting.
         void startPainting()
         {
-            if (paint.Enabled) return;
-            else paint.Enabled = true;
+            paint = true;
+            addPoint(gaze);
         }
 
         // Stop painting.
         void stopPainting()
         {
-            paint.Enabled = false;
+            paint = false;
         }
 
         // Rasterize the model and return an image object.
@@ -102,26 +104,18 @@
             image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        // Add a new point to the model.
-        void trackPoint(Point p)
+        // Track gaze point, and add it to the model if the user wants to.
+        void addPoint(Point p)
         {
-            if (paint.Enabled)
-            {
-                model.Add(p, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.
-            }
-            else
-            {
-                //TODO Animate opening and closing?
-                // if (p.Y < 50 && p.X < 50) PaintToolsPanel.Visible = true;
-                //else PaintToolsPanel.Visible = false;
-            }
+            gaze = p;
+            if (paint) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
         void loadMenu()
         {
             // Register click event handlers for the program menu.
-            NewPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before committing to exiting the program.
+            NewSessionButton.Click += (object s, EventArgs e) => { Application.Restart(); }; //TODO Show confirmation dialog before committing to exiting the program.
             SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
             ClearPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before clearing the drawing.
             ToolPaneToggleButton.Click += (object s, EventArgs e) =>
@@ -132,14 +126,17 @@
             };
 
             // Populate the GUI with available paint tools and color tools.
-            Action<Panel, int, EventHandler> appendButton = (Panel parent, int size, EventHandler click) =>
+            Random r = new Random(); //TODO Remove.
+            Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler click) =>
             {
                 Button button = new Button();
                 button.Click += click;
                 button.Width = button.Height = size;
                 button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                button.FlatAppearance.BorderSize = 0;
                 button.Margin = new Padding(0);
-                //button.BackgroundImage = ... //TODO Load button icon from file directory.
+                string directory = AppDomain.CurrentDomain.BaseDirectory;
+                button.BackColor = color; //TODO Load button icon from file directory instead.
                 parent.Controls.Add(button);
             };
 
@@ -147,7 +144,8 @@
             {
                 appendButton(
                     PaintToolsPanel,
-                    (Menu.Width - ProgramControlPanel.Width) / paintTools.Count,
+                    ProgramControlPanel.Controls[0].Height,
+                    Color.FromArgb(r.Next(255), r.Next(255), r.Next(255)),
                     (object s, EventArgs e) => { model.ChangePaintTool(pt); }
                 );
             }
@@ -156,8 +154,13 @@
             {
                 appendButton(
                     ColorToolsPanel,
-                    (Menu.Width - ProgramControlPanel.Width) / colorTools.Count,
-                    (object s, EventArgs e) => { model.ChangeColorTool(ct); }
+                    ProgramControlPanel.Controls[0].Height,
+                    ct.baseColor,
+                    (object s, EventArgs e) =>
+                    {
+                        model.ChangeColorTool(ct);
+                        Menu.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
+                    }
                 );
             }
         }
@@ -215,7 +218,7 @@
 
         void onMouseMove(object sender, MouseEventArgs e)
         {
-            trackPoint(new Point(e.X, e.Y));
+            addPoint(new Point(e.X, e.Y));
         }
 
         void onKeyDown(object sender, KeyEventArgs e)
@@ -251,12 +254,12 @@
             }
         }
 
-        void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
+        void onConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
         {
             switch (e.State)
             {
                 case ConnectionState.Connected:
-                    globalInteractorSnapshot.Commit(OnSnapshotCommitted);
+                    globalInteractorSnapshot.Commit(onSnapshotCommitted);
 
                     Action a1 = () => { SetupMessage.Text = "Status: " + e.State.ToString(); };
                     if (SetupMessage.InvokeRequired)
@@ -289,7 +292,7 @@
             }
         }
 
-        void InitializeGlobalInteractorSnapshot()
+        void initializeGlobalInteractorSnapshot()
         {
             globalInteractorSnapshot = context.CreateSnapshot();
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
@@ -302,10 +305,10 @@
             var behaviorParams = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
             behavior.SetGazePointDataOptions(ref behaviorParams);
 
-            globalInteractorSnapshot.Commit(OnSnapshotCommitted);
+            globalInteractorSnapshot.Commit(onSnapshotCommitted);
         }
 
-        void HandleQueryOnUiThread(Rectangle queryBounds)
+        void handleQueryOnUiThread(Rectangle queryBounds)
         {
             var windowId = Handle.ToString();
 
@@ -317,27 +320,27 @@
 
             var queryBoundsRect = new Rectangle(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
 
-            //foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect); TODO
+            //foreach (Control button in PaintToolsPanel.Controls) CreateGazeAwareInteractor(button, Literals.RootId, windowId, 1, snapshot, queryBoundsRect); TODO Generate interactor for each menu button.
 
-            snapshot.Commit(OnSnapshotCommitted);
+            snapshot.Commit(onSnapshotCommitted);
         }
 
-        void OnSnapshotCommitted(InteractionSnapshotResult result)
+        void onSnapshotCommitted(InteractionSnapshotResult result)
         {
             Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
         }
 
-        void HandleQuery(InteractionQuery query)
+        void handleQuery(InteractionQuery query)
         {
             var queryBounds = query.Bounds;
             double x, y, w, h;
             if (queryBounds.TryGetRectangularData(out x, out y, out w, out h))
             {
-                BeginInvoke(new Action<Rectangle>(HandleQueryOnUiThread), new Rectangle((int)x, (int)y, (int)w, (int)h));
+                BeginInvoke(new Action<Rectangle>(handleQueryOnUiThread), new Rectangle((int)x, (int)y, (int)w, (int)h));
             }
         }
 
-        void HandleInteractionEvent(InteractionEvent e)
+        void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
                 switch (behavior.BehaviorType)
@@ -345,13 +348,13 @@
                     case InteractionBehaviorType.GazePointData:
                         GazePointDataEventParams eventParams;
                         if (behavior.TryGetGazePointDataEventParams(out eventParams))
-                            trackPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
+                            addPoint(new Point((int)eventParams.X, (int)eventParams.Y)); //TODO Invoke required?
                         break;
                     case InteractionBehaviorType.GazeAware:
                         GazeAwareEventParams gazeAwareEventParams;
                         if (behavior.TryGetGazeAwareEventParams(out gazeAwareEventParams))
                         {
-                            /* TODO
+                            /* TODO Handle interactors for each menu button.
                             Button c = (Button)PaintToolsPanel.Controls[e.InteractorId]; // TODO Out of bounds?
                             bool hasGaze = gazeAwareEventParams.HasGaze != EyeXBoolean.False; //TODO Remove line?
                             Action a = () => c.PerformClick();
@@ -364,7 +367,7 @@
                 }
         }
 
-        void CreateGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
+        void createGazeAwareInteractor(Control control, string parentId, string windowId, double z, InteractionSnapshot snapshot, Rectangle queryBoundsRect)
         {
             var controlRect = control.Bounds;
             controlRect = control.Parent.RectangleToScreen(controlRect);

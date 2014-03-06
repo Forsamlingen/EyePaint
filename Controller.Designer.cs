@@ -54,7 +54,7 @@
             this.ProgramControlPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.ProgramControlPanel.Location = new System.Drawing.Point(0, 0);
             this.ProgramControlPanel.Name = "ProgramControlPanel";
-            this.ProgramControlPanel.Size = new System.Drawing.Size(400, 100);
+            this.ProgramControlPanel.Size = new System.Drawing.Size(600, 150);
             this.ProgramControlPanel.TabIndex = 0;
             // 
             // NewSessionButton
@@ -63,16 +63,20 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.NewSessionButton.AutoSize = true;
-            this.NewSessionButton.FlatAppearance.BorderSize = 0;
+            this.NewSessionButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.NewSessionButton.FlatAppearance.BorderSize = 10;
             this.NewSessionButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.NewSessionButton.Image = ((System.Drawing.Image)(resources.GetObject("NewSessionButton.Image")));
             this.NewSessionButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.NewSessionButton.Location = new System.Drawing.Point(0, 0);
             this.NewSessionButton.Margin = new System.Windows.Forms.Padding(0);
             this.NewSessionButton.Name = "NewSessionButton";
-            this.NewSessionButton.Size = new System.Drawing.Size(100, 100);
+            this.NewSessionButton.Size = new System.Drawing.Size(150, 150);
             this.NewSessionButton.TabIndex = 0;
             this.NewSessionButton.TabStop = false;
+            this.NewSessionButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.NewSessionButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.NewSessionButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // SavePaintingButton
             // 
@@ -80,16 +84,20 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.SavePaintingButton.AutoSize = true;
-            this.SavePaintingButton.FlatAppearance.BorderSize = 0;
+            this.SavePaintingButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.SavePaintingButton.FlatAppearance.BorderSize = 10;
             this.SavePaintingButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SavePaintingButton.Image = ((System.Drawing.Image)(resources.GetObject("SavePaintingButton.Image")));
             this.SavePaintingButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.SavePaintingButton.Location = new System.Drawing.Point(100, 0);
+            this.SavePaintingButton.Location = new System.Drawing.Point(150, 0);
             this.SavePaintingButton.Margin = new System.Windows.Forms.Padding(0);
             this.SavePaintingButton.Name = "SavePaintingButton";
-            this.SavePaintingButton.Size = new System.Drawing.Size(100, 100);
+            this.SavePaintingButton.Size = new System.Drawing.Size(150, 150);
             this.SavePaintingButton.TabIndex = 1;
             this.SavePaintingButton.TabStop = false;
+            this.SavePaintingButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.SavePaintingButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.SavePaintingButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // ClearPaintingButton
             // 
@@ -97,16 +105,20 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ClearPaintingButton.AutoSize = true;
-            this.ClearPaintingButton.FlatAppearance.BorderSize = 0;
+            this.ClearPaintingButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.ClearPaintingButton.FlatAppearance.BorderSize = 10;
             this.ClearPaintingButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ClearPaintingButton.Image = ((System.Drawing.Image)(resources.GetObject("ClearPaintingButton.Image")));
             this.ClearPaintingButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.ClearPaintingButton.Location = new System.Drawing.Point(200, 0);
+            this.ClearPaintingButton.Location = new System.Drawing.Point(300, 0);
             this.ClearPaintingButton.Margin = new System.Windows.Forms.Padding(0);
             this.ClearPaintingButton.Name = "ClearPaintingButton";
-            this.ClearPaintingButton.Size = new System.Drawing.Size(100, 100);
+            this.ClearPaintingButton.Size = new System.Drawing.Size(150, 150);
             this.ClearPaintingButton.TabIndex = 2;
             this.ClearPaintingButton.TabStop = false;
+            this.ClearPaintingButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.ClearPaintingButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.ClearPaintingButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // ToolPaneToggleButton
             // 
@@ -114,16 +126,20 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ToolPaneToggleButton.AutoSize = true;
-            this.ToolPaneToggleButton.FlatAppearance.BorderSize = 0;
+            this.ToolPaneToggleButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.ToolPaneToggleButton.FlatAppearance.BorderSize = 10;
             this.ToolPaneToggleButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ToolPaneToggleButton.Image = global::EyePaint.Properties.Resources.color_tool;
             this.ToolPaneToggleButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.ToolPaneToggleButton.Location = new System.Drawing.Point(300, 0);
+            this.ToolPaneToggleButton.Location = new System.Drawing.Point(450, 0);
             this.ToolPaneToggleButton.Margin = new System.Windows.Forms.Padding(0);
             this.ToolPaneToggleButton.Name = "ToolPaneToggleButton";
-            this.ToolPaneToggleButton.Size = new System.Drawing.Size(100, 100);
+            this.ToolPaneToggleButton.Size = new System.Drawing.Size(150, 150);
             this.ToolPaneToggleButton.TabIndex = 3;
             this.ToolPaneToggleButton.TabStop = false;
+            this.ToolPaneToggleButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.ToolPaneToggleButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.ToolPaneToggleButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // PaintToolsPanel
             // 
@@ -132,9 +148,9 @@
             this.PaintToolsPanel.BackColor = System.Drawing.Color.Transparent;
             this.PaintToolsPanel.Dock = System.Windows.Forms.DockStyle.Right;
             this.PaintToolsPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.PaintToolsPanel.Location = new System.Drawing.Point(1920, 0);
+            this.PaintToolsPanel.Location = new System.Drawing.Point(1378, 0);
             this.PaintToolsPanel.Name = "PaintToolsPanel";
-            this.PaintToolsPanel.Size = new System.Drawing.Size(0, 100);
+            this.PaintToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.PaintToolsPanel.TabIndex = 0;
             // 
             // ColorToolsPanel
@@ -144,9 +160,9 @@
             this.ColorToolsPanel.BackColor = System.Drawing.Color.Transparent;
             this.ColorToolsPanel.Dock = System.Windows.Forms.DockStyle.Right;
             this.ColorToolsPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.ColorToolsPanel.Location = new System.Drawing.Point(1920, 0);
+            this.ColorToolsPanel.Location = new System.Drawing.Point(1378, 0);
             this.ColorToolsPanel.Name = "ColorToolsPanel";
-            this.ColorToolsPanel.Size = new System.Drawing.Size(0, 100);
+            this.ColorToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.ColorToolsPanel.TabIndex = 4;
             this.ColorToolsPanel.Visible = false;
             // 
@@ -161,16 +177,16 @@
             this.Menu.Dock = System.Windows.Forms.DockStyle.Top;
             this.Menu.Location = new System.Drawing.Point(0, 0);
             this.Menu.Margin = new System.Windows.Forms.Padding(0);
-            this.Menu.MinimumSize = new System.Drawing.Size(0, 100);
+            this.Menu.MinimumSize = new System.Drawing.Size(0, 150);
             this.Menu.Name = "Menu";
-            this.Menu.Size = new System.Drawing.Size(1920, 100);
+            this.Menu.Size = new System.Drawing.Size(1378, 150);
             this.Menu.TabIndex = 6;
             // 
             // EyePaintingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(1920, 1080);
+            this.ClientSize = new System.Drawing.Size(1378, 780);
             this.ControlBox = false;
             this.Controls.Add(this.Menu);
             this.DoubleBuffered = true;

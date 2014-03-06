@@ -7,7 +7,8 @@
     using System.Diagnostics;
     using Tobii.EyeX.Client;
     using Tobii.EyeX.Framework;
-    using InteractorId = System.String; //TODO typedef equivalent?
+    using InteractorId = System.String;
+    using System.Timers; //TODO typedef equivalent?
 
     public partial class EyePaintingForm : Form
     {
@@ -16,7 +17,7 @@
         Dictionary<InteractorId, Button> gazeAwareButtons;
         Point gaze;
         bool paint;
-        Timer paintTimer;
+        System.Windows.Forms.Timer paintTimer;
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
         Model model;
@@ -63,6 +64,7 @@
         // Start painting.
         void startPainting()
         {
+            if (paint) return;
             paint = true;
             trackGaze(gaze, paint, 0);
         }
@@ -110,24 +112,27 @@
             NewSessionButton.Click += (object s, EventArgs e) => { Application.Restart(); }; //TODO Show confirmation dialog before committing to exiting the program.
             SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
             ClearPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before clearing the drawing.
-            ToolPaneToggleButton.Click += (object s, EventArgs e) =>
-            {
-                //ToolPaneToggleButton.BackgroundImage = ... //TODO Load button icon from file directory.
-                ColorToolsPanel.Visible = PaintToolsPanel.Visible;
-                PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
-            };
+            ToolPaneToggleButton.Click += (object s, EventArgs e) => { ColorToolsPanel.Visible = PaintToolsPanel.Visible; PaintToolsPanel.Visible = !PaintToolsPanel.Visible;};
+            gazeAwareButtons.Add(NewSessionButton.Parent.Name + NewSessionButton.Name, NewSessionButton);
+            gazeAwareButtons.Add(SavePaintingButton.Parent.Name + SavePaintingButton.Name, SavePaintingButton);
+            gazeAwareButtons.Add(ClearPaintingButton.Parent.Name + ClearPaintingButton.Name, ClearPaintingButton);
+            gazeAwareButtons.Add(ToolPaneToggleButton.Parent.Name + ToolPaneToggleButton.Name, ToolPaneToggleButton);
 
             // Populate the GUI with available paint tools and color tools.
             Random r = new Random(); //TODO Remove.
-            Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler click) =>
+            Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler onClick) =>
             {
                 Button b = new Button();
                 b.Name = "button" + parent.Controls.Count;
+                b.Enter += onButtonFocus;
+                b.Leave += onButtonBlur;
+                b.Click += onClick;
+                b.Click += onButtonClicked;
                 b.TabStop = false;
-                b.Click += click;
                 b.Width = b.Height = size;
                 b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-                b.FlatAppearance.BorderSize = 0;
+                b.FlatAppearance.BorderSize = 10;
+                b.FlatAppearance.BorderColor = Color.White;
                 b.Margin = new Padding(0);
                 b.BackColor = color; //TODO Load button icon from file directory instead. //string directory = AppDomain.CurrentDomain.BaseDirectory;
                 parent.Controls.Add(b);
@@ -229,14 +234,45 @@
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
-                        Action a = () =>
-                        {
-                            gazeAwareButtons[e.InteractorId].BackColor = Color.Red; //TODO Implement visual aid.
-                            gazeAwareButtons[e.InteractorId].PerformClick(); //TODO Implement a visual countdown before click.
-                        };
+                        Action a = () => clickCountdown(gazeAwareButtons[e.InteractorId]);
                         if (hasGaze) BeginInvoke(a);
                     }
                 }
+        }
+
+        // Focus the button, wait a short period of time and if the button is still focused: click it.
+        void clickCountdown(Button b)
+        {
+            b.Focus();
+            System.Timers.Timer waitBeforeClick = new System.Timers.Timer(1000); // One second.
+
+            waitBeforeClick.Elapsed += (object sender, ElapsedEventArgs e) =>
+            {
+                Action a = () => { if (b.Focused) b.PerformClick(); };
+                BeginInvoke(a);
+                waitBeforeClick.Enabled = false;
+            };
+            waitBeforeClick.Enabled = true;
+        }
+
+        void onButtonFocus(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Gray;
+        }
+
+        void onButtonBlur(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.White;
+        }
+
+        void onButtonClicked(object s, EventArgs e)
+        {
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Black;
         }
     }
 }

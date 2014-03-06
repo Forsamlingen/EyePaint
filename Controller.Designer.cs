@@ -72,7 +72,7 @@
             this.NewSessionButton.Name = "NewSessionButton";
             this.NewSessionButton.Size = new System.Drawing.Size(100, 100);
             this.NewSessionButton.TabIndex = 0;
-            this.NewSessionButton.UseVisualStyleBackColor = true;
+            this.NewSessionButton.TabStop = false;
             // 
             // SavePaintingButton
             // 
@@ -89,7 +89,7 @@
             this.SavePaintingButton.Name = "SavePaintingButton";
             this.SavePaintingButton.Size = new System.Drawing.Size(100, 100);
             this.SavePaintingButton.TabIndex = 1;
-            this.SavePaintingButton.UseVisualStyleBackColor = true;
+            this.SavePaintingButton.TabStop = false;
             // 
             // ClearPaintingButton
             // 
@@ -106,7 +106,7 @@
             this.ClearPaintingButton.Name = "ClearPaintingButton";
             this.ClearPaintingButton.Size = new System.Drawing.Size(100, 100);
             this.ClearPaintingButton.TabIndex = 2;
-            this.ClearPaintingButton.UseVisualStyleBackColor = true;
+            this.ClearPaintingButton.TabStop = false;
             // 
             // ToolPaneToggleButton
             // 
@@ -123,7 +123,7 @@
             this.ToolPaneToggleButton.Name = "ToolPaneToggleButton";
             this.ToolPaneToggleButton.Size = new System.Drawing.Size(100, 100);
             this.ToolPaneToggleButton.TabIndex = 3;
-            this.ToolPaneToggleButton.UseVisualStyleBackColor = true;
+            this.ToolPaneToggleButton.TabStop = false;
             // 
             // PaintToolsPanel
             // 

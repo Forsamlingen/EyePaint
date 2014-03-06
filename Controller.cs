@@ -8,11 +8,13 @@
     using Tobii.EyeX.Client;
     using Tobii.EyeX.Client.Interop;
     using Tobii.EyeX.Framework;
+    using InteractorId = System.String; //TODO typedef equivalent?
 
     public partial class EyePaintingForm : Form
     {
         InteractionContext context;
         InteractionSnapshot globalInteractorSnapshot;
+        Dictionary<InteractorId, Button> gazeAwareButtons;
         Point gaze;
         bool paint;
         Timer paintTimer;
@@ -27,6 +29,7 @@
 
             // Initialize eye tracking.
             context = new InteractionContext(false);
+            gazeAwareButtons = new Dictionary<InteractorId, Button>();
             initializeGlobalInteractorSnapshot();
             context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => { if (e.State == ConnectionState.Connected) globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { }); };
             context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
@@ -34,9 +37,9 @@
             context.EnableConnection();
 
             // Register user input event handlers.        
-            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) startPainting(); };
-            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) stopPainting(); };
-            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint);
+            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) startPainting(); };
+            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) stopPainting(); };
+            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
             MouseDown += (object s, MouseEventArgs e) => startPainting();
             MouseUp += (object s, MouseEventArgs e) => stopPainting();
 
@@ -50,7 +53,7 @@
             // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { e.Graphics.DrawImage(getPainting(), 0, 0); };
             paintTimer = new System.Windows.Forms.Timer();
-            paintTimer.Interval = 30;
+            paintTimer.Interval = 1;
             paintTimer.Enabled = true;
             paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
 
@@ -62,7 +65,7 @@
         void startPainting()
         {
             paint = true;
-            trackGaze(gaze, paint);
+            trackGaze(gaze, paint, 0);
         }
 
         // Stop painting.
@@ -92,11 +95,13 @@
             getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        // Track gaze point, and add it to the model if the user wants to.
-        void trackGaze(Point p, bool add = false)
+        // Track gaze point if it's far away enough from the previous point, and add it to the model if the user wants to.
+        void trackGaze(Point p, bool keep = true, int keyhole = 25)
         {
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
             gaze = p;
-            if (add) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
@@ -117,15 +122,17 @@
             Random r = new Random(); //TODO Remove.
             Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler click) =>
             {
-                Button button = new Button();
-                button.Click += click;
-                button.Width = button.Height = size;
-                button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-                button.FlatAppearance.BorderSize = 0;
-                button.Margin = new Padding(0);
-                string directory = AppDomain.CurrentDomain.BaseDirectory;
-                button.BackColor = color; //TODO Load button icon from file directory instead.
-                parent.Controls.Add(button);
+                Button b = new Button();
+                b.Name = "button" + parent.Controls.Count;
+                b.TabStop = false;
+                b.Click += click;
+                b.Width = b.Height = size;
+                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                b.FlatAppearance.BorderSize = 0;
+                b.Margin = new Padding(0);
+                b.BackColor = color; //TODO Load button icon from file directory instead. //string directory = AppDomain.CurrentDomain.BaseDirectory;
+                parent.Controls.Add(b);
+                gazeAwareButtons.Add(b.Parent.Name + b.Name, b);
             };
 
             foreach (var pt in paintTools)
@@ -172,42 +179,37 @@
             double x, y, w, h;
             if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
             {
-                Action a = () =>
+                // Prepare a new snapshot.
+                var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
+                InteractionSnapshot s = context.CreateSnapshot();
+                s.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
+                string windowId = Literals.GlobalInteractorWindowId; //TODO Assign proper window.
+                s.AddWindowId(windowId);
+
+                // Create a new gaze aware interactor for buttons within the query bounds.
+                foreach (var e in gazeAwareButtons)
                 {
-                    // Prepare a new snapshot.
-                    var snapshot = context.CreateSnapshot();
-                    var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
-                    snapshot.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-                    var windowId = q.Handle.ToString();
-                    snapshot.AddWindowId(windowId);
+                    Button b = e.Value;
+                    InteractorId id = e.Key;
 
-                    // Create a new gaze aware interactor for buttons within query bounds.
-                    foreach (Button b in ColorToolsPanel.Controls)
+                    var buttonBounds = b.Bounds;
+                    if (buttonBounds.IntersectsWith(queryBounds))
                     {
-                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
-                        if (buttonBounds.IntersectsWith(queryBounds))
-                        {
-                            //TODO Get interactors from store when creating snapshots, instead of creating new interactors every time. Might improve performance.
-                            var interactor = snapshot.CreateInteractor(
-                                b.Name,
-                                Literals.RootId,
-                                windowId
-                            );
-                            interactor.SetZ(1); //TODO Set Z-index properly.
-                            interactor.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
-                                buttonBounds.Left,
-                                buttonBounds.Top,
-                                buttonBounds.Width,
-                                buttonBounds.Height
-                            );
-                            interactor.CreateBehavior(InteractionBehaviorType.GazeAware);
-                        }
+                        Debug.WriteLine("Gaze query intersects with " + b.Name + "."); //TODO Remove
+                        Interactor i = s.CreateInteractor(id, Literals.RootId, windowId);
+                        i.SetZ(1);
+                        i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                            buttonBounds.Left,
+                            buttonBounds.Top,
+                            buttonBounds.Width,
+                            buttonBounds.Height
+                        );
+                        i.CreateBehavior(InteractionBehaviorType.GazeAware);
                     }
+                }
 
-                    // Send the snapshot to the eye tracking server.
-                    snapshot.Commit((InteractionSnapshotResult isr) => { });
-                };
-                BeginInvoke(a);
+                // Send the snapshot to the eye tracking server.
+                s.Commit((InteractionSnapshotResult isr) => { Console.WriteLine(isr.ResultCode); });
             }
         }
 
@@ -219,7 +221,7 @@
                 {
                     GazePointDataEventParams r;
                     if (behavior.TryGetGazePointDataEventParams(out r))
-                        trackGaze(new Point((int)r.X, (int)r.Y), paint);
+                        trackGaze(new Point((int)r.X, (int)r.Y), paint, 200); //TODO Set keyhole size dynamically based on how bad the calibration is.
                 }
                 else if (behavior.BehaviorType == InteractionBehaviorType.GazeAware)
                 {
@@ -227,11 +229,13 @@
                     GazeAwareEventParams r;
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
+                        Debug.WriteLine("Looking at " + gazeAwareButtons[e.InteractorId]);
+
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
                         if (hasGaze)
                         {
-                            Button c = (Button)ColorToolsPanel.Controls[e.InteractorId];
-                            c.PerformClick(); //TODO Implement a visual countdown before click.
+                            gazeAwareButtons[e.InteractorId].BackColor = Color.Red; //TODO Implement visual aid.
+                            gazeAwareButtons[e.InteractorId].PerformClick(); //TODO Implement a visual countdown before click.
                         }
                     }
                 }

@@ -6,7 +6,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using Tobii.EyeX.Client;
-    using Tobii.EyeX.Client.Interop;
     using Tobii.EyeX.Framework;
     using InteractorId = System.String; //TODO typedef equivalent?
 
@@ -36,7 +35,7 @@
             context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
 
-            // Register user input event handlers.        
+            // Register user input event handlers.
             KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) startPainting(); };
             KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) stopPainting(); };
             MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
@@ -179,37 +178,38 @@
             double x, y, w, h;
             if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
             {
-                // Prepare a new snapshot.
                 var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
-                InteractionSnapshot s = context.CreateSnapshot();
-                s.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(queryBounds.Left, queryBounds.Top, queryBounds.Width, queryBounds.Height);
-                string windowId = Literals.GlobalInteractorWindowId; //TODO Assign proper window.
-                s.AddWindowId(windowId);
-
-                // Create a new gaze aware interactor for buttons within the query bounds.
-                foreach (var e in gazeAwareButtons)
+                Action a = () =>
                 {
-                    Button b = e.Value;
-                    InteractorId id = e.Key;
+                    // Prepare a new snapshot.
+                    InteractionSnapshot s = context.CreateSnapshotWithQueryBounds(q);
+                    s.AddWindowId(Handle.ToString());
 
-                    var buttonBounds = b.Bounds;
-                    if (buttonBounds.IntersectsWith(queryBounds))
+                    // Create a new gaze aware interactor for buttons within the query bounds.
+                    foreach (var e in gazeAwareButtons)
                     {
-                        Debug.WriteLine("Gaze query intersects with " + b.Name + "."); //TODO Remove
-                        Interactor i = s.CreateInteractor(id, Literals.RootId, windowId);
-                        i.SetZ(1);
-                        i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
-                            buttonBounds.Left,
-                            buttonBounds.Top,
-                            buttonBounds.Width,
-                            buttonBounds.Height
-                        );
-                        i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                        Button b = e.Value;
+                        if (!b.Visible) continue;
+                        InteractorId id = e.Key;
+                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
+                        if (buttonBounds.IntersectsWith(queryBounds))
+                        {
+                            Interactor i = s.CreateInteractor(id, Literals.RootId, Handle.ToString());
+                            i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                                buttonBounds.Left,
+                                buttonBounds.Top,
+                                buttonBounds.Width,
+                                buttonBounds.Height
+                            );
+                            i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                        }
                     }
-                }
 
-                // Send the snapshot to the eye tracking server.
-                s.Commit((InteractionSnapshotResult isr) => { Console.WriteLine(isr.ResultCode); });
+                    // Send the snapshot to the eye tracking server.
+                    s.Commit((InteractionSnapshotResult isr) => { });
+                };
+
+                BeginInvoke(a); // Run on UI thread.
             }
         }
 
@@ -225,21 +225,18 @@
                 }
                 else if (behavior.BehaviorType == InteractionBehaviorType.GazeAware)
                 {
-                    Console.WriteLine("HEJ"); // TODO Remove.
                     GazeAwareEventParams r;
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
-                        Debug.WriteLine("Looking at " + gazeAwareButtons[e.InteractorId]);
-
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
-                        if (hasGaze)
+                        Action a = () =>
                         {
                             gazeAwareButtons[e.InteractorId].BackColor = Color.Red; //TODO Implement visual aid.
                             gazeAwareButtons[e.InteractorId].PerformClick(); //TODO Implement a visual countdown before click.
-                        }
+                        };
+                        if (hasGaze) BeginInvoke(a);
                     }
                 }
-
         }
     }
 }

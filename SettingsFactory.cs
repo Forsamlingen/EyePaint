@@ -4,26 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-
-
 namespace EyePaint
 {
-
     internal enum PaintToolType { TREE }
 
-    internal class SettingFactory
+    internal class SettingsFactory
     {
-        internal SettingFactory()
+        internal SettingsFactory()
         {
         }
 
-        /**
-         * Return a dictionary where available paintTools are mapped to their Id
-         **/
-        //TODO switch to read from file 
-        internal Dictionary<int, PaintTool> getPaintTools()
+
+        // Return available paintTools
+        internal List<PaintTool> getPaintTools()
         {
-            Dictionary<int, PaintTool> paintTools = new Dictionary<int, PaintTool>();
+            //TODO Load paint tools from a data store instead.
+            List<PaintTool> paintTools = new List<PaintTool>();
             TreeTool woolTool = new TreeTool(0,
                                         "woolPaint",
                                         stringToToolType("TREE"),
@@ -44,13 +40,13 @@ namespace EyePaint
                                         stringToToolType("TREE"),
                                         "",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
-            paintTools.Add(woolTool.id, woolTool);
-            paintTools.Add(polyTool.id, polyTool);
-            paintTools.Add(modernArtTool.id, modernArtTool);
-            paintTools.Add(cellNetTool.id, cellNetTool);
+            paintTools.Add(woolTool);
+            paintTools.Add(polyTool);
+            paintTools.Add(modernArtTool);
+            paintTools.Add(cellNetTool);
             return paintTools;
         }
-        private PaintToolType stringToToolType(string type)
+        PaintToolType stringToToolType(string type)
         {
             switch (type)
             {
@@ -62,28 +58,20 @@ namespace EyePaint
             }
         }
 
-        /**
-         * Return a dictionary where available colorTools are mapped to their Id
-         **/
-        internal Dictionary<int, ColorTool> getColorTools()
+        // Return available color tools    
+        internal List<ColorTool> getColorTools()
         {
-            Dictionary<int, ColorTool> colorTools = new Dictionary<int, ColorTool>();
+            List<ColorTool> colorTools = new List<ColorTool>();
 
-            //Todo change to read ColorTools from file
-            double minHue = 0;
-            double maxHue = 360;
-            double minSaturation = 0.9;
-            double maxSaturation = 1;
-            double minValue = 0.5;
-            double maxValue = 1;
-            ColorTool randomColorTool = new ColorTool(1, "random", Color.Gold, minHue, maxHue, minSaturation, maxSaturation, minValue, maxValue);
-
-            colorTools.Add(randomColorTool.id, randomColorTool);
+            //TODO Load color tools from a data store instead.
+            colorTools.Add(new ColorTool(1, "random", Color.Red, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Blue, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Yellow, 0, 0, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", Color.Green, 0, 0, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
     }
-
 
     internal class PaintTool
     {
@@ -139,15 +127,15 @@ namespace EyePaint
     {
         internal readonly int id;
         internal readonly String name;
-        internal readonly Color defaultColor;
-        private readonly double minHue;
-        private readonly double maxHue;
-        private readonly double minSaturation;
-        private readonly double maxSaturation;
-        private readonly double minValue;
-        private readonly double maxValue;
+        internal readonly Color baseColor;
+        readonly double minHue;
+        readonly double maxHue;
+        readonly double minSaturation;
+        readonly double maxSaturation;
+        readonly double minValue;
+        readonly double maxValue;
 
-        private Random rng = new Random();
+        static Random rng = new Random();
 
         internal ColorTool(int id, string name,
                            Color defaultColor,
@@ -161,7 +149,7 @@ namespace EyePaint
         {
             this.id = id;
             this.name = name;
-            this.defaultColor = defaultColor;
+            this.baseColor = defaultColor;
             this.minHue = minHue;
             this.maxHue = maxHue;
             this.minSaturation = minSaturation;
@@ -180,7 +168,7 @@ namespace EyePaint
         }
 
 
-        private Color ColorFromHSV(int opacity, double hue, double saturation, double value)
+        Color ColorFromHSV(int opacity, double hue, double saturation, double value)
         {
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
             double f = hue / 60 - Math.Floor(hue / 60);

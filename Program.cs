@@ -12,21 +12,8 @@ namespace EyePaint
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
             // Initialize the EyeX Engine client library and launch the paint form application.
-            try
-            {
-                using (var system = InteractionSystem.Initialize(LogTarget.Trace))
-                {
-                    Application.Run(new EyePaintingForm());
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "Failed loading application!");
-            }
+            using (var system = InteractionSystem.Initialize(LogTarget.Trace)) Application.Run(new EyePaintingForm());
         }
     }
 }

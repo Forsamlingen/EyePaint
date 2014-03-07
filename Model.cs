@@ -35,7 +35,7 @@ namespace EyePaint
          * Set up the factories dictionary with all available PaintoolTypes mapped to their Factory.
          **/
         //TODO Add more factories here when more toolTypes are added
-        private void setUpFactories(ColorTool initColorTool)
+        void setUpFactories(ColorTool initColorTool)
         {
             Factories = new Dictionary<PaintToolType, BaseFactory>();
             Factories.Add(PaintToolType.TREE, new TreeFactory(initColorTool));
@@ -113,14 +113,14 @@ namespace EyePaint
     class TreeFactory : BaseFactory
     {
         //Todo check if possible to use tree instead
-        private Queue<RenderObject> renderQueue;
+        Queue<RenderObject> renderQueue;
 
-        private int offset_distance = 0;           // distance from the convex hull
+        int offset_distance = 0;           // distance from the convex hull
 
-        private Random random = new Random();
-        private Tree currentTree;
-        private bool treeAdded = false;
-        private TreeTool presentTreeTool;
+        static Random random = new Random();
+        Tree currentTree;
+        bool treeAdded = false;
+        TreeTool presentTreeTool;
 
         internal TreeFactory(ColorTool initColorTool)
             : base(initColorTool)
@@ -201,7 +201,7 @@ namespace EyePaint
             treeAdded = false;
         }
 
-        private Tree CreateTree(Color color, Point root, Point[] leaves, Point[] parents)
+        Tree CreateTree(Color color, Point root, Point[] leaves, Point[] parents)
         {
             int branchLength = presentTreeTool.branchLength;
             int maxGeneration = presentTreeTool.maxGeneration;
@@ -236,7 +236,7 @@ namespace EyePaint
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
 
-        private Tree CreateDefaultTree(Point root)
+        Tree CreateDefaultTree(Point root)
         {
             int nLeaves = presentTreeTool.nLeaves;
             int branchLength = presentTreeTool.branchLength;
@@ -264,7 +264,7 @@ namespace EyePaint
          * Return a point representing a leaf that is 
          * grown outwards from the root.
          */
-        private Point GetLeaf(Point parent, Point root, int branchLength)
+        Point GetLeaf(Point parent, Point root, int branchLength)
         {
             //Declare an origo point
             Point origo = new Point(0, 0);

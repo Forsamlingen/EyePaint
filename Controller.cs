@@ -6,420 +6,273 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using Tobii.EyeX.Client;
-    using Tobii.EyeX.Client.Interop;
     using Tobii.EyeX.Framework;
+    using InteractorId = System.String;
+    using System.Timers; //TODO typedef equivalent?
 
-    public partial class EyePaintingForm : Form, IDisposable
+    public partial class EyePaintingForm : Form
     {
-
-        // Eye tracking.
-        private readonly string interactorId = "EyePaint" + System.Threading.Thread.CurrentThread.ManagedThreadId; // TODO Make into property.
-        private InteractionContext context;
-        private InteractionSnapshot globalInteractorSnapshot;
-        private bool stableGaze;
-        private Point gazePoint, latestPoint;
-        private const int keyhole = 120; //TODO Make into property.
-
-        // User input.
-        private bool useMouse;
-        private bool greenButtonPressed;
-
-        // Painting.
-        private Timer paint;
-
-        private readonly Dictionary<int, PaintTool> paintTools; //All availble PaintTools maped agains there ID
-        private readonly Dictionary<int, ColorTool> colorTools; //All availble ColorTools maped agains there ID
-
-        private PaintTool currentPaintTool;
-        private ColorTool currentColorTool;
-        private Model model;
-        private View view;
-
+        InteractionContext context;
+        InteractionSnapshot globalInteractorSnapshot;
+        Dictionary<InteractorId, Button> gazeAwareButtons;
+        Point gaze;
+        bool paint;
+        System.Windows.Forms.Timer paintTimer;
+        List<PaintTool> paintTools;
+        List<ColorTool> colorTools;
+        Model model;
+        View view;
 
         public EyePaintingForm()
         {
             InitializeComponent();
 
-            Shown += OnShown;
-            Move += OnMove;
-            KeyDown += OnKeyDown;
-            KeyUp += OnKeyUp;
-            MouseMove += OnMouseMove;
-            MouseDown += OnMouseDown;
-            MouseUp += OnMouseUp;
-
-            // Create a context and enable the connection to the eye tracking engine.
+            // Initialize eye tracking.
             context = new InteractionContext(false);
-            InitializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += OnConnectionStateChanged;
-            context.RegisterEventHandler(HandleInteractionEvent);
+            gazeAwareButtons = new Dictionary<InteractorId, Button>();
+            initializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => { if (e.State == ConnectionState.Connected) globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { }); };
+            context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
+            context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
 
-            // Start values.
-            stableGaze = false;
-            greenButtonPressed = false;
-            gazePoint = new Point(0, 0);
-            latestPoint = new Point(0, 0);
+            // Register user input event handlers.
+            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) startPainting(); };
+            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) stopPainting(); };
+            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
+            MouseDown += (object s, MouseEventArgs e) => startPainting();
+            MouseUp += (object s, MouseEventArgs e) => stopPainting();
 
-            // Program resolution.
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
-
-            //Initialize Model and View
-            SettingFactory sf = new SettingFactory();
+            // Initialize model and view.
+            SettingsFactory sf = new SettingsFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
+            model = new Model(paintTools[0], colorTools[0]);
+            view = new View(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
-            //TODO Change when we agreed on how init paintTool is chosed
-            int randPaintToolId = getRandomPaintToolID();
-            int randColorToolId = getRandomColorToolID();
-            currentPaintTool = paintTools[randPaintToolId];
-            currentColorTool = colorTools[randColorToolId];
-            model = new Model(currentPaintTool, currentColorTool);
-            view = new View(width, height);
+            // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
+            Paint += (object s, PaintEventArgs e) => { e.Graphics.DrawImage(getPainting(), 0, 0); };
+            paintTimer = new System.Windows.Forms.Timer();
+            paintTimer.Interval = 1;
+            paintTimer.Enabled = true;
+            paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
 
-            // Create a paint event with a corresponding timer. The timer is the paint refresh interval (i.e. similar to rendering FPS).
-            Paint += OnPaint;
-            paint = new System.Windows.Forms.Timer();
-            paint.Interval = 33; //TODO Make into property.
-            paint.Enabled = false;
-            paint.Tick += onTick;
+            // Populate GUI with gaze enabled buttons.
+            initializeMenu();
         }
 
-        //Todo Take away after testing
-        private int getRandomPaintToolID()
+        // Start painting.
+        void startPainting()
         {
-            List<int> toolIDs = new List<int>(paintTools.Keys);
-            Random rng = new Random();
-            int randomIdIndex = rng.Next(toolIDs.Count);
-            int randomID = toolIDs[randomIdIndex];
-            return randomID;
+            if (paint) return;
+            paint = true;
+            trackGaze(gaze, paint, 0);
         }
 
-        //Todo Take away after testing
-        private int getRandomColorToolID()
+        // Stop painting.
+        void stopPainting()
         {
-            List<int> toolIDs = new List<int>(colorTools.Keys);
-            Random rng = new Random();
-            int randomIdIndex = rng.Next(toolIDs.Count);
-            int randomID = toolIDs[randomIdIndex];
-            return randomID;
+            paint = false;
         }
 
-
-        // Grows the model and refreshes the canvas
-        private void onTick(object sender, System.EventArgs e)
+        // Rasterize the model and return an image object.
+        Image getPainting()
         {
-            model.Grow();
-            Invalidate();
+            return view.Rasterize(model.GetRenderQueue());
         }
 
-        // Starts the timer, enabling tick events
-        private void startPaintingTimer()
-        {
-            if (paint.Enabled) return;
-
-            if (!stableGaze) return;
-
-            paint.Enabled = true;
-        }
-
-        // Stops the timer, disabling tick events
-        private void stopPaintingTimer()
-        {
-            paint.Enabled = false;
-        }
-
-        // Rasterizes the model and returns an image object
-        private Image getPainting()
-        {
-            Image image = view.Rasterize(model.GetRenderQueue());
-           // model.ClearRenderQueue();
-            return image;
-        }
-
-        // Clears the canvas
-        private void resetPainting()
+        // Clear view and model.
+        void resetPainting()
         {
             model.ResetModel();
             view.Clear();
-            Invalidate();
         }
 
-        // Writes rasterized image to a file
-        private void storePainting()
+        // Write rasterized image to a file.
+        void storePainting()
         {
-            Image image = getPainting();
-            image.Save("painting.png", System.Drawing.Imaging.ImageFormat.Png);
+            string filename = DateTime.Now.TimeOfDay.TotalSeconds + ".png";
+            //TODO Check if file with same name already exists, and if so: increment new file with index.
+            getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        private void OnMouseUp(object sender, MouseEventArgs e)
+        // Track gaze point if it's far away enough from the previous point, and add it to the model if the user wants to.
+        void trackGaze(Point p, bool keep = true, int keyhole = 25)
         {
-            if (useMouse)
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
+            gaze = p;
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+        }
+
+        // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
+        void initializeMenu()
+        {
+            // Register click event handlers for the program menu.
+            NewSessionButton.Click += (object s, EventArgs e) => { Application.Restart(); }; //TODO Show confirmation dialog before committing to exiting the program.
+            SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
+            ClearPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before clearing the drawing.
+            ToolPaneToggleButton.Click += (object s, EventArgs e) => { ColorToolsPanel.Visible = PaintToolsPanel.Visible; PaintToolsPanel.Visible = !PaintToolsPanel.Visible;};
+            gazeAwareButtons.Add(NewSessionButton.Parent.Name + NewSessionButton.Name, NewSessionButton);
+            gazeAwareButtons.Add(SavePaintingButton.Parent.Name + SavePaintingButton.Name, SavePaintingButton);
+            gazeAwareButtons.Add(ClearPaintingButton.Parent.Name + ClearPaintingButton.Name, ClearPaintingButton);
+            gazeAwareButtons.Add(ToolPaneToggleButton.Parent.Name + ToolPaneToggleButton.Name, ToolPaneToggleButton);
+
+            // Populate the GUI with available paint tools and color tools.
+            Random r = new Random(); //TODO Remove.
+            Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler onClick) =>
             {
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonUp(sender, e);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+                Button b = new Button();
+                b.Name = "button" + parent.Controls.Count;
+                b.Enter += onButtonFocus;
+                b.Leave += onButtonBlur;
+                b.Click += onClick;
+                b.Click += onButtonClicked;
+                b.TabStop = false;
+                b.Width = b.Height = size;
+                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+                b.FlatAppearance.BorderSize = 10;
+                b.FlatAppearance.BorderColor = Color.White;
+                b.Margin = new Padding(0);
+                b.BackColor = color; //TODO Load button icon from file directory instead. //string directory = AppDomain.CurrentDomain.BaseDirectory;
+                parent.Controls.Add(b);
+                gazeAwareButtons.Add(b.Parent.Name + b.Name, b);
+            };
 
-        private void OnMouseDown(object sender, MouseEventArgs e)
-        {
-            if (useMouse)
+            foreach (var pt in paintTools)
             {
-                switch (e.Button)
-                {
-                    case MouseButtons.Left:
-                        OnGreenButtonDown(sender, e);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-
-        private void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.Space:
-                    OnGreenButtonDown(sender, e);
-                    break;
-                case Keys.Back:
-                    OnRedButtonDown(sender, e);
-                    break;
-                //TODO Take away after test
-                case Keys.R:
-                    int newRandomToolID = getRandomPaintToolID();
-                    ChangePaintTool(newRandomToolID);
-                    break;
-                case Keys.G:
-                    break;
-                case Keys.B:
-                    break;
-                case Keys.S:
-                    storePainting();
-                    break;
-                case Keys.Escape:
-                    SetupPanel.Visible = SetupPanel.Enabled = true;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void OnKeyUp(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.Space:
-                    OnGreenButtonUp(sender, e);
-                    break;
-                case Keys.Back:
-                    OnRedButtonUp(sender, e);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void OnGreenButtonDown(object sender, EventArgs e)
-        {
-            if (greenButtonPressed) return;
-
-            greenButtonPressed = true;
-            gazePoint = latestPoint;
-            AddPoint(gazePoint, true);
-            startPaintingTimer();
-        }
-
-        private void OnGreenButtonUp(object sender, EventArgs e)
-        {
-            greenButtonPressed = false;
-            gazePoint = latestPoint;
-            stopPaintingTimer();
-        }
-
-        private void OnRedButtonDown(object sender, EventArgs e)
-        {
-            resetPainting();
-        }
-
-        private void OnRedButtonUp(object sender, EventArgs e)
-        {
-            return;
-        }
-
-        private void OnMove(object sender, EventArgs e)
-        {
-            stableGaze = false; //TODO Neccessary?
-        }
-
-        private void OnPaint(object sender, PaintEventArgs e)
-        {
-            Image image = getPainting();
-            if (image != null)
-            {
-                e.Graphics.DrawImageUnscaled(image, new Point(0, 0));
-            }
-        }
-
-        // Adds a new point to the model.
-        private void AddPoint(Point p, bool alwaysAdd = false)
-        {
-            model.Add(p, alwaysAdd);
-        }
-
-        // Stores a new point in 'latestPoint' and determines whether or not to add it.
-        private void TrackPoint(Point p)
-        {
-            stableGaze = true;
-            latestPoint = p;
-
-            double distance = Math.Sqrt(Math.Pow(gazePoint.X - p.X, 2) + Math.Pow(gazePoint.Y - p.Y, 2));
-
-            if (distance > keyhole)
-            {
-                gazePoint = p;
-                if (greenButtonPressed) AddPoint(gazePoint);
-            }
-        }
-
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (useMouse) TrackPoint(new Point(e.X, e.Y));
-        }
-
-        private void OnShown(object sender, EventArgs e)
-        {
-            BringToFront();
-        }
-
-        //TODO Maybe change after agree on type of id for PaintTools
-        private void ChangePaintTool(int newPaintToolID)
-        {
-
-            //Check if the new paint tool is the same as the present do nothing
-            if (currentPaintTool.id == newPaintToolID)
-            {
-                return;
+                appendButton(
+                    PaintToolsPanel,
+                    ProgramControlPanel.Controls[0].Height,
+                    Color.FromArgb(r.Next(255), r.Next(255), r.Next(255)),
+                    (object s, EventArgs e) => { model.ChangePaintTool(pt); }
+                );
             }
 
-
-            //Apply change to model
-            model.ChangePaintTool(paintTools[newPaintToolID]);
-
-            //Set present PaintTool to the new one
-            currentPaintTool = paintTools[newPaintToolID];
-
-        }
-        private void ChangeColorTool(int newColorToolID)
-        {
-            model.ChangeColorTool(colorTools[newColorToolID]);
-        }
-
-        private void OpenControlPanelClick(object sender, EventArgs e)
-        {
-            Process.Start("C:\\Program Files\\Tobii\\EyeTracking\\Tobii.EyeTracking.ControlPanel.exe"); //TODO Don't assume default install location.
-        }
-
-        private void CloseInfoPanelClick(object sender, EventArgs e)
-        {
-            SetupPanel.Visible = SetupPanel.Enabled = false;
-        }
-
-        private void UseEyeTrackerClick(object sender, EventArgs e)
-        {
-            useMouse = false;
-            SetupPanel.Visible = SetupPanel.Enabled = false;
-        }
-
-        private void UseMouseClick(object sender, EventArgs e)
-        {
-            useMouse = true;
-            SetupPanel.Visible = SetupPanel.Enabled = false;
-        }
-
-        private void OnConnectionStateChanged(object sender, ConnectionStateChangedEventArgs e)
-        {
-            switch (e.State)
+            foreach (var ct in colorTools)
             {
-                case ConnectionState.Connected:
-                    globalInteractorSnapshot.Commit(OnSnapshotCommitted);
-                    Invoke(new Action(() =>
+                appendButton(
+                    ColorToolsPanel,
+                    ProgramControlPanel.Controls[0].Height,
+                    ct.baseColor,
+                    (object s, EventArgs e) =>
                     {
-                        SetupMessage.Text = "Status: " + e.State.ToString();
-                        SetupPanel.Visible = SetupPanel.Enabled = false;
-                    }));
-                    break;
-                case ConnectionState.Disconnected:
-                    break;
-                case ConnectionState.ServerVersionTooHigh:
-                    break;
-                case ConnectionState.ServerVersionTooLow:
-                    break;
-                case ConnectionState.TryingToConnect:
-                    Invoke(new Action(() =>
-                    {
-                        SetupPanel.Visible = SetupPanel.Enabled = true;
-                    }));
-                    break;
-                default:
-                    break;
+                        model.ChangeColorTool(ct);
+                        Menu.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
+                    }
+                );
             }
         }
 
-        private void InitializeGlobalInteractorSnapshot()
+        // Initialize a global interactor snapshot that this application responds to the EyeX engine with whenever queried.
+        void initializeGlobalInteractorSnapshot()
         {
             globalInteractorSnapshot = context.CreateSnapshot();
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
             globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
-
-            var interactor = globalInteractorSnapshot.CreateInteractor(interactorId, Literals.RootId, Literals.GlobalInteractorWindowId);
+            var interactor = globalInteractorSnapshot.CreateInteractor(Application.ProductName, Literals.RootId, Literals.GlobalInteractorWindowId);
             interactor.CreateBounds(InteractionBoundsType.None);
-
             var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);
-            var behaviorParams = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
-            behavior.SetGazePointDataOptions(ref behaviorParams);
-
-            globalInteractorSnapshot.Commit(OnSnapshotCommitted);
+            var parameters = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
+            behavior.SetGazePointDataOptions(ref parameters);
         }
 
-        private void OnSnapshotCommitted(InteractionSnapshotResult result)
+        // Create a snapshot for the EyeX engine when queried.
+        void handleInteractionQuery(InteractionQuery q)
         {
-            Debug.Assert(result.ResultCode != SnapshotResultCode.InvalidSnapshot, result.ErrorMessage);
+            double x, y, w, h;
+            if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
+            {
+                var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
+                Action a = () =>
+                {
+                    // Prepare a new snapshot.
+                    InteractionSnapshot s = context.CreateSnapshotWithQueryBounds(q);
+                    s.AddWindowId(Handle.ToString());
+
+                    // Create a new gaze aware interactor for buttons within the query bounds.
+                    foreach (var e in gazeAwareButtons)
+                    {
+                        Button b = e.Value;
+                        if (!b.Visible) continue;
+                        InteractorId id = e.Key;
+                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
+                        if (buttonBounds.IntersectsWith(queryBounds))
+                        {
+                            Interactor i = s.CreateInteractor(id, Literals.RootId, Handle.ToString());
+                            i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                                buttonBounds.Left,
+                                buttonBounds.Top,
+                                buttonBounds.Width,
+                                buttonBounds.Height
+                            );
+                            i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                        }
+                    }
+
+                    // Send the snapshot to the eye tracking server.
+                    s.Commit((InteractionSnapshotResult isr) => { });
+                };
+
+                BeginInvoke(a); // Run on UI thread.
+            }
         }
 
-        private void HandleInteractionEvent(InteractionEvent e)
+        // Handle events from the EyeX engine.
+        void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
-                switch (behavior.BehaviorType)
+                if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
                 {
-                    case InteractionBehaviorType.GazePointData:
-                        OnGazePointData(behavior);
-                        break;
-                    default: // TODO Investigate which other interaction events are possible in EyeX.
-                        break;
+                    GazePointDataEventParams r;
+                    if (behavior.TryGetGazePointDataEventParams(out r))
+                        trackGaze(new Point((int)r.X, (int)r.Y), paint, 200); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                }
+                else if (behavior.BehaviorType == InteractionBehaviorType.GazeAware)
+                {
+                    GazeAwareEventParams r;
+                    if (behavior.TryGetGazeAwareEventParams(out r))
+                    {
+                        bool hasGaze = r.HasGaze != EyeXBoolean.False;
+                        Action a = () => clickCountdown(gazeAwareButtons[e.InteractorId]);
+                        if (hasGaze) BeginInvoke(a);
+                    }
                 }
         }
 
-        private void OnGazePointData(InteractionBehavior behavior)
+        // Focus the button, wait a short period of time and if the button is still focused: click it.
+        void clickCountdown(Button b)
         {
-            GazePointDataEventParams eventParams;
-            if (behavior.TryGetGazePointDataEventParams(out eventParams))
+            b.Focus();
+            System.Timers.Timer waitBeforeClick = new System.Timers.Timer(1000); // One second.
+
+            waitBeforeClick.Elapsed += (object sender, ElapsedEventArgs e) =>
             {
-                TrackPoint(new Point((int)eventParams.X, (int)eventParams.Y));
-            }
-            else
-            {
-                Console.WriteLine("Failed to interpret gaze data event packet.");
-            }
+                Action a = () => { if (b.Focused) b.PerformClick(); };
+                BeginInvoke(a);
+                waitBeforeClick.Enabled = false;
+            };
+            waitBeforeClick.Enabled = true;
+        }
+
+        void onButtonFocus(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Gray;
+        }
+
+        void onButtonBlur(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.White;
+        }
+
+        void onButtonClicked(object s, EventArgs e)
+        {
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Black;
         }
     }
 }

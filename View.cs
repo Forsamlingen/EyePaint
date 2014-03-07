@@ -3,24 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace EyePaint
 {
     internal class View
     {
-        internal Image background;
+        internal Image blank;
         internal Canvas imageObject;
 
-        private SolidBrush bgBrush = new SolidBrush(Color.White);
+        SolidBrush bgBrush = new SolidBrush(Color.White);
 
         internal View(int width, int height)
         {
-            //Initialize background
-            background = new Bitmap(width, height);
-            using (Graphics g = Graphics.FromImage(background))
-                g.FillRectangle(bgBrush, 0, 0, width, height);
-
-            imageObject = new Canvas(new Bitmap(background));
+            blank = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(blank)) g.FillRectangle(bgBrush, 0, 0, width, height);
+            imageObject = new Canvas(new Bitmap(blank));
         }
 
         internal Image Rasterize(Queue<RenderObject> renderQueue)
@@ -34,16 +32,14 @@ namespace EyePaint
             return imageObject.image;
         }
 
-
-        /**
-         * Reset the image to the bakground color
-         */
         internal void Clear()
         {
-            imageObject.image = new Bitmap(background);
+            imageObject.image = new Bitmap(blank);
         }
     }
 
+    //TODO Don't use "using (Graphics g...) for each method call. Dispose costs.
+    //TODO This is not a canvas. Rename the class. Better yet: merge the class's fields and methods with the View class.
     internal class Canvas
     {
         internal Image image;

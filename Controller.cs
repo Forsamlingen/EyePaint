@@ -145,7 +145,9 @@
                     PaintToolsPanel,
                     ProgramControlPanel.Controls[0].Height,
                     Color.FromArgb(r.Next(255), r.Next(255), r.Next(255)),
-                    (object s, EventArgs e) => { model.ChangePaintTool(pt); }
+                    (object s, EventArgs e) => {
+                        model.ChangePaintTool(pt);
+                    }
                 );
             }
 
@@ -158,7 +160,8 @@
                     (object s, EventArgs e) =>
                     {
                         model.ChangeColorTool(ct);
-                        Menu.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
+                        // TODO Implement original design with a snippet of the drawing
+                        // with gaussian blur and 50% white opacity overlay instead.
                     }
                 );
             }

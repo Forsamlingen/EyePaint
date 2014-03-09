@@ -135,15 +135,23 @@
   <ItemGroup>
     <Content Include="lib\TobiiGazeSdk\TobiiGazeConfig32.dll" />
     <Content Include="lib\TobiiGazeSdk\TobiiGazeCore32.dll" />
-    <Content Include="Resources\Icons\bolt.png" />
-    <Content Include="Resources\Icons\bullseye.png" />
-    <Content Include="Resources\Icons\cloud.png" />
-    <Content Include="Resources\Icons\color.png" />
-    <Content Include="Resources\Icons\exit.png" />
-    <Content Include="Resources\Icons\new.png" />
-    <Content Include="Resources\Icons\save.png" />
-    <Content Include="Resources\Icons\sun.png" />
-    <Content Include="Resources\Icons\tool.png" />
+    <Content Include="Resources\bolt.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\bullseye.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\cloud.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\color.png" />
+    <Content Include="Resources\exit.png" />
+    <Content Include="Resources\new.png" />
+    <Content Include="Resources\save.png" />
+    <Content Include="Resources\sun.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\tool.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -36,9 +36,9 @@
             this.ToolPaneToggleButton = new System.Windows.Forms.Button();
             this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.ColorToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
-            this.Menu = new System.Windows.Forms.Panel();
+            this.MenuPanel = new System.Windows.Forms.Panel();
             this.ProgramControlPanel.SuspendLayout();
-            this.Menu.SuspendLayout();
+            this.MenuPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // ProgramControlPanel
@@ -148,7 +148,7 @@
             this.PaintToolsPanel.BackColor = System.Drawing.Color.Transparent;
             this.PaintToolsPanel.Dock = System.Windows.Forms.DockStyle.Right;
             this.PaintToolsPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.PaintToolsPanel.Location = new System.Drawing.Point(1378, 0);
+            this.PaintToolsPanel.Location = new System.Drawing.Point(1284, 0);
             this.PaintToolsPanel.Name = "PaintToolsPanel";
             this.PaintToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.PaintToolsPanel.TabIndex = 0;
@@ -160,7 +160,7 @@
             this.ColorToolsPanel.BackColor = System.Drawing.Color.Transparent;
             this.ColorToolsPanel.Dock = System.Windows.Forms.DockStyle.Right;
             this.ColorToolsPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.ColorToolsPanel.Location = new System.Drawing.Point(1378, 0);
+            this.ColorToolsPanel.Location = new System.Drawing.Point(1284, 0);
             this.ColorToolsPanel.Name = "ColorToolsPanel";
             this.ColorToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.ColorToolsPanel.TabIndex = 4;
@@ -168,27 +168,27 @@
             // 
             // Menu
             // 
-            this.Menu.AutoSize = true;
-            this.Menu.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.Menu.BackColor = System.Drawing.Color.White;
-            this.Menu.Controls.Add(this.ProgramControlPanel);
-            this.Menu.Controls.Add(this.PaintToolsPanel);
-            this.Menu.Controls.Add(this.ColorToolsPanel);
-            this.Menu.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Menu.Location = new System.Drawing.Point(0, 0);
-            this.Menu.Margin = new System.Windows.Forms.Padding(0);
-            this.Menu.MinimumSize = new System.Drawing.Size(0, 150);
-            this.Menu.Name = "Menu";
-            this.Menu.Size = new System.Drawing.Size(1378, 150);
-            this.Menu.TabIndex = 6;
+            this.MenuPanel.AutoSize = true;
+            this.MenuPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.MenuPanel.BackColor = System.Drawing.Color.White;
+            this.MenuPanel.Controls.Add(this.ProgramControlPanel);
+            this.MenuPanel.Controls.Add(this.PaintToolsPanel);
+            this.MenuPanel.Controls.Add(this.ColorToolsPanel);
+            this.MenuPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.MenuPanel.Location = new System.Drawing.Point(0, 0);
+            this.MenuPanel.Margin = new System.Windows.Forms.Padding(0);
+            this.MenuPanel.MinimumSize = new System.Drawing.Size(0, 150);
+            this.MenuPanel.Name = "Menu";
+            this.MenuPanel.Size = new System.Drawing.Size(1284, 150);
+            this.MenuPanel.TabIndex = 6;
             // 
             // EyePaintingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(1378, 780);
+            this.ClientSize = new System.Drawing.Size(1284, 780);
             this.ControlBox = false;
-            this.Controls.Add(this.Menu);
+            this.Controls.Add(this.MenuPanel);
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.KeyPreview = true;
@@ -201,8 +201,8 @@
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.ProgramControlPanel.ResumeLayout(false);
             this.ProgramControlPanel.PerformLayout();
-            this.Menu.ResumeLayout(false);
-            this.Menu.PerformLayout();
+            this.MenuPanel.ResumeLayout(false);
+            this.MenuPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -217,7 +217,7 @@
         private System.Windows.Forms.Button ToolPaneToggleButton;
         private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
         private System.Windows.Forms.FlowLayoutPanel ColorToolsPanel;
-        new private System.Windows.Forms.Panel Menu;
+        private System.Windows.Forms.Panel MenuPanel;
     }
 }
 

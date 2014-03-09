@@ -31,7 +31,12 @@
             context = new InteractionContext(false);
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
             initializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => { if (e.State == ConnectionState.Connected) globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { }); };
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => {
+                if (e.State == ConnectionState.Connected)
+                {
+                    globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
+                }
+            };
             context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
             context.RegisterEventHandler(handleInteractionEvent);
             context.EnableConnection();
@@ -50,7 +55,8 @@
             model = new Model(paintTools[0], colorTools[0]);
             view = new View(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
-            // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
+            // Create a paint event handler with a corresponding timer. The timer is the
+            // paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { e.Graphics.DrawImage(getPainting(), 0, 0); };
             paintTimer = new System.Windows.Forms.Timer();
             paintTimer.Interval = 1;
@@ -92,11 +98,13 @@
         void storePainting()
         {
             string filename = DateTime.Now.TimeOfDay.TotalSeconds + ".png";
-            //TODO Check if file with same name already exists, and if so: increment new file with index.
+            // TODO Check if file with same name already exists, and if so: increment
+            // new file with index.
             getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        // Track gaze point if it's far away enough from the previous point, and add it to the model if the user wants to.
+        // Track gaze point if it's far away enough from the previous point, and add it
+        // to the model if the user wants to.
         void trackGaze(Point p, bool keep = true, int keyhole = 25)
         {
             var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
@@ -105,14 +113,48 @@
             if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
+        private bool confirm(String msg)
+        {
+            using (ConfirmBox dialog = new ConfirmBox())
+            {
+                DialogResult result = dialog.Show(this, msg);
+                if (result == DialogResult.OK)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
         void initializeMenu()
         {
-            // Register click event handlers for the program menu.
-            NewSessionButton.Click += (object s, EventArgs e) => { Application.Restart(); }; //TODO Show confirmation dialog before committing to exiting the program.
-            SavePaintingButton.Click += (object s, EventArgs e) => { storePainting(); }; //TODO Show confirmation dialog before commiting to store the painting.
-            ClearPaintingButton.Click += (object s, EventArgs e) => { resetPainting(); }; //TODO Show confirmation dialog before clearing the drawing.
-            ToolPaneToggleButton.Click += (object s, EventArgs e) => { ColorToolsPanel.Visible = PaintToolsPanel.Visible; PaintToolsPanel.Visible = !PaintToolsPanel.Visible;};
+            // Define and register click event handlers for the program menu.
+            NewSessionButton.Click += (object s, EventArgs e) => {
+                String msg = "Är du säker på att du vill starta om?";
+                if (confirm(msg))
+                {
+                    Application.Restart();
+                }
+            };
+            SavePaintingButton.Click += (object s, EventArgs e) => {
+                String msg = "Vill du spara din målning?";
+                if (confirm(msg))
+                {
+                    storePainting();
+                }
+            };
+            ClearPaintingButton.Click += (object s, EventArgs e) => {
+                String msg = "Vill du sudda allt och börja om?";
+                if (confirm(msg))
+                {
+                    resetPainting();
+                }
+            };
+            ToolPaneToggleButton.Click += (object s, EventArgs e) => {
+                ColorToolsPanel.Visible = PaintToolsPanel.Visible;
+                PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
+            };
             gazeAwareButtons.Add(NewSessionButton.Parent.Name + NewSessionButton.Name, NewSessionButton);
             gazeAwareButtons.Add(SavePaintingButton.Parent.Name + SavePaintingButton.Name, SavePaintingButton);
             gazeAwareButtons.Add(ClearPaintingButton.Parent.Name + ClearPaintingButton.Name, ClearPaintingButton);
@@ -158,7 +200,7 @@
                     (object s, EventArgs e) =>
                     {
                         model.ChangeColorTool(ct);
-                        Menu.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
+                        MenuPanel.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
                     }
                 );
             }

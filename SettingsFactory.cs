@@ -75,9 +75,9 @@ namespace EyePaint
     internal class PaintTool
     {
         internal readonly int id;
-        internal readonly string name; //Todo maybe ´skipp this property 
+        internal readonly string name; // TODO maybe skip this property 
         internal readonly PaintToolType type;
-        internal string iconImage; //Todo maybe skipp this property
+        internal string iconImage; // TODO maybe skip this property
         internal string renderObjectName;
         internal PaintTool(int id, string name, PaintToolType type, string pathToIconImage, string renderObjectName)
         {

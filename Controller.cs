@@ -148,58 +148,94 @@
                     resetPainting();
                 }
             };
-            ToolPaneToggleButton.Click += (object s, EventArgs e) => {
+            ColorButton.Click += (object s, EventArgs e) => {
+                ColorButton.Visible = false;
+                ToolButton.Visible = true;
+                ColorToolsPanel.Visible = PaintToolsPanel.Visible;
+                PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
+            };
+            ToolButton.Click += (object s, EventArgs e) =>
+            {
+                ColorButton.Visible = true;
+                ToolButton.Visible = false;
                 ColorToolsPanel.Visible = PaintToolsPanel.Visible;
                 PaintToolsPanel.Visible = !PaintToolsPanel.Visible;
             };
             gazeAwareButtons.Add(NewSessionButton.Parent.Name + NewSessionButton.Name, NewSessionButton);
             gazeAwareButtons.Add(SavePaintingButton.Parent.Name + SavePaintingButton.Name, SavePaintingButton);
             gazeAwareButtons.Add(ClearPaintingButton.Parent.Name + ClearPaintingButton.Name, ClearPaintingButton);
-            gazeAwareButtons.Add(ToolPaneToggleButton.Parent.Name + ToolPaneToggleButton.Name, ToolPaneToggleButton);
+            gazeAwareButtons.Add(ColorButton.Parent.Name + ColorButton.Name, ColorButton);
+            gazeAwareButtons.Add(ToolButton.Parent.Name + ToolButton.Name, ToolButton);
 
             // Populate the GUI with available paint tools and color tools.
             Random r = new Random(); //TODO Remove.
-            Action<Panel, int, Color, EventHandler> appendButton = (Panel parent, int size, Color color, EventHandler onClick) =>
+            Action<Panel, Button, EventHandler> appendButton = (Panel parent, Button b, EventHandler onClick) =>
             {
-                Button b = new Button();
                 b.Name = "button" + parent.Controls.Count;
                 b.Enter += onButtonFocus;
                 b.Leave += onButtonBlur;
                 b.Click += onClick;
                 b.Click += onButtonClicked;
                 b.TabStop = false;
-                b.Width = b.Height = size;
                 b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
                 b.FlatAppearance.BorderSize = 10;
                 b.FlatAppearance.BorderColor = Color.White;
                 b.Margin = new Padding(0);
-                b.BackColor = color; //TODO Load button icon from file directory instead. //string directory = AppDomain.CurrentDomain.BaseDirectory;
                 parent.Controls.Add(b);
                 gazeAwareButtons.Add(b.Parent.Name + b.Name, b);
             };
 
-            foreach (var pt in paintTools)
+            Action<PaintTool> appendTool = (PaintTool pt) =>
             {
+                Button b = new Button();
+                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
+
+                // Attempt to load icon file
+                try
+                {
+                    Image icon = Image.FromFile(@"Resources/" + pt.iconImage, true);
+                    b.Image = icon; //string directory = AppDomain.CurrentDomain.BaseDirectory;
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                }
+
                 appendButton(
                     PaintToolsPanel,
-                    ProgramControlPanel.Controls[0].Height,
-                    Color.FromArgb(r.Next(255), r.Next(255), r.Next(255)),
-                    (object s, EventArgs e) => { model.ChangePaintTool(pt); }
+                    b,
+                    (object s, EventArgs e) =>
+                    {
+                        model.ChangePaintTool(pt);
+                    }
                 );
+            };
+
+            Action<ColorTool> appendColor = (ColorTool ct) =>
+            {
+                Button b = new Button();
+                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
+                b.BackColor = ct.baseColor;
+
+                appendButton(
+                    ColorToolsPanel,
+                    b,
+                    (object s, EventArgs e) =>
+                    {
+                        model.ChangeColorTool(ct);
+                        // TODO Implement original design with a snippet of the drawing
+                        // with gaussian blur and 50% white opacity overlay instead.
+                    }
+                );
+            };
+
+            foreach (var pt in paintTools)
+            {
+                appendTool(pt);
             }
 
             foreach (var ct in colorTools)
             {
-                appendButton(
-                    ColorToolsPanel,
-                    ProgramControlPanel.Controls[0].Height,
-                    ct.baseColor,
-                    (object s, EventArgs e) =>
-                    {
-                        model.ChangeColorTool(ct);
-                        MenuPanel.BackColor = ct.baseColor; //TODO Implement original design with a snippet of the drawing with gaussian blur and 50% white opacity overlay instead.
-                    }
-                );
+                appendColor(ct);
             }
         }
 

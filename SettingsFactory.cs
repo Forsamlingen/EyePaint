@@ -22,22 +22,22 @@ namespace EyePaint
             TreeTool woolTool = new TreeTool(0,
                                         "woolPaint",
                                         stringToToolType("TREE"),
-                                        "",
+                                        "sun.png",
                                         "WoolTree", 2, 500, 800, 25, 2, 0, 0);
             TreeTool polyTool = new TreeTool(1,
                                         "polyPaint",
                                         stringToToolType("TREE"),
-                                        "",
+                                        "bolt.png",
                                         "PolyTree", 25, 7, 800, 25, 2, 0, 0);
             TreeTool modernArtTool = new TreeTool(2,
                                         "modernArtPaint",
                                         stringToToolType("TREE"),
-                                        "",
+                                        "cloud.png",
                                         "ModernArtTree", 5, 4, 800, 100, 2, 5, 0);
             TreeTool cellNetTool = new TreeTool(3,
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
-                                        "",
+                                        "bullseye.png",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
             paintTools.Add(woolTool);
             paintTools.Add(polyTool);

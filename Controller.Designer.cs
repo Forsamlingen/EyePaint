@@ -236,10 +236,10 @@
         private System.Windows.Forms.Button SavePaintingButton;
         private System.Windows.Forms.Button ClearPaintingButton;
         private System.Windows.Forms.Button ColorButton;
+        private System.Windows.Forms.Button ToolButton;
         private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
         private System.Windows.Forms.FlowLayoutPanel ColorToolsPanel;
         private System.Windows.Forms.Panel MenuPanel;
-        private System.Windows.Forms.Button ToolButton;
     }
 }
 

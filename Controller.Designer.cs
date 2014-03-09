@@ -217,7 +217,7 @@
         private System.Windows.Forms.Button ToolPaneToggleButton;
         private System.Windows.Forms.FlowLayoutPanel PaintToolsPanel;
         private System.Windows.Forms.FlowLayoutPanel ColorToolsPanel;
-        private System.Windows.Forms.Panel Menu;
+        new private System.Windows.Forms.Panel Menu;
     }
 }
 

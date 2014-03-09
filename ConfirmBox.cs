@@ -23,7 +23,7 @@ namespace EyePaint
         }
 
         // Handle events from the EyeX engine.
-        new void handleInteractionEvent(InteractionEvent e)
+        override protected void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
             {

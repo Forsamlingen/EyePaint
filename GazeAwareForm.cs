@@ -94,7 +94,7 @@ namespace EyePaint
         }
 
         // Handle events from the EyeX engine.
-        protected void handleInteractionEvent(InteractionEvent e)
+        virtual protected void handleInteractionEvent(InteractionEvent e)
         {
             throw new NotImplementedException();
         }

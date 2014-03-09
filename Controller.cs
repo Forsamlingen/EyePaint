@@ -15,6 +15,7 @@
         Point gaze;
         bool paint;
         System.Windows.Forms.Timer paintTimer;
+        System.Windows.Forms.Timer inactivityTimer;
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
         Model model;
@@ -45,6 +46,19 @@
             paintTimer.Interval = 1;
             paintTimer.Enabled = true;
             paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
+
+            // Set timer for inactivity
+            inactivityTimer = new System.Windows.Forms.Timer();
+            inactivityTimer.Interval = 60000;
+            inactivityTimer.Enabled = true;
+            inactivityTimer.Tick += (object s, EventArgs e) =>
+            {
+                string msg = "Vill du starta om och börja på nytt?";
+                if (confirm(msg))
+                {
+                    Application.Restart();
+                }
+            };
 
             // Populate GUI with gaze enabled buttons.
             initializeMenu();

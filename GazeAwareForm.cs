@@ -23,13 +23,18 @@ namespace EyePaint
 
         public GazeAwareForm()
         {
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
             // Initialize eye tracking.
             context = new InteractionContext(false);
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
             initializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) =>
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
             {
-                if (e.State == ConnectionState.Connected)
+                if (ce.State == ConnectionState.Connected)
                 {
                     globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
                 }

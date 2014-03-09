@@ -148,8 +148,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\TobiiGazeSdk\TobiiGazeConfig32.dll" />
-    <Content Include="lib\TobiiGazeSdk\TobiiGazeCore32.dll" />
+    <Content Include="lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.dll" />
+    <Content Include="lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.Net20.dll" />
     <Content Include="Resources\bolt.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

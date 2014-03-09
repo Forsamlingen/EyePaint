@@ -21,7 +21,7 @@
         Model model;
         View view;
 
-        public EyePaintingForm()
+        public EyePaintingForm() : base()
         {
             InitializeComponent();
 
@@ -59,6 +59,11 @@
                     Application.Restart();
                 }
             };
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
 
             // Populate GUI with gaze enabled buttons.
             initializeMenu();

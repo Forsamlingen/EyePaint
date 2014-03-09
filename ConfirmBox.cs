@@ -17,7 +17,11 @@ namespace EyePaint
         public ConfirmBox() : base()
         {
             InitializeComponent();
+        }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
             gazeAwareButtons.Add(ConfirmButton.Parent.Name + ConfirmButton.Name, ConfirmButton);
             gazeAwareButtons.Add(AbortButton.Parent.Name + AbortButton.Name, AbortButton);
         }

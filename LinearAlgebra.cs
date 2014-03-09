@@ -10,35 +10,33 @@ namespace EyePaint
     public static class LinearAlgebra
     {
         /**
-         *Evaluates if the line between point A and B and the line between point C and D intersects
-         *
+         * Evaluates if the line between point A and B and the line between point C and D intersects
          **/
         public static bool LineSegmentIntersect(Point A, Point B, Point C, Point D)
         {
-            //check if any of the vectors are the 0-vector
+            // Check if any of the vectors are the 0-vector
             if ((A.X == B.X && A.Y == B.Y) || (C.X == D.X) && (C.Y == D.Y))
             {
                 return false;
             }
-            //  Fail if the segments share an end point.
-
+            // Fail if the segments share an end point.
             if (A.X == C.X && A.Y == C.Y || B.X == C.X && B.Y == C.Y
                 || A.X == D.X && A.Y == D.Y || B.X == D.X && B.Y == D.Y)
             {
                 return false;
             }
-            //Trnsform all points to a coordinate system where A is origo
+            // Transform all points to a coordinate system where A is origo
             B = TransformCoordinates(A, B);
             C = TransformCoordinates(A, C);
             D = TransformCoordinates(A, D);
             A = TransformCoordinates(A, A);
 
-            //  Discover the length of segment A-B.
+            // Discover the length of segment A-B.
             double distAB = Get2DVectorLength(GetVector(A, B));
-            //Change to double
+            // Change to double
             double Cx = C.X; double Cy = C.Y;
             double Dx = D.X; double Dy = D.Y;
-            //  (2) Rotate the system so that point B is on the positive X axis.
+            // (2) Rotate the system so that point B is on the positive X axis.
             double theCos = B.X / distAB;
             double theSin = B.Y / distAB;
             double newX = Cx * theCos + Cy * theSin;
@@ -51,23 +49,22 @@ namespace EyePaint
             double ABpos = Dx + (Cx - Dx) * Dy / (Dy - Cy);
             //  Fail if segment C-D crosses line A-B outside of segment A-B.
             if (ABpos < 0 || ABpos > distAB) return false;
-            //The line segments intersect
+            // The line segments intersect
             return true;
         }
+
         /**
          * Return the convex hull for the given list of points 
          **/
         public static Stack<Point> GetConvexHull(Point[] points)
         {
-            //Find point with lowex Y-coordinate
-
+            // Find point with lowest Y-coordinate
             Point minPoint = GetLowestPoint(points);
-            //Declare a refpoint where the (minPoint,refPoint) is paral,ell to the x-axis
+            // Declare a refpoint where the (minPoint,refPoint) is parallell to the x-axis
             Point refPoint = new Point(minPoint.X + 10, minPoint.Y);
 
-            //Create a vector of GrahamPoints by calculate the angle a for each point in points
-            //Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
-
+            // Create a vector of GrahamPoints by calculating the angle a for each point in points
+            // Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
             int size = points.Count();
 
             GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
@@ -112,7 +109,7 @@ namespace EyePaint
             return s;
         }
 
-        //Create struct to able to sort points by there angle a
+        // Create struct to able to sort points by there angle a
         struct GrahamPoint : IComparable<GrahamPoint>
         {
             public double angle;
@@ -130,13 +127,11 @@ namespace EyePaint
                 {
                     return 0;
                 }
-
                 if (angle < p1.angle)
                 {
                     return -1;
                 }
-
-                else //if(angle > p1.angle)
+                else
                 {
                     return 1;
                 }
@@ -150,10 +145,11 @@ namespace EyePaint
         {
             return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
         }
-        /*
-         * Return an angle in radians between teh vectors (p1,p2) and (q1,q2)
+
+        /**
+         * Return an angle in radians between the vectors (p1,p2) and (q1,q2)
          * If any of the vectors is of length zero, return zero
-         */
+         **/
         public static double GetAngleBetweenVectors(int[] P, int[] Q)
         {
             double lP = Get2DVectorLength(P);
@@ -198,7 +194,7 @@ namespace EyePaint
 
         /**
          * Transform the point to a coordinate system where the argumet origo have the cooridinate (0,0)
-        **/
+         **/
         public static Point TransformCoordinates(Point origo, Point point)
         {
             point.X -= origo.X;
@@ -228,6 +224,7 @@ namespace EyePaint
             }
             return minPoint;
         }
+
         static Point GrahamPointToPoint(GrahamPoint grahamPoint)
         {
             Point point = new Point(grahamPoint.point.X, grahamPoint.point.Y);

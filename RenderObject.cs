@@ -47,6 +47,7 @@ namespace EyePaint
             this.hullWidth = hullWidth;
             this.leafSize = leafSize;
         }
+
         internal abstract override void Rasterize(ref Canvas imageObject);
 
         protected void DrawBranches(ref Canvas imageObject)
@@ -111,7 +112,6 @@ namespace EyePaint
 
         internal override void Rasterize(ref Canvas imageObject)
         {
-
             FillHull(ref imageObject);
         }
     }
@@ -132,6 +132,7 @@ namespace EyePaint
                      color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
         {
         }
+
         internal override void Rasterize(ref Canvas imageObject)
         {
             DrawBranches(ref imageObject);
@@ -154,8 +155,8 @@ namespace EyePaint
             : base(
                      color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
         {
-
         }
+
         internal override void Rasterize(ref Canvas imageObject)
         {
             DrawBranches(ref imageObject);
@@ -177,8 +178,8 @@ namespace EyePaint
             : base(
                      color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
         {
-
         }
+
         internal override void Rasterize(ref Canvas imageObject)
         {
             DrawHull(ref imageObject);

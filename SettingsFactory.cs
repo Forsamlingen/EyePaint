@@ -14,7 +14,6 @@ namespace EyePaint
         {
         }
 
-
         // Return available paintTools
         internal List<PaintTool> getPaintTools()
         {
@@ -46,11 +45,11 @@ namespace EyePaint
             paintTools.Add(cellNetTool);
             return paintTools;
         }
+
         PaintToolType stringToToolType(string type)
         {
             switch (type)
             {
-
                 case "TREE":
                     return PaintToolType.TREE;
                 default:
@@ -122,7 +121,6 @@ namespace EyePaint
         }
     }
 
-
     internal class ColorTool
     {
         internal readonly int id;
@@ -166,7 +164,6 @@ namespace EyePaint
             Color c = ColorFromHSV(opacity, randomHue, randomSaturation, randomValue);
             return c;
         }
-
 
         Color ColorFromHSV(int opacity, double hue, double saturation, double value)
         {

@@ -222,6 +222,7 @@
         void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
+            {
                 if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
                 {
                     GazePointDataEventParams r;
@@ -238,6 +239,7 @@
                         if (hasGaze) BeginInvoke(a);
                     }
                 }
+            }
         }
 
         // Focus the button, wait a short period of time and if the button is still focused: click it.

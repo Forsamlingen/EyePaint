@@ -135,22 +135,25 @@
   <ItemGroup>
     <Content Include="lib\TobiiGazeSdk\TobiiGazeConfig32.dll" />
     <Content Include="lib\TobiiGazeSdk\TobiiGazeCore32.dll" />
-    <Content Include="Resources\new.JPG">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Resources\bolt.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\color.JPG">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Resources\bullseye.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\exit.JPG">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Resources\cloud.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\save.JPG">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Resources\color.png" />
+    <Content Include="Resources\exit.png" />
+    <Content Include="Resources\new.png" />
+    <Content Include="Resources\save.png" />
+    <Content Include="Resources\sun.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\tool.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\Icons\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.Net20.dll" "$(TargetDir)"

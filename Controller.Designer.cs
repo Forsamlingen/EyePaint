@@ -202,6 +202,9 @@
             this.ToolButton.TabIndex = 4;
             this.ToolButton.TabStop = false;
             this.ToolButton.Visible = false;
+            this.ToolButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.ToolButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.ToolButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // EyePaintingForm
             // 

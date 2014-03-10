@@ -41,7 +41,7 @@
                 if (e.KeyCode == Keys.Space)
                 {
                     stopPainting();
-                    greenButtonPressed(e);
+                    onGreenButtonPress(e);
                 }
             };
             MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
@@ -97,7 +97,7 @@
             context.EnableConnection();
         }
 
-        void greenButtonPressed(KeyEventArgs e)
+        void onGreenButtonPress(KeyEventArgs e)
         {
             if (menuActive && activeButton != null)
             {
@@ -156,7 +156,7 @@
             getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        private bool confirm(String msg)
+        bool confirm(String msg)
         {
             using (ConfirmBox dialog = new ConfirmBox())
             {

@@ -112,7 +112,7 @@ namespace EyePaint
                     {
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
                         Action a = () => gazeAwareButtons[e.InteractorId].Focus();
-                        if (hasGaze) BeginInvoke(a);
+                        if (IsHandleCreated && hasGaze) BeginInvoke(a);
                     }
                 }
             }

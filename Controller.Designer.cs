@@ -34,10 +34,10 @@
             this.SavePaintingButton = new System.Windows.Forms.Button();
             this.ClearPaintingButton = new System.Windows.Forms.Button();
             this.ColorButton = new System.Windows.Forms.Button();
+            this.ToolButton = new System.Windows.Forms.Button();
             this.PaintToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.ColorToolsPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.MenuPanel = new System.Windows.Forms.Panel();
-            this.ToolButton = new System.Windows.Forms.Button();
             this.ProgramControlPanel.SuspendLayout();
             this.MenuPanel.SuspendLayout();
             this.SuspendLayout();
@@ -128,6 +128,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ColorButton.AutoSize = true;
+            this.ColorButton.BackColor = System.Drawing.Color.Transparent;
             this.ColorButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.ColorButton.FlatAppearance.BorderSize = 10;
             this.ColorButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -139,9 +140,32 @@
             this.ColorButton.Size = new System.Drawing.Size(150, 150);
             this.ColorButton.TabIndex = 3;
             this.ColorButton.TabStop = false;
+            this.ColorButton.UseVisualStyleBackColor = false;
             this.ColorButton.Click += new System.EventHandler(this.onButtonClicked);
             this.ColorButton.Enter += new System.EventHandler(this.onButtonFocus);
             this.ColorButton.Leave += new System.EventHandler(this.onButtonBlur);
+            // 
+            // ToolButton
+            // 
+            this.ToolButton.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ToolButton.AutoSize = true;
+            this.ToolButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.ToolButton.FlatAppearance.BorderSize = 10;
+            this.ToolButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ToolButton.Image = ((System.Drawing.Image)(resources.GetObject("ToolButton.Image")));
+            this.ToolButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.ToolButton.Location = new System.Drawing.Point(600, 0);
+            this.ToolButton.Margin = new System.Windows.Forms.Padding(0);
+            this.ToolButton.Name = "ToolButton";
+            this.ToolButton.Size = new System.Drawing.Size(150, 150);
+            this.ToolButton.TabIndex = 4;
+            this.ToolButton.TabStop = false;
+            this.ToolButton.Visible = false;
+            this.ToolButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.ToolButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.ToolButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // PaintToolsPanel
             // 
@@ -167,7 +191,7 @@
             this.ColorToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.ColorToolsPanel.TabIndex = 4;
             this.ColorToolsPanel.Visible = false;
-            //
+            // 
             // MenuPanel
             // 
             this.MenuPanel.AutoSize = true;
@@ -183,28 +207,6 @@
             this.MenuPanel.Name = "MenuPanel";
             this.MenuPanel.Size = new System.Drawing.Size(1284, 150);
             this.MenuPanel.TabIndex = 6;
-            // 
-            // ToolButton
-            // 
-            this.ToolButton.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ToolButton.AutoSize = true;
-            this.ToolButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
-            this.ToolButton.FlatAppearance.BorderSize = 10;
-            this.ToolButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ToolButton.Image = ((System.Drawing.Image)(resources.GetObject("ToolButton.Image")));
-            this.ToolButton.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.ToolButton.Location = new System.Drawing.Point(600, 0);
-            this.ToolButton.Margin = new System.Windows.Forms.Padding(0);
-            this.ToolButton.Name = "ToolButton";
-            this.ToolButton.Size = new System.Drawing.Size(150, 150);
-            this.ToolButton.TabIndex = 4;
-            this.ToolButton.TabStop = false;
-            this.ToolButton.Visible = false;
-            this.ToolButton.Click += new System.EventHandler(this.onButtonClicked);
-            this.ToolButton.Enter += new System.EventHandler(this.onButtonFocus);
-            this.ToolButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // EyePaintingForm
             // 
@@ -229,6 +231,7 @@
             this.MenuPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         #endregion

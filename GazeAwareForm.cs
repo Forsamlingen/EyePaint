@@ -104,21 +104,6 @@ namespace EyePaint
             throw new NotImplementedException();
         }
 
-        // Focus the button, wait a short period of time and if the button is still focused: click it.
-        protected void clickCountdown(Button b)
-        {
-            b.Focus();
-            System.Timers.Timer waitBeforeClick = new System.Timers.Timer(1000); // One second.
-
-            waitBeforeClick.Elapsed += (object sender, ElapsedEventArgs e) =>
-            {
-                Action a = () => { if (b.Focused) b.PerformClick(); };
-                BeginInvoke(a);
-                waitBeforeClick.Enabled = false;
-            };
-            waitBeforeClick.Enabled = true;
-        }
-
         protected void onButtonFocus(object s, EventArgs e)
         {
             //TODO Animate

@@ -259,7 +259,7 @@
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
-                        Action a = () => clickCountdown(gazeAwareButtons[e.InteractorId]);
+                        Action a = () => gazeAwareButtons[e.InteractorId].Focus();
                         if (hasGaze) BeginInvoke(a);
                     }
                 }

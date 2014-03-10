@@ -33,10 +33,10 @@
 
             // Register user input event handlers.
             KeyDown += (object s, KeyEventArgs e) => {
-                if (e.KeyCode == Keys.ControlKey) startPainting();
+                if (e.KeyCode == Keys.Space) startPainting();
             };
             KeyUp += (object s, KeyEventArgs e) => {
-                if (e.KeyCode == Keys.ControlKey)
+                if (e.KeyCode == Keys.Space)
                 {
                     stopPainting();
                     greenButtonPressed(e);
@@ -93,12 +93,13 @@
             context.EnableConnection();
         }
 
-        void greenButtonPressed(EventArgs e)
+        void greenButtonPressed(KeyEventArgs e)
         {
             if (menuActive)
             {
                 activeButton.PerformClick();
             }
+            e.Handled = e.SuppressKeyPress = true;
         }
 
         // Start painting.

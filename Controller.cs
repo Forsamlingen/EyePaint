@@ -15,11 +15,13 @@
         Point gaze;
         bool paint;
         bool menuActive;
-        Button activeButton;
         System.Windows.Forms.Timer paintTimer;
         System.Windows.Forms.Timer inactivityTimer;
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
+        Button activeButton;
+        List<Button> toolButtons;
+        List<Button> colorButtons;
         Model model;
         View view;
 
@@ -70,6 +72,8 @@
                 Application.Restart();
             };
 
+            toolButtons = new List<Button>();
+            colorButtons = new List<Button>();
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
             initializeMenu();
         }
@@ -95,9 +99,20 @@
 
         void greenButtonPressed(KeyEventArgs e)
         {
-            if (menuActive)
+            if (menuActive && activeButton != null)
             {
                 activeButton.PerformClick();
+                // Mark as active color or tool
+                if (colorButtons.Contains(activeButton))
+                {
+                    foreach (Button b in colorButtons) b.BackColor = Color.Transparent;
+                    activeButton.BackColor = Color.Turquoise;
+                }
+                else if (toolButtons.Contains(activeButton))
+                {
+                    foreach (Button b in toolButtons) b.BackColor = Color.Transparent;
+                    activeButton.BackColor = Color.Turquoise;
+                }
             }
             e.Handled = e.SuppressKeyPress = true;
         }
@@ -219,6 +234,7 @@
             Action<PaintTool> appendTool = (PaintTool pt) =>
             {
                 Button b = new Button();
+                toolButtons.Add(b);
                 b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
 
                 // Attempt to load icon file
@@ -244,6 +260,7 @@
             Action<ColorTool> appendColor = (ColorTool ct) =>
             {
                 Button b = new Button();
+                colorButtons.Add(b);
                 b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
                 b.BackColor = ct.baseColor;
 

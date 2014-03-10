@@ -26,7 +26,7 @@ namespace EyePaint
             while (renderQueue.Count() != 0)
             {
                 RenderObject renderObject = renderQueue.Dequeue();
-                renderObject.Rasterize(ref imageObject);
+                renderObject.Rasterize(ref imageObject); // TODO: Sometimes crashes program. Wrap in try/catch.
             }
 
             return imageObject.image;

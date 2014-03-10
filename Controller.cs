@@ -14,6 +14,8 @@
     {
         Point gaze;
         bool paint;
+        bool menuActive;
+        Button activeButton;
         System.Windows.Forms.Timer paintTimer;
         System.Windows.Forms.Timer inactivityTimer;
         List<PaintTool> paintTools;
@@ -30,8 +32,16 @@
             InitializeComponent();
 
             // Register user input event handlers.
-            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) startPainting(); };
-            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) stopPainting(); };
+            KeyDown += (object s, KeyEventArgs e) => {
+                if (e.KeyCode == Keys.ControlKey) startPainting();
+            };
+            KeyUp += (object s, KeyEventArgs e) => {
+                if (e.KeyCode == Keys.ControlKey)
+                {
+                    stopPainting();
+                    greenButtonPressed(e);
+                }
+            };
             MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
             MouseDown += (object s, MouseEventArgs e) => startPainting();
             MouseUp += (object s, MouseEventArgs e) => stopPainting();
@@ -83,9 +93,18 @@
             context.EnableConnection();
         }
 
+        void greenButtonPressed(EventArgs e)
+        {
+            if (menuActive)
+            {
+                activeButton.PerformClick();
+            }
+        }
+
         // Start painting.
         void startPainting()
         {
+            if (menuActive) return;
             if (paint) return;
             paint = true;
             trackGaze(gaze, paint, 0);
@@ -286,23 +305,31 @@
                     InteractionSnapshot s = context.CreateSnapshotWithQueryBounds(q);
                     s.AddWindowId(Handle.ToString());
 
-                    // Create a new gaze aware interactor for buttons within the query bounds.
-                    foreach (var e in gazeAwareButtons)
+                    // Determine if the user is looking at the menu or the canvas
+                    menuActive = false;
+                    var menuBounds = MenuPanel.RectangleToScreen(MenuPanel.Bounds);
+                    if (!paint && menuBounds.IntersectsWith(queryBounds))
                     {
-                        Button b = e.Value;
-                        if (!b.Visible) continue;
-                        InteractorId id = e.Key;
-                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
-                        if (buttonBounds.IntersectsWith(queryBounds))
+                        menuActive = true;
+
+                        // Create a new gaze aware interactor for buttons within the query bounds.
+                        foreach (var e in gazeAwareButtons)
                         {
-                            Interactor i = s.CreateInteractor(id, Literals.RootId, Handle.ToString());
-                            i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
-                                buttonBounds.Left,
-                                buttonBounds.Top,
-                                buttonBounds.Width,
-                                buttonBounds.Height
-                            );
-                            i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                            Button b = e.Value;
+                            if (!b.Visible) continue;
+                            InteractorId id = e.Key;
+                            var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
+                            if (buttonBounds.IntersectsWith(queryBounds))
+                            {
+                                Interactor i = s.CreateInteractor(id, Literals.RootId, Handle.ToString());
+                                i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                                    buttonBounds.Left,
+                                    buttonBounds.Top,
+                                    buttonBounds.Width,
+                                    buttonBounds.Height
+                                );
+                                i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                            }
                         }
                     }
 
@@ -331,7 +358,11 @@
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
-                        Action a = () => gazeAwareButtons[e.InteractorId].Focus();
+                        Action a = () =>
+                        {
+                            activeButton = gazeAwareButtons[e.InteractorId];
+                            activeButton.Focus();
+                        };
                         if (hasGaze) BeginInvoke(a);
                     }
                 }

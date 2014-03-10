@@ -11,12 +11,10 @@ namespace EyePaint
      * This class represent a model that constructs renderObjects that could
      * rasterize themself on a given bitmap.
      * Which renderObjects that are created  depend on the present PaintTool used.
-     * 
      **/
     class Model
     {
         Dictionary<PaintToolType, BaseFactory> Factories;
-        
         BaseFactory currentFactory;
         ColorTool currentColorTool;
 
@@ -40,6 +38,7 @@ namespace EyePaint
             Factories = new Dictionary<PaintToolType, BaseFactory>();
             Factories.Add(PaintToolType.TREE, new TreeFactory(initColorTool));
         }
+
         internal Queue<RenderObject> GetRenderQueue()
         {
             return currentFactory.GetRenderQueue();
@@ -53,7 +52,6 @@ namespace EyePaint
         internal void ChangePaintTool(PaintTool newPaintTool)
         {
             ClearRenderQueue();
-
             Factories[newPaintTool.type].ChangePaintTool(newPaintTool, currentColorTool);
             currentFactory = Factories[newPaintTool.type];
         }
@@ -86,6 +84,7 @@ namespace EyePaint
             currentFactory.ResetFactory();
         }
     }
+
     abstract class BaseFactory
     {
         protected ColorTool presentColorTool;
@@ -97,26 +96,19 @@ namespace EyePaint
 
         internal abstract void Add(Point p, bool alwaysAdd);
         internal abstract void Grow();
-
         internal abstract Queue<RenderObject> GetRenderQueue();
-
         internal abstract void ClearRenderQueue();
-
         //TODO see if logic for this could be done clearer
         internal abstract void ChangePaintTool(PaintTool newTool, ColorTool presentColorTool);
-
         internal abstract void ChangeColorTool(ColorTool newColorTool);
-
         internal abstract void ResetFactory();
     }
 
     class TreeFactory : BaseFactory
     {
-        //Todo check if possible to use tree instead
+        // TODO: check if possible to use tree instead
         Queue<RenderObject> renderQueue;
-
-        int offset_distance = 0;           // distance from the convex hull
-
+        int offset_distance = 0; // distance from the convex hull
         static Random random = new Random();
         Tree currentTree;
         bool treeAdded = false;
@@ -138,6 +130,7 @@ namespace EyePaint
         {
             return renderQueue;
         }
+
         internal override void Add(Point root, bool alwaysAdd)
         {
             if (alwaysAdd || !PointInsideTree(root))
@@ -149,8 +142,7 @@ namespace EyePaint
             }
         }
 
-   
-        /*
+        /**
          * Update renderQuee with a EP-tree representing the next generation of the last tree created
          */
         internal override void Grow()
@@ -164,14 +156,17 @@ namespace EyePaint
                 {
                     return;
                 }
+
                 Tree lastTree = currentTree;
                 Point[] newLeaves = new Point[nLeaves];
+
                 // Grow all branches
                 for (int i = 0; i < nLeaves; i++)
                 {
                     Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root, presentTreeTool.branchLength);
                     newLeaves[i] = newLeaf;
                 }
+
                 Tree grownTree = CreateTree(lastTree.color, lastTree.root, newLeaves, lastTree.leaves);
                 grownTree.generation = currentTree.generation + 1;
                 currentTree = grownTree;
@@ -185,12 +180,11 @@ namespace EyePaint
         internal override void ChangePaintTool(PaintTool newTreeTool, ColorTool presentColorTool)
         {
             TreeTool newTool = (TreeTool)newTreeTool; // TODO Is there any way TODO this without casting?
-
             treeAdded = false;
-
             this.presentTreeTool = newTool;
             this.presentColorTool = presentColorTool;
         }
+
         internal override void ChangeColorTool(ColorTool newColorTool)
         {
             presentColorTool = newColorTool;
@@ -215,7 +209,6 @@ namespace EyePaint
                 case "PolyTree":
                     tree = new PolyTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
                     break;
-
                 case "WoolTree":
                     tree = new WoolTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
                     break;
@@ -231,22 +224,22 @@ namespace EyePaint
             return tree;
         }
 
-        /*
+        /**
          * A default tree is the base of any tree. It consists of a root, 
          * where the gaze point is, surrounded by a set number of leaves to start with.
          */
-
         Tree CreateDefaultTree(Point root)
         {
             int nLeaves = presentTreeTool.nLeaves;
             int branchLength = presentTreeTool.branchLength;
+
             // All the start leaves will have the root as parent
             Point[] previousGen = new Point[nLeaves];
-            for (int i = 0; i < nLeaves; i++)
-                previousGen[i] = root;
+            for (int i = 0; i < nLeaves; i++) previousGen[i] = root;
 
             Point[] startLeaves = new Point[nLeaves];
             double v = 0;
+
             // Create a set number of leaves with the root of of the tree as parent to all of them
             for (int i = 0; i < nLeaves; i++)
             {
@@ -260,30 +253,31 @@ namespace EyePaint
             Color treeColor = presentColorTool.getRandomShade(presentTreeTool.opacity);
             return CreateTree(treeColor, root, startLeaves, previousGen);
         }
-        /*
+
+        /**
          * Return a point representing a leaf that is 
          * grown outwards from the root.
          */
         Point GetLeaf(Point parent, Point root, int branchLength)
         {
-            //Declare an origo point
+            // Declare an origo point
             Point origo = new Point(0, 0);
-            //Declare a vector of length 1  from the root out on the positve x-axis.
+            // Declare a vector of length 1  from the root out on the positve x-axis.
             int[] xAxisVector = new int[2] { 1, 0 };
 
-            //Transform to cooridninatesystem where root is origo
+            // Transform to cooridninatesystem where root is origo
             parent = LinearAlgebra.TransformCoordinates(root, parent);
-            // parentVector is the vector between the origo and the parent-point
+            // ParentVector is the vector between the origo and the parent-point
             int[] parentVector = LinearAlgebra.GetVector(origo, parent);
 
-            // the child vector is the vector between the root and the leaf we want calculate the coordinates for 
+            // The child vector is the vector between the root and the leaf we want calculate the coordinates for 
             int[] childVector = new int[2];
 
             // r is the length of the parent vector
             double r = LinearAlgebra.Get2DVectorLength(parentVector);
 
-            //Calculate the angle v1 between parent vector and the x-axis vector
-            //using the dot-product.
+            // Calculate the angle v1 between parent vector and the x-axis vector
+            // using the dot-product.
             double v1 = LinearAlgebra.GetAngleBetweenVectors(parentVector, xAxisVector);
 
             // If v1 is in the 3rd or 4th quadrant, we calculate the radians between the positive x-axis and the parent vector anti-clockwise
@@ -293,11 +287,11 @@ namespace EyePaint
             }
             // x is the maximal angle possible between the parent vector and the child vector if the tree is not alloved to grow inwards.
             double x = Math.Atan(branchLength / r);
-            //v2 is the angle between the child vector and the positve x-axis.
-            //it is chosen randomly between the interval that only allows the tree to grow outwards
+            // v2 is the angle between the child vector and the positve x-axis.
+            // It is chosen randomly between the interval that only allows the tree to grow outwards
             double v2 = random.NextDouble() * 2 * x + (v1 - x);
             // In a triangle (T) with the corners at origo, the parent point and the leaf, v3 is the angle between the
-            //child vector and the parent vector
+            // child vector and the parent vector
             double v3 = v2 - v1;
             // v4 is the angle opposite to the parent vector in triangle T
             double v4 = Math.Asin(r * Math.Sin(v3) / branchLength);
@@ -328,7 +322,7 @@ namespace EyePaint
             }
 
             Point[] points = new Point[currentTree.nLeaves];
-            //Transform leaves to cordinate system where root is origo
+            // Transform leaves to cordinate system where root is origo
             for (int i = 0; i < currentTree.nLeaves; i++)
             {
                 Point p = LinearAlgebra.TransformCoordinates(currentTree.root, currentTree.leaves[i]);
@@ -336,13 +330,12 @@ namespace EyePaint
             }
 
             evalPoint = LinearAlgebra.TransformCoordinates(currentTree.root, evalPoint);
-
             Stack<Point> s = LinearAlgebra.GetConvexHull(points);
 
-            //check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
+            // Check if a line (root-evalPoint) intersects with any of the lines representing the convex hull
             Point hullStart = s.Pop();
             Point p1 = hullStart;
-            Point p2 = hullStart;//Needed to be assigned, should allways changed by while-loop below if nLeaves in tree>2
+            Point p2 = hullStart;//Needed to be assigned, should always changed by while-loop below if nLeaves in tree>2
             Point origo = new Point(0, 0);
             while (s.Count() != 0)
             {
@@ -361,7 +354,5 @@ namespace EyePaint
 
             return true;
         }
-
     }
-
 }

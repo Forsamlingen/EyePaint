@@ -167,7 +167,7 @@
             this.ColorToolsPanel.Size = new System.Drawing.Size(0, 150);
             this.ColorToolsPanel.TabIndex = 4;
             this.ColorToolsPanel.Visible = false;
-            // 
+            //
             // MenuPanel
             // 
             this.MenuPanel.AutoSize = true;
@@ -202,6 +202,9 @@
             this.ToolButton.TabIndex = 4;
             this.ToolButton.TabStop = false;
             this.ToolButton.Visible = false;
+            this.ToolButton.Click += new System.EventHandler(this.onButtonClicked);
+            this.ToolButton.Enter += new System.EventHandler(this.onButtonFocus);
+            this.ToolButton.Leave += new System.EventHandler(this.onButtonBlur);
             // 
             // EyePaintingForm
             // 
@@ -226,7 +229,6 @@
             this.MenuPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

@@ -78,8 +78,5 @@ namespace EyePaint
             using (Graphics g = Graphics.FromImage(image))
                 g.FillPolygon(b, vertices);
         }
-
     }
-
-
 }

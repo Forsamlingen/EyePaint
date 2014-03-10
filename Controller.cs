@@ -12,33 +12,26 @@
 
     public partial class EyePaintingForm : Form
     {
-        InteractionContext context;
-        InteractionSnapshot globalInteractorSnapshot;
-        Dictionary<InteractorId, Button> gazeAwareButtons;
         Point gaze;
         bool paint;
         System.Windows.Forms.Timer paintTimer;
+        System.Windows.Forms.Timer inactivityTimer;
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
         Model model;
         View view;
 
+        InteractionContext context;
+        InteractionSnapshot globalInteractorSnapshot;
+        Dictionary<InteractorId, Button> gazeAwareButtons;
+
         public EyePaintingForm()
         {
             InitializeComponent();
 
-            // Initialize eye tracking.
-            context = new InteractionContext(false);
-            gazeAwareButtons = new Dictionary<InteractorId, Button>();
-            initializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs e) => { if (e.State == ConnectionState.Connected) globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { }); };
-            context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
-            context.RegisterEventHandler(handleInteractionEvent);
-            context.EnableConnection();
-
             // Register user input event handlers.
-            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) startPainting(); };
-            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) stopPainting(); };
+            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) startPainting(); };
+            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) stopPainting(); };
             MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
             MouseDown += (object s, MouseEventArgs e) => startPainting();
             MouseUp += (object s, MouseEventArgs e) => stopPainting();
@@ -50,15 +43,44 @@
             model = new Model(paintTools[0], colorTools[0]);
             view = new View(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
-            // Create a paint event handler with a corresponding timer. The timer is the paint refresh interval (similar to rendering FPS).
+            // Create a paint event handler with a corresponding timer. The timer is the
+            // paint refresh interval (similar to rendering FPS).
             Paint += (object s, PaintEventArgs e) => { e.Graphics.DrawImage(getPainting(), 0, 0); };
             paintTimer = new System.Windows.Forms.Timer();
             paintTimer.Interval = 1;
             paintTimer.Enabled = true;
             paintTimer.Tick += (object s, EventArgs e) => { if (paint) model.Grow(); Invalidate(); };
 
-            // Populate GUI with gaze enabled buttons.
+            // Set timer for inactivity
+            inactivityTimer = new System.Windows.Forms.Timer();
+            inactivityTimer.Interval = 15 * 60000;
+            inactivityTimer.Enabled = true;
+            inactivityTimer.Tick += (object s, EventArgs e) =>
+            {
+                Application.Restart();
+            };
+
+            gazeAwareButtons = new Dictionary<InteractorId, Button>();
             initializeMenu();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+
+            // Initialize eye tracking.
+            context = new InteractionContext(false);
+            initializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
+            {
+                if (ce.State == ConnectionState.Connected)
+                {
+                    globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
+                }
+            };
+            context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
+            context.RegisterEventHandler(handleInteractionEvent);
+            context.EnableConnection();
         }
 
         // Start painting.
@@ -67,12 +89,14 @@
             if (paint) return;
             paint = true;
             trackGaze(gaze, paint, 0);
+            inactivityTimer.Stop();
         }
 
         // Stop painting.
         void stopPainting()
         {
             paint = false;
+            inactivityTimer.Start();
         }
 
         // Rasterize the model and return an image object.
@@ -92,34 +116,48 @@
         void storePainting()
         {
             string filename = DateTime.Now.TimeOfDay.TotalSeconds + ".png";
-            //TODO Check if file with same name already exists, and if so: increment new file with index.
+            // TODO Check if file with same name already exists, and if so: increment
+            // new file with index.
             getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
         }
 
-        // Track gaze point if it's far away enough from the previous point, and add it to the model if the user wants to.
-        void trackGaze(Point p, bool keep = true, int keyhole = 25)
+        private bool confirm(String msg)
         {
-            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
-            if (distance < keyhole) return;
-            gaze = p;
-            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+            using (ConfirmBox dialog = new ConfirmBox())
+            {
+                DialogResult result = dialog.Show(this, msg);
+                if (result == DialogResult.OK)
+                {
+                    return true;
+                }
+                return false;
+            }
         }
 
         // Registers GUI click event handlers and populates the GUI with buttons for choosing color/paint-tools.
         void initializeMenu()
         {
-            // Register click event handlers for the program menu.
+            // Define and register click event handlers for the program menu.
             NewSessionButton.Click += (object s, EventArgs e) => {
-                //TODO Show confirmation dialog before committing to exiting the program.
-                Application.Restart();
+                String msg = "Är du säker på att du vill starta om?";
+                if (confirm(msg))
+                {
+                    Application.Restart();
+                }
             };
             SavePaintingButton.Click += (object s, EventArgs e) => {
-                //TODO Show confirmation dialog before commiting to store the painting.
-                storePainting();
+                String msg = "Vill du spara din målning?";
+                if (confirm(msg))
+                {
+                    storePainting();
+                }
             };
             ClearPaintingButton.Click += (object s, EventArgs e) => {
-                //TODO Show confirmation dialog before clearing the drawing.
-                resetPainting();
+                String msg = "Vill du sudda allt och börja om?";
+                if (confirm(msg))
+                {
+                    resetPainting();
+                }
             };
             ColorButton.Click += (object s, EventArgs e) => {
                 ColorButton.Visible = false;
@@ -167,7 +205,7 @@
                 try
                 {
                     Image icon = Image.FromFile(@"Resources/" + pt.iconImage, true);
-                    b.Image = icon; //string directory = AppDomain.CurrentDomain.BaseDirectory;
+                    b.Image = icon;
                 }
                 catch (System.IO.FileNotFoundException)
                 {
@@ -210,6 +248,16 @@
             {
                 appendColor(ct);
             }
+        }
+
+        // Track gaze point if it's far away enough from the previous point, and add it
+        // to the model if the user wants to.
+        void trackGaze(Point p, bool keep = true, int keyhole = 25)
+        {
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
+            gaze = p;
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         // Initialize a global interactor snapshot that this application responds to the EyeX engine with whenever queried.
@@ -262,7 +310,7 @@
                     s.Commit((InteractionSnapshotResult isr) => { });
                 };
 
-                BeginInvoke(a); // Run on UI thread.
+                if (IsHandleCreated) BeginInvoke(a); // Run on UI thread.
             }
         }
 
@@ -270,6 +318,7 @@
         void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
+            {
                 if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)
                 {
                     GazePointDataEventParams r;
@@ -282,25 +331,11 @@
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         bool hasGaze = r.HasGaze != EyeXBoolean.False;
-                        Action a = () => clickCountdown(gazeAwareButtons[e.InteractorId]);
+                        Action a = () => gazeAwareButtons[e.InteractorId].Focus();
                         if (hasGaze) BeginInvoke(a);
                     }
                 }
-        }
-
-        // Focus the button, wait a short period of time and if the button is still focused: click it.
-        void clickCountdown(Button b)
-        {
-            b.Focus();
-            System.Timers.Timer waitBeforeClick = new System.Timers.Timer(1000); // One second.
-
-            waitBeforeClick.Elapsed += (object sender, ElapsedEventArgs e) =>
-            {
-                Action a = () => { if (b.Focused) b.PerformClick(); };
-                BeginInvoke(a);
-                waitBeforeClick.Enabled = false;
-            };
-            waitBeforeClick.Enabled = true;
+            }
         }
 
         void onButtonFocus(object s, EventArgs e)

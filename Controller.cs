@@ -382,7 +382,7 @@
                             activeButton = gazeAwareButtons[e.InteractorId];
                             activeButton.Focus();
                         };
-                        if (hasGaze) BeginInvoke(a);
+                        if (IsHandleCreated && hasGaze) BeginInvoke(a);
                     }
                 }
             }

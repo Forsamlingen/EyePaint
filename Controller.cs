@@ -10,7 +10,7 @@
     using InteractorId = System.String;
     using System.Timers; //TODO typedef equivalent?
 
-    public partial class EyePaintingForm : GazeAwareForm
+    public partial class EyePaintingForm : Form
     {
         Point gaze;
         bool paint;
@@ -21,13 +21,17 @@
         Model model;
         View view;
 
-        public EyePaintingForm() : base()
+        InteractionContext context;
+        InteractionSnapshot globalInteractorSnapshot;
+        Dictionary<InteractorId, Button> gazeAwareButtons;
+
+        public EyePaintingForm()
         {
             InitializeComponent();
 
             // Register user input event handlers.
-            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) startPainting(); };
-            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.ControlKey) stopPainting(); };
+            KeyDown += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) startPainting(); };
+            KeyUp += (object s, KeyEventArgs e) => { if (e.KeyCode == Keys.Space) stopPainting(); };
             MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(e.X, e.Y), paint, 0);
             MouseDown += (object s, MouseEventArgs e) => startPainting();
             MouseUp += (object s, MouseEventArgs e) => stopPainting();
@@ -55,14 +59,28 @@
             {
                 Application.Restart();
             };
+
+            gazeAwareButtons = new Dictionary<InteractorId, Button>();
+            initializeMenu();
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            // Populate GUI with gaze enabled buttons.
-            initializeMenu();
+            // Initialize eye tracking.
+            context = new InteractionContext(false);
+            initializeGlobalInteractorSnapshot();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
+            {
+                if (ce.State == ConnectionState.Connected)
+                {
+                    globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
+                }
+            };
+            context.RegisterQueryHandlerForCurrentProcess(handleInteractionQuery);
+            context.RegisterEventHandler(handleInteractionEvent);
+            context.EnableConnection();
         }
 
         // Start painting.
@@ -101,16 +119,6 @@
             // TODO Check if file with same name already exists, and if so: increment
             // new file with index.
             getPainting().Save(filename, System.Drawing.Imaging.ImageFormat.Png);
-        }
-
-        // Track gaze point if it's far away enough from the previous point, and add it
-        // to the model if the user wants to.
-        void trackGaze(Point p, bool keep = true, int keyhole = 25)
-        {
-            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
-            if (distance < keyhole) return;
-            gaze = p;
-            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         private bool confirm(String msg)
@@ -242,8 +250,72 @@
             }
         }
 
+        // Track gaze point if it's far away enough from the previous point, and add it
+        // to the model if the user wants to.
+        void trackGaze(Point p, bool keep = true, int keyhole = 25)
+        {
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
+            gaze = p;
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+        }
+
+        // Initialize a global interactor snapshot that this application responds to the EyeX engine with whenever queried.
+        void initializeGlobalInteractorSnapshot()
+        {
+            globalInteractorSnapshot = context.CreateSnapshot();
+            globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
+            globalInteractorSnapshot.AddWindowId(Literals.GlobalInteractorWindowId);
+            var interactor = globalInteractorSnapshot.CreateInteractor(Application.ProductName, Literals.RootId, Literals.GlobalInteractorWindowId);
+            interactor.CreateBounds(InteractionBoundsType.None);
+            var behavior = interactor.CreateBehavior(InteractionBehaviorType.GazePointData);
+            var parameters = new GazePointDataParams() { GazePointDataMode = GazePointDataMode.LightlyFiltered };
+            behavior.SetGazePointDataOptions(ref parameters);
+        }
+
+        // Create a snapshot for the EyeX engine when queried.
+        void handleInteractionQuery(InteractionQuery q)
+        {
+            double x, y, w, h;
+            if (q.Bounds.TryGetRectangularData(out x, out y, out w, out h))
+            {
+                var queryBounds = new Rectangle((int)x, (int)y, (int)w, (int)h);
+                Action a = () =>
+                {
+                    // Prepare a new snapshot.
+                    InteractionSnapshot s = context.CreateSnapshotWithQueryBounds(q);
+                    s.AddWindowId(Handle.ToString());
+
+                    // Create a new gaze aware interactor for buttons within the query bounds.
+                    foreach (var e in gazeAwareButtons)
+                    {
+                        Button b = e.Value;
+                        if (!b.Visible) continue;
+                        InteractorId id = e.Key;
+                        var buttonBounds = b.Parent.RectangleToScreen(b.Bounds);
+                        if (buttonBounds.IntersectsWith(queryBounds))
+                        {
+                            Interactor i = s.CreateInteractor(id, Literals.RootId, Handle.ToString());
+                            i.CreateBounds(InteractionBoundsType.Rectangular).SetRectangularData(
+                                buttonBounds.Left,
+                                buttonBounds.Top,
+                                buttonBounds.Width,
+                                buttonBounds.Height
+                            );
+                            i.CreateBehavior(InteractionBehaviorType.GazeAware);
+                        }
+                    }
+
+                    // Send the snapshot to the eye tracking server.
+                    s.Commit((InteractionSnapshotResult isr) => { });
+                };
+
+                if (IsHandleCreated) BeginInvoke(a); // Run on UI thread.
+            }
+        }
+
         // Handle events from the EyeX engine.
-        override protected void handleInteractionEvent(InteractionEvent e)
+        void handleInteractionEvent(InteractionEvent e)
         {
             foreach (var behavior in e.Behaviors)
             {
@@ -264,6 +336,26 @@
                     }
                 }
             }
+        }
+
+        void onButtonFocus(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Gray;
+        }
+
+        void onButtonBlur(object s, EventArgs e)
+        {
+            //TODO Animate
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.White;
+        }
+
+        void onButtonClicked(object s, EventArgs e)
+        {
+            var b = (Button)s;
+            b.FlatAppearance.BorderColor = Color.Black;
         }
     }
 }

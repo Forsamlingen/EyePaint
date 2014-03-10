@@ -215,8 +215,20 @@
 
             // Populate the GUI with available paint tools and color tools.
             Random r = new Random(); //TODO Remove.
-            Action<Panel, Button, EventHandler> appendButton = (Panel parent, Button b, EventHandler onClick) =>
+            Action<Panel, Button, string, EventHandler> appendButton =
+                (Panel parent, Button b, string iconPath, EventHandler onClick) =>
             {
+                // Attempt to load icon file
+                try
+                {
+                    Image icon = Image.FromFile(@"Resources/" + iconPath, true);
+                    b.Image = icon;
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                }
+
+                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
                 b.Name = "button" + parent.Controls.Count;
                 b.Enter += onButtonFocus;
                 b.Leave += onButtonBlur;
@@ -235,21 +247,11 @@
             {
                 Button b = new Button();
                 toolButtons.Add(b);
-                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
-
-                // Attempt to load icon file
-                try
-                {
-                    Image icon = Image.FromFile(@"Resources/" + pt.iconImage, true);
-                    b.Image = icon;
-                }
-                catch (System.IO.FileNotFoundException)
-                {
-                }
 
                 appendButton(
                     PaintToolsPanel,
                     b,
+                    pt.iconImage,
                     (object s, EventArgs e) =>
                     {
                         model.ChangePaintTool(pt);
@@ -261,12 +263,11 @@
             {
                 Button b = new Button();
                 colorButtons.Add(b);
-                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
-                b.BackColor = ct.baseColor;
 
                 appendButton(
                     ColorToolsPanel,
                     b,
+                    ct.iconImage,
                     (object s, EventArgs e) =>
                     {
                         model.ChangeColorTool(ct);

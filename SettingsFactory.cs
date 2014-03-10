@@ -63,10 +63,10 @@ namespace EyePaint
             List<ColorTool> colorTools = new List<ColorTool>();
 
             //TODO Load color tools from a data store instead.
-            colorTools.Add(new ColorTool(1, "random", Color.Red, 0, 12, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Blue, 200, 255, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Yellow, 28, 60, 0.9, 1, 0.9, 1));
-            colorTools.Add(new ColorTool(1, "random", Color.Green, 90, 148, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", "red.png", Color.Red, 0, 12, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", "blue.png", Color.Blue, 200, 255, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool(1, "random", "yellow.png", Color.Yellow, 28, 60, 0.9, 1, 0.9, 1));
+            colorTools.Add(new ColorTool(1, "random", "green.png", Color.Green, 90, 148, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
@@ -125,6 +125,7 @@ namespace EyePaint
     {
         internal readonly int id;
         internal readonly String name;
+        internal string iconImage;
         internal readonly Color baseColor;
         readonly double minHue;
         readonly double maxHue;
@@ -136,6 +137,7 @@ namespace EyePaint
         static Random rng = new Random();
 
         internal ColorTool(int id, string name,
+                           string pathToIconImage,
                            Color defaultColor,
                            double minHue,
                            double maxHue,
@@ -147,6 +149,7 @@ namespace EyePaint
         {
             this.id = id;
             this.name = name;
+            this.iconImage = pathToIconImage;
             this.baseColor = defaultColor;
             this.minHue = minHue;
             this.maxHue = maxHue;

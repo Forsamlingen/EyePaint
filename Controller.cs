@@ -75,12 +75,14 @@
             if (paint) return;
             paint = true;
             trackGaze(gaze, paint, 0);
+            inactivityTimer.Stop();
         }
 
         // Stop painting.
         void stopPainting()
         {
             paint = false;
+            inactivityTimer.Start();
         }
 
         // Rasterize the model and return an image object.

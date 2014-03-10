@@ -49,15 +49,11 @@
 
             // Set timer for inactivity
             inactivityTimer = new System.Windows.Forms.Timer();
-            inactivityTimer.Interval = 60000;
+            inactivityTimer.Interval = 15 * 60000;
             inactivityTimer.Enabled = true;
             inactivityTimer.Tick += (object s, EventArgs e) =>
             {
-                string msg = "Vill du starta om och börja på nytt?";
-                if (confirm(msg))
-                {
-                    Application.Restart();
-                }
+                Application.Restart();
             };
         }
 
@@ -201,7 +197,7 @@
                 try
                 {
                     Image icon = Image.FromFile(@"Resources/" + pt.iconImage, true);
-                    b.Image = icon; //string directory = AppDomain.CurrentDomain.BaseDirectory;
+                    b.Image = icon;
                 }
                 catch (System.IO.FileNotFoundException)
                 {

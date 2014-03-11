@@ -62,11 +62,20 @@ namespace EyePaint
         {
             List<ColorTool> colorTools = new List<ColorTool>();
 
-            //TODO Load color tools from a data store instead.
-            colorTools.Add(new ColorTool(1, "random", "red.png", Color.Red, 0, 12, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", "blue.png", Color.Blue, 200, 255, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool(1, "random", "yellow.png", Color.Yellow, 28, 60, 0.9, 1, 0.9, 1));
-            colorTools.Add(new ColorTool(1, "random", "green.png", Color.Green, 90, 148, 0.9, 1, 0.5, 1));
+            //Colors for eyePaint Liquoirce
+            colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
+            colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));//TODO lägg till en rainbow ikon
+
+            //Colors for eyePaint Vanilla            
+            //colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
+            //colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
+            //colorTools.Add(new ColorTool("black", "yellow.png", 0, 0, 0, 0, 0, 0));//TODO Lägg till en svart ikon
+            //colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
+            //colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));//TODO lägg till en rainbow ikon
+
 
             return colorTools;
         }
@@ -123,10 +132,8 @@ namespace EyePaint
 
     internal class ColorTool
     {
-        internal readonly int id;
         internal readonly String name;
         internal string iconImage;
-        internal readonly Color baseColor;
         readonly double minHue;
         readonly double maxHue;
         readonly double minSaturation;
@@ -136,9 +143,8 @@ namespace EyePaint
 
         static Random rng = new Random();
 
-        internal ColorTool(int id, string name,
+        internal ColorTool(string name,
                            string pathToIconImage,
-                           Color defaultColor,
                            double minHue,
                            double maxHue,
                            double minSaturation,
@@ -147,10 +153,8 @@ namespace EyePaint
                            double maxValue
                         )
         {
-            this.id = id;
             this.name = name;
             this.iconImage = pathToIconImage;
-            this.baseColor = defaultColor;
             this.minHue = minHue;
             this.maxHue = maxHue;
             this.minSaturation = minSaturation;

@@ -91,6 +91,45 @@ namespace EyePaint
                 imageObject.DrawElipse(color, leafSize, leaf);
             }
         }
+
+        protected void DrawBubbleLeaves(ref Canvas imageObject)
+        {
+            Random rnd = new Random();
+            for (int i = leaves.Count()/2; i < leaves.Count(); i++)
+            {
+                double scaleFactor = 0.10;
+                int xMinCord = (int) Math.Round(leaves[i].X * (1-scaleFactor));
+                int xMaxCord = (int) Math.Round(leaves[i].X + leaves[i].X * scaleFactor);
+                int yMinCord = (int) Math.Round(leaves[i].Y *(1-scaleFactor));
+                int yMaxCord = (int) Math.Round(leaves[i].Y + leaves[i].Y * scaleFactor);
+                if (xMinCord < xMaxCord && yMinCord < yMaxCord)
+                {
+
+                    Point leaf = new Point(rnd.Next(xMinCord, xMaxCord + 1), rnd.Next(yMinCord, yMaxCord + 1));
+                    int rndLeafSize = rnd.Next(leafSize);
+                    int rndBias = rnd.Next(rndLeafSize);
+                    if ((rndLeafSize - rndBias )>0) {
+                        rndLeafSize = rndLeafSize - rndBias;
+                    }
+                    imageObject.DrawElipse(color, rndLeafSize, leaf);
+                }
+            }
+        }
+        protected void DrawSplinesBetweenLeaves(ref Canvas imageObject)
+        {
+            Random rnd = new Random();
+              for( int i =0; i<leaves.Count(); i++){
+                  int j = rnd.Next(0, i);
+                  Point p1 = leaves[i];
+                  Point p2 = leaves[j];
+                  leaves[i] =p2;
+                  leaves[j] = p1;
+        }
+            imageObject.DrawBeziers(color, hullWidth, leaves);
+
+        }
+  
+        
     }
 
     class PolyTree : Tree
@@ -140,6 +179,33 @@ namespace EyePaint
         }
     }
 
+    class BubbleTree : Tree
+    {
+        internal BubbleTree(
+              Color color,
+              Point root,
+              int branchLength,
+              int nLeaves,
+              Point[] previousGen,
+              Point[] startLeaves,
+              int branchWidth,
+              int hullWidth,
+              int leafSize)
+            : base(
+                     color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
+        {
+        }
+
+        internal override void Rasterize(ref Canvas imageObject)
+        {
+           //DrawBranches(ref imageObject);
+            //FillHull(ref imageObject);
+            DrawBubbleLeaves(ref imageObject);
+            //DrawHull(ref imageObject);
+        }
+    }
+
+
     class CellNetTree : Tree
     {
         internal CellNetTree(
@@ -159,10 +225,35 @@ namespace EyePaint
 
         internal override void Rasterize(ref Canvas imageObject)
         {
-            DrawBranches(ref imageObject);
+           DrawBranches(ref imageObject);
+            //DrawSplinesBetweenLeaves(ref imageObject);
         }
     }
 
+
+    class ScribbleTree : Tree
+    {
+        internal ScribbleTree(
+              Color color,
+              Point root,
+              int branchLength,
+              int nLeaves,
+              Point[] previousGen,
+              Point[] startLeaves,
+              int branchWidth,
+              int hullWidth,
+              int leafSize)
+            : base(
+                     color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
+        {
+        }
+
+        internal override void Rasterize(ref Canvas imageObject)
+        {
+            // DrawBranches(ref imageObject);
+            DrawSplinesBetweenLeaves(ref imageObject);
+        }
+    }
     class ModernArtTree : Tree
     {
         internal ModernArtTree(

@@ -12,7 +12,7 @@ namespace EyePaint
         internal Image blank;
         internal Canvas imageObject;
 
-        SolidBrush bgBrush = new SolidBrush(Color.Black);
+        SolidBrush bgBrush = new SolidBrush(Color.White);
 
         internal View(int width, int height)
         {
@@ -61,12 +61,13 @@ namespace EyePaint
 
         internal void DrawElipse(Color color, int radius, Point point)
         {
+            pen.Width = radius;
             pen.Color = color;
             using (Graphics g = Graphics.FromImage(image))
                 g.DrawEllipse(
                     pen,
-                    point.X + radius,
-                    point.Y + radius,
+                    point.X,
+                    point.Y,
                     pen.Width,
                     pen.Width
                     );
@@ -77,6 +78,14 @@ namespace EyePaint
             SolidBrush b = new SolidBrush(color);
             using (Graphics g = Graphics.FromImage(image))
                 g.FillPolygon(b, vertices);
+        }
+
+        internal void DrawBeziers(Color color,int width, Point[] points)
+        {
+            pen.Width = width;
+            pen.Color = color;
+            using (Graphics g = Graphics.FromImage(image))
+                g.DrawBeziers(pen, points);
         }
     }
 }

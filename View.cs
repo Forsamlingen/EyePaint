@@ -61,12 +61,13 @@ namespace EyePaint
 
         internal void DrawElipse(Color color, int radius, Point point)
         {
+            pen.Width = radius;
             pen.Color = color;
             using (Graphics g = Graphics.FromImage(image))
                 g.DrawEllipse(
                     pen,
-                    point.X + radius,
-                    point.Y + radius,
+                    point.X,
+                    point.Y,
                     pen.Width,
                     pen.Width
                     );

@@ -62,7 +62,7 @@ namespace EyePaint
             paintTools.Add(woolTool);
             paintTools.Add(cellNetTool);
             //paintTools.Add(scribbleTool);
-            //paintTools.Add(bubbleTool);
+            paintTools.Add(bubbleTool);
             return paintTools;
         }
 
@@ -82,21 +82,21 @@ namespace EyePaint
         {
             List<ColorTool> colorTools = new List<ColorTool>();
 
-            //Colors for eyePaint Vanilla            
+            //Colors for eyePaint Vanilla
+            /*
             colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("black", "black.png", 0, 0, 0, 0, 0, 0));
             colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
+            */
 
             //Colors for eyePaint Liquorice
-            /*
-            colorTools.Add(new ColorTool("red", "red.png", 340, 359, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
+            colorTools.Add(new ColorTool("red", "red.png", 340, 359, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));
-            */
+            colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
+            colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }

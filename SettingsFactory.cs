@@ -22,32 +22,32 @@ namespace EyePaint
             TreeTool woolTool = new TreeTool(0,
                                         "woolPaint",
                                         stringToToolType("TREE"),
-                                        "sun.png",
+                                        "circle.png",
                                         "WoolTree", 2, 500, 800, 25, 2, 0, 0);
             TreeTool polyTool = new TreeTool(1,
                                         "polyPaint",
                                         stringToToolType("TREE"),
-                                        "bolt.png",
+                                        "square.png",
                                         "PolyTree", 25, 7, 800, 10, 2, 0, 0);
             TreeTool modernArtTool = new TreeTool(2,
                                         "modernArtPaint",
                                         stringToToolType("TREE"),
-                                        "cloud.png",
+                                        "arrow.png",
                                         "ModernArtTree", 5, 4, 800, 100, 2, 5, 0);
             TreeTool cellNetTool = new TreeTool(3,
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
-                                        "bullseye.png",
+                                        "star.png",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
             TreeTool scribbleTool = new TreeTool(3,
                                         "scribblePaint",
                                         stringToToolType("TREE"),
-                                        "bullseye.png",
+                                        "lemon.png",
                                         "ScribbleTree", 7, 4, 800, 100, 1, 3, 0);
             TreeTool bubbleTool = new TreeTool(4,
                                      "bubblePaint",
                                      stringToToolType("TREE"),
-                                      "sun.png",
+                                      "spinner.png",
                                       "BubbleTree",
                                       15,   // branch length
                                       10, // number of leaves
@@ -57,12 +57,12 @@ namespace EyePaint
                                       1,   // hullWidth
                                       30);  // leaf size
 
-            paintTools.Add(woolTool);
             paintTools.Add(polyTool);
             paintTools.Add(modernArtTool);
+            paintTools.Add(woolTool);
             paintTools.Add(cellNetTool);
-            paintTools.Add(scribbleTool);
-            paintTools.Add(bubbleTool);
+            //paintTools.Add(scribbleTool);
+            //paintTools.Add(bubbleTool);
             return paintTools;
         }
 
@@ -82,20 +82,21 @@ namespace EyePaint
         {
             List<ColorTool> colorTools = new List<ColorTool>();
 
-            //Colors for eyePaint Liquoirce
+            //Colors for eyePaint Vanilla            
+            colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("black", "black.png", 0, 0, 0, 0, 0, 0));
+            colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
+
+            //Colors for eyePaint Liquorice
+            /*
             colorTools.Add(new ColorTool("red", "red.png", 340, 359, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));//TODO lägg till en rainbow ikon
-
-            //Colors for eyePaint Vanilla            
-            //colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
-            //colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
-            //colorTools.Add(new ColorTool("black", "yellow.png", 0, 0, 0, 0, 0, 0));//TODO Lägg till en svart ikon
-            //colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
-            //colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));//TODO lägg till en rainbow ikon
-
+            colorTools.Add(new ColorTool("rainbow", "red.png", 0, 360, 0.9, 1, 0.5, 1));
+            */
 
             return colorTools;
         }

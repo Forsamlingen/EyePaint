@@ -228,7 +228,6 @@
                 {
                 }
 
-                b.Width = b.Height = ProgramControlPanel.Controls[0].Height;
                 b.Name = "button" + parent.Controls.Count;
                 b.Enter += onButtonFocus;
                 b.Leave += onButtonBlur;
@@ -246,6 +245,8 @@
             Action<PaintTool> appendTool = (PaintTool pt) =>
             {
                 Button b = new Button();
+                b.Height = PaintToolsPanel.Height;
+                b.Width = PaintToolsPanel.Width / paintTools.Count;
                 toolButtons.Add(b);
 
                 appendButton(
@@ -262,6 +263,8 @@
             Action<ColorTool> appendColor = (ColorTool ct) =>
             {
                 Button b = new Button();
+                b.Height = PaintToolsPanel.Height;
+                b.Width = PaintToolsPanel.Width / colorTools.Count;
                 colorButtons.Add(b);
 
                 appendButton(

@@ -155,6 +155,9 @@
     <Content Include="Resources\lemon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\magenta.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\new.png" />
     <Content Include="Resources\rainbow.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

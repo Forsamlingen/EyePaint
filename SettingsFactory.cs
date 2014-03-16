@@ -57,12 +57,12 @@ namespace EyePaint
                                       1,   // hullWidth
                                       30);  // leaf size
 
-            paintTools.Add(polyTool);
-            paintTools.Add(modernArtTool);
-            paintTools.Add(woolTool);
-            paintTools.Add(cellNetTool);
-            //paintTools.Add(scribbleTool);
             paintTools.Add(bubbleTool);
+            paintTools.Add(scribbleTool);
+            paintTools.Add(modernArtTool);
+            paintTools.Add(polyTool);
+            paintTools.Add(woolTool);
+            //paintTools.Add(cellNetTool);
             return paintTools;
         }
 
@@ -92,11 +92,20 @@ namespace EyePaint
             */
 
             //Colors for eyePaint Liquorice
+            /*
             colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("red", "red.png", 340, 359, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
+            */
+
+            //Colors for eyePaint Exotique
+            colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("orange", "yellow.png", 24, 35, 0.9, 1, 0.8, 1));
+            colorTools.Add(new ColorTool("pink", "magenta.png", 289, 310, 0.9, 1, 0.4, 1));
+            colorTools.Add(new ColorTool("black", "black.png", 0, 0, 0, 0, 0, 0));
+            colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }

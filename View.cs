@@ -12,7 +12,7 @@ namespace EyePaint
         internal Image blank;
         internal Canvas imageObject;
 
-        SolidBrush bgBrush = new SolidBrush(Color.Black);
+        SolidBrush bgBrush = new SolidBrush(Color.White);
 
         internal View(int width, int height)
         {

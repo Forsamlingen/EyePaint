@@ -62,7 +62,7 @@ namespace EyePaint
             paintTools.Add(woolTool);
             paintTools.Add(cellNetTool);
             paintTools.Add(bubbleTool);
-            paintTools.Add(scribbleTool);
+            //paintTools.Add(scribbleTool);
             return paintTools;
         }
 
@@ -81,15 +81,12 @@ namespace EyePaint
         internal List<ColorTool> getColorTools()
         {
             List<ColorTool> colorTools = new List<ColorTool>();
-            
-            colorTools.Add(new ColorTool("orange", "orange.png", 24, 35, 0.9, 1, 0.8, 1));
-            colorTools.Add(new ColorTool("yellow", "yellow.png", 28, 60, 0.9, 1, 0.9, 1));
-            colorTools.Add(new ColorTool("pink", "pink.png", 289, 310, 0.9, 1, 0.4, 1));
-            colorTools.Add(new ColorTool("purple", "purple.png", 258, 270, 0.9, 1, 0.4, 1));
-            colorTools.Add(new ColorTool("blue", "blue.png", 200, 255, 0.9, 1, 0.5, 1));
+
+            //TODO Load color tools from a data store instead.
+            colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("blue", "blue.png",  200, 255, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("yellow", "yellow.png",  28, 60, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool("black", "black.png", 0, 0, 0, 0, 0, 0));
-            colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
@@ -176,6 +173,7 @@ namespace EyePaint
             this.minValue = minValue;
             this.maxValue = maxValue;
         }
+
 
         public Color getRandomShade(int opacity)
         {

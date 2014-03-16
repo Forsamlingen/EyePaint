@@ -155,10 +155,16 @@
     <Content Include="Resources\lemon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\magenta.png">
+    <Content Include="Resources\new.png" />
+    <Content Include="Resources\orange.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\new.png" />
+    <Content Include="Resources\pink.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\purple.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\rainbow.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

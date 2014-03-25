@@ -66,22 +66,20 @@ namespace EyePaint
             // Create a vector of GrahamPoints by calculating the angle a for each point in points
             // Where a is the angle beteen the two vectors (minPoint point) and (minPoint, Refpoint)
             int size = points.Count();
-
+            List<GrahamPoint> grahamPointsList = new List<GrahamPoint>();
             GrahamPoint minGrahamPoint = new GrahamPoint(0, minPoint);
-            GrahamPoint[] grahamPoints = new GrahamPoint[size];
-            grahamPoints[0] = minGrahamPoint;
-            int gpIndex = 1;
+            grahamPointsList.Add(minGrahamPoint);
             for (int i = 0; i < points.Count(); i++)
             {
                 if (!(points[i].X == minPoint.X && points[i].Y == minPoint.Y))
                 {
                     double a = GetAngleBetweenVectors(GetVector(minPoint, refPoint), GetVector(minPoint, points[i]));
                     GrahamPoint grahamPoint = new GrahamPoint(a, points[i]);
-                    grahamPoints[gpIndex] = grahamPoint;
-                    gpIndex++;
+                    grahamPointsList.Add(grahamPoint);
                 }
             }
 
+            GrahamPoint[] grahamPoints = grahamPointsList.ToArray();
             Array.Sort(grahamPoints);
             Stack<Point> s = new Stack<Point>();
 
@@ -158,6 +156,7 @@ namespace EyePaint
             if (lP == 0 || lQ == 0) return 0;
 
             double v = Math.Acos((P[0] * Q[0] + P[1] * Q[1]) / (lP * lQ));
+
             return v;
         }
 

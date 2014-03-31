@@ -79,5 +79,13 @@ namespace EyePaint
             using (Graphics g = Graphics.FromImage(image))
                 g.FillPolygon(b, vertices);
         }
+
+        internal void DrawBeziers(Color color,int width, Point[] points)
+        {
+            pen.Width = width;
+            pen.Color = color;
+            using (Graphics g = Graphics.FromImage(image))
+                g.DrawBeziers(pen, points);
+        }
     }
 }

@@ -22,27 +22,47 @@ namespace EyePaint
             TreeTool woolTool = new TreeTool(0,
                                         "woolPaint",
                                         stringToToolType("TREE"),
-                                        "sun.png",
+                                        "circle.png",
                                         "WoolTree", 2, 500, 800, 25, 2, 0, 0);
             TreeTool polyTool = new TreeTool(1,
                                         "polyPaint",
                                         stringToToolType("TREE"),
-                                        "bolt.png",
-                                        "PolyTree", 25, 7, 800, 25, 2, 0, 0);
+                                        "square.png",
+                                        "PolyTree", 25, 7, 800, 10, 2, 0, 0);
             TreeTool modernArtTool = new TreeTool(2,
                                         "modernArtPaint",
                                         stringToToolType("TREE"),
-                                        "cloud.png",
+                                        "arrow.png",
                                         "ModernArtTree", 5, 4, 800, 100, 2, 5, 0);
             TreeTool cellNetTool = new TreeTool(3,
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
-                                        "bullseye.png",
+                                        "star.png",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
-            paintTools.Add(woolTool);
+            TreeTool scribbleTool = new TreeTool(3,
+                                        "scribblePaint",
+                                        stringToToolType("TREE"),
+                                        "lemon.png",
+                                        "ScribbleTree", 7, 4, 800, 100, 1, 3, 0);
+            TreeTool bubbleTool = new TreeTool(4,
+                                     "bubblePaint",
+                                     stringToToolType("TREE"),
+                                      "spinner.png",
+                                      "BubbleTree",
+                                      15,   // branch length
+                                      10, // number of leaves
+                                      800, // max generation
+                                      120,  // opacity
+                                      0,   // branchWidth
+                                      1,   // hullWidth
+                                      30);  // leaf size
+
             paintTools.Add(polyTool);
             paintTools.Add(modernArtTool);
+            paintTools.Add(woolTool);
             paintTools.Add(cellNetTool);
+            paintTools.Add(bubbleTool);
+            //paintTools.Add(scribbleTool);
             return paintTools;
         }
 
@@ -65,8 +85,8 @@ namespace EyePaint
             //TODO Load color tools from a data store instead.
             colorTools.Add(new ColorTool("red", "red.png", 0, 12, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool("blue", "blue.png",  200, 255, 0.9, 1, 0.5, 1));
-            colorTools.Add(new ColorTool( "yellow", "yellow.png",  28, 60, 0.9, 1, 0.9, 1));
-            colorTools.Add(new ColorTool( "green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("yellow", "yellow.png",  28, 60, 0.9, 1, 0.9, 1));
+            colorTools.Add(new ColorTool("green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
@@ -123,7 +143,7 @@ namespace EyePaint
 
     internal class ColorTool
     {
-       internal readonly String name;
+        internal readonly String name;
         internal string iconImage;
         readonly double minHue;
         readonly double maxHue;

@@ -23,22 +23,22 @@ namespace EyePaint
                                         "woolPaint",
                                         stringToToolType("TREE"),
                                         "sun.png",
-                                        "WoolTree", 2, 500, 800, 25, 2, 0, 0);
+                                        "WoolTree", 2, 500, 800, 25, 2, 0, 0, 10);
             TreeTool polyTool = new TreeTool(1,
                                         "polyPaint",
                                         stringToToolType("TREE"),
                                         "bolt.png",
-                                        "PolyTree", 25, 7, 800, 25, 2, 0, 0);
+                                        "PolyTree", 5, 7, 800, 10, 2, 0, 0, 7);
             TreeTool modernArtTool = new TreeTool(2,
                                         "modernArtPaint",
                                         stringToToolType("TREE"),
                                         "cloud.png",
-                                        "ModernArtTree", 5, 4, 800, 100, 2, 5, 0);
+                                        "ModernArtTree", 5, 4, 800, 100, 2, 5, 0, 10);
             TreeTool cellNetTool = new TreeTool(3,
                                         "cellNetPaint",
                                         stringToToolType("TREE"),
                                         "bullseye.png",
-                                        "CellNetTree", 25, 300, 800, 25, 2, 5, 0);
+                                        "CellNetTree", 25, 300, 800, 25, 2, 5, 0, 10);
             paintTools.Add(woolTool);
             paintTools.Add(polyTool);
             paintTools.Add(modernArtTool);
@@ -98,6 +98,7 @@ namespace EyePaint
         internal readonly int branchWidth;
         internal readonly int hullWidth;
         internal readonly int leafSize;
+        internal readonly double growthSpeed;
         internal TreeTool(int id, string name,
                         PaintToolType type,
                         string pathToIconImage,
@@ -108,7 +109,8 @@ namespace EyePaint
                         int opacity,
                         int branchWidth,
                         int hullWidth,
-                        int leafSize)
+                        int leafSize,
+                        double growthSpeed)
             : base(id, name, type, pathToIconImage, renderObjectName)
         {
             this.branchLength = branchLength;
@@ -118,6 +120,7 @@ namespace EyePaint
             this.branchWidth = branchWidth;
             this.hullWidth = hullWidth;
             this.leafSize = leafSize;
+            this.growthSpeed = growthSpeed;
         }
     }
 

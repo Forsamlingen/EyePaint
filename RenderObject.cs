@@ -34,7 +34,8 @@ namespace EyePaint
                     Point[] startLeaves,
                     int branchWidth,
                     int hullWidth,
-                    int leafSize)
+                    int leafSize
+                    )
         {
             this.color = color;
             this.root = root;

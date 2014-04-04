@@ -113,6 +113,9 @@ namespace EyePaint
         Tree currentTree;
         bool treeAdded = false;
         TreeTool presentTreeTool;
+        double growthSpeed; // 0 <= growthSpeed <= 1. 0 is never, 1 is every tick
+        double growthCount;
+        readonly double growLimit = 10;
 
         internal TreeFactory(ColorTool initColorTool)
             : base(initColorTool)
@@ -149,28 +152,33 @@ namespace EyePaint
         {
             if (treeAdded)
             {
-                int maxGenerations = presentTreeTool.maxGeneration;
-                int nLeaves = presentTreeTool.nLeaves;
-
-                if (currentTree.generation > maxGenerations)
+                if (growthCount >= growLimit)
                 {
-                    return;
+                    growthCount = 0;
+                    int maxGenerations = presentTreeTool.maxGeneration;
+                    int nLeaves = presentTreeTool.nLeaves;
+
+                    if (currentTree.generation > maxGenerations) return;
+
+                    Tree lastTree = currentTree;
+                    Point[] newLeaves = new Point[nLeaves];
+
+                    // Grow all branches
+                    for (int i = 0; i < nLeaves; i++)
+                    {
+                        Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root, presentTreeTool.branchLength);
+                        newLeaves[i] = newLeaf;
+                    }
+
+                    Tree grownTree = CreateTree(lastTree.color, lastTree.root, newLeaves, lastTree.leaves);
+                    grownTree.generation = currentTree.generation + 1;
+                    currentTree = grownTree;
+                    renderQueue.Enqueue(currentTree);
                 }
-
-                Tree lastTree = currentTree;
-                Point[] newLeaves = new Point[nLeaves];
-
-                // Grow all branches
-                for (int i = 0; i < nLeaves; i++)
+                else
                 {
-                    Point newLeaf = GetLeaf(lastTree.leaves[i], lastTree.root, presentTreeTool.branchLength);
-                    newLeaves[i] = newLeaf;
+                    growthCount += growthSpeed;
                 }
-
-                Tree grownTree = CreateTree(lastTree.color, lastTree.root, newLeaves, lastTree.leaves);
-                grownTree.generation = currentTree.generation + 1;
-                currentTree = grownTree;
-                renderQueue.Enqueue(currentTree);
             }
         }
 
@@ -183,6 +191,8 @@ namespace EyePaint
             treeAdded = false;
             this.presentTreeTool = newTool;
             this.presentColorTool = presentColorTool;
+            this.growthSpeed = presentTreeTool.growthSpeed;
+            growthCount = 0;
         }
 
         internal override void ChangeColorTool(ColorTool newColorTool)

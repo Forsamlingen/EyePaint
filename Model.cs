@@ -158,10 +158,7 @@ namespace EyePaint
                     int maxGenerations = presentTreeTool.maxGeneration;
                     int nLeaves = presentTreeTool.nLeaves;
 
-                    if (currentTree.generation > maxGenerations)
-                    {
-                        return;
-                    }
+                    if (currentTree.generation > maxGenerations) return;
 
                     Tree lastTree = currentTree;
                     Point[] newLeaves = new Point[nLeaves];
@@ -178,7 +175,6 @@ namespace EyePaint
                     currentTree = grownTree;
                     renderQueue.Enqueue(currentTree);
                 }
-
                 else
                 {
                     growthCount += growthSpeed;

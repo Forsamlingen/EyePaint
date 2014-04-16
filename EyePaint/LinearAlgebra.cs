@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace TobiiEyeXTest01
+namespace EyePaint
 {
     public static class LinearAlgebra
     {

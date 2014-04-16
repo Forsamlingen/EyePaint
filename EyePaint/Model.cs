@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace TobiiEyeXTest01
+namespace EyePaint
 {
     /**
      * This class represent a model that constructs renderObjects that could

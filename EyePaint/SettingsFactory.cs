@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace TobiiEyeXTest01
+namespace EyePaint
 {
     internal enum PaintToolType { TREE }
 

@@ -20,7 +20,7 @@ using Tobii.EyeX.Client;
 using Tobii.EyeX.Framework;
 using InteractorId = System.String;
 
-namespace TobiiEyeXTest01
+namespace EyePaint
 {
     public partial class MainWindow : Window, IDisposable
     {
@@ -156,7 +156,7 @@ namespace TobiiEyeXTest01
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                String path = Directory.GetCurrentDirectory() + "\\icons\\" + ct.iconImage; //TODO ev change to resources
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage;
                 //brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
                
                 btn.Background = brush;
@@ -168,15 +168,16 @@ namespace TobiiEyeXTest01
                 };
                 colorToolPanel.Children.Add(btn);
                 colorButtons.Add(btn); // TODO Q: What do we need this list for?
-                gazeAwareButtons.Add(btn.Name, btn);
+                gazeAwareButtons.Add(ct.name, btn);
             }
             foreach (PaintTool pt in paintTools)
             {
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                String path = Directory.GetCurrentDirectory() + "\\icons\\" + pt.iconImage; //TODO ev change to resource
-                brush.ImageSource = new BitmapImage(new Uri(path)); 
+                // TODO: Use resources instead
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage;
+                //brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
                 btn.Focusable = false;
@@ -187,7 +188,7 @@ namespace TobiiEyeXTest01
                 };
                 paintToolPanel.Children.Add(btn);
                 toolButtons.Add(btn); // TODO Q: What do we need this list for?
-                gazeAwareButtons.Add(btn.Name, btn);
+                gazeAwareButtons.Add(pt.name, btn);
             }
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;

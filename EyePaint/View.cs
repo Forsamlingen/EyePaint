@@ -32,7 +32,7 @@ namespace EyePaint
             Color whiteBg = Color.FromArgb(255, 255, 255, 255); 
         }
 
-        internal void setBackGorundColorRandomly()
+        internal void setBackGroundColorRandomly()
         {
             ColorTool ct = new ColorTool("random", "null", 0, 360, 0.9, 1, 0.9, 1);
             Color color = ct.getRandomShade(255);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,60 +21,46 @@ using InteractorId = System.String;
 
 namespace EyePaint
 {
-    public partial class MainWindow : Window, IDisposable
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
+        private const string InteractorId = "EyePaint";
+        private InteractionSystem system;
+        private InteractionContext context;
+        private InteractionSnapshot globalInteractorSnapshot;
+
+        Point gaze;
+        bool paint = false;
+        bool menuActive;
+        bool isKeyDown = false; //TODO see if other soultion is possible?
+        Dictionary<InteractorId, Button> gazeAwareButtons;
+
+        //Painting
+        static readonly int pictureWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth;
+        static readonly int pictureHeight = (int)(System.Windows.SystemParameters.PrimaryScreenHeight * 0.8); //TODO CHANGE 0.8 TO Constant
+        RenderTargetBitmap painting = new RenderTargetBitmap(pictureWidth, pictureHeight, 96, 96, PixelFormats.Pbgra32);
+
         //Tools 
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
-        
+
         //Buttons
-        Button activeButton;        
+        Button activeButton;
         List<Button> toolButtons;
         List<Button> colorButtons;
 
         Model model;
         View view;
 
-        private const string InteractorId = "EyePaint";
-
-        private InteractionSystem system;
-        private InteractionContext context;
-        private InteractionSnapshot globalInteractorSnapshot;
-        
-        //GazeAwareButton
-        Point gaze;
-        bool paint = false;
-        bool menuActive;
-        bool isKeyDown = false; //TODO see if other soultion is possible?
-        Dictionary<InteractorId, Button> gazeAwareButtons;
-        
-        //For Picture
-        static readonly int pictureWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth;
-        static readonly int pictureHeight = (int)(System.Windows.SystemParameters.PrimaryScreenHeight * 0.8); //TODO CHANGE 0.8 TO Constant 
-        RenderTargetBitmap painting = new RenderTargetBitmap(pictureWidth, pictureHeight, 96, 96, PixelFormats.Pbgra32);
-
-        String[] iconNames = new String[7];
-        Random rnd = new Random();
-        SolidColorBrush mySolidColorBrush = new SolidColorBrush();
-
-        //Timers //TODO What are these for?
+        //Timers
         private DispatcherTimer paintTimer;
         private DispatcherTimer inactivityTimer;
 
         public MainWindow()
         {
-            SettingsFactory sf = new SettingsFactory();
-            paintTools = sf.getPaintTools();
-            colorTools = sf.getColorTools();
-            model = new Model(paintTools[0], colorTools[0]);
-            view = new View(painting);
-
-            toolButtons = new List<Button>();
-            colorButtons = new List<Button>();
-
             InitializeComponent();
-
-            //paintingImage.Source = painting; //TODO
 
             // initialize the EyeX Engine client library.
             system = InteractionSystem.Initialize(LogTarget.Trace);
@@ -96,9 +81,28 @@ namespace EyePaint
                 }
             };
 
-            // enable gaze triggered buttons
+            //Initialize model and view
+            SettingsFactory sf = new SettingsFactory();
+            paintTools = sf.getPaintTools();
+            colorTools = sf.getColorTools();
+            model = new Model(paintTools[0], colorTools[0]);
+            view = new View(painting);
+
+            toolButtons = new List<Button>();
+            colorButtons = new List<Button>();
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
+
+            //Initialize GUI
             initializeMenu();
+            paintingImage.Source = painting;
+
+            //Initalize eventhandlers
+            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y), paint, 0);
+            this.KeyDown += MainWindow_KeyDown;
+            this.KeyUp += MainWindow_KeyUp;
+
+            //Initialize parameters
+            menuActive = false;
 
             //MouseDown += (object s, MouseEventArgs e) => startPainting();
             //MouseUp += (object s, MouseEventArgs e) => stopPainting();
@@ -117,34 +121,11 @@ namespace EyePaint
             };
         }
 
-        //ButtonMethods on click
-        void onSetRandomBackGroundClick(object sender, RoutedEventArgs e)
-        {
-            setBackGroundToRandomColor();
-            model.ResetModel();
-        }
-
-        void onSaveClick(object sender, RoutedEventArgs e)
-        {
-            //TODO CHANGE
-            Application.Current.Shutdown();
-        }
-
-        void setBackGroundToRandomColor()
-        {
-            view.setBackGorundColorRandomly();
-        }
-
-        void savePainting()
-        {
-            //TODO implement
-        }
-
         void initializeMenu()
         {
             int leftmargin = (int)menuPanel.Margin.Left;
             int rightmargin = (int)menuPanel.Margin.Right;
-            int btnWidth = (pictureWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
+            int btnWidth = 100; // (pictureWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
 
             //Add Colortools
             DockPanel.SetDock(colorToolPanel, Dock.Left);
@@ -154,9 +135,9 @@ namespace EyePaint
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage;
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage; //TODO ev change to resources
                 //brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
-               
+
                 btn.Background = brush;
                 btn.Focusable = false;
                 btn.Width = btnWidth;
@@ -174,8 +155,7 @@ namespace EyePaint
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                // TODO: Use resources instead
-                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage;
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage; //TODO ev change to resource
                 //brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
@@ -189,8 +169,88 @@ namespace EyePaint
                 toolButtons.Add(btn); // TODO Q: What do we need this list for?
                 gazeAwareButtons.Add(pt.name, btn);
             }
+
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;
+        }
+
+        private void OnGaze(string interactorId, bool hasGaze)
+        {
+            var control = gazeAwareButtons[interactorId];
+            if (control != null)
+            {
+                control.Opacity = 0.5;
+                control.Focus();
+            }
+        }
+
+        //ButtonMethods on click
+        void onSetRandomBackGroundClick(object sender, RoutedEventArgs e)
+        {
+            setBackGroundToRandomColor();
+            model.ResetModel();
+        }
+
+        void onSaveClick(object sender, RoutedEventArgs e)
+        {
+            //TODO CHANGE
+            Application.Current.Shutdown();
+        }
+
+        //Methods for keypress
+        void MainWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            isKeyDown = false;
+            stopPainting();
+        }
+
+        void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (isKeyDown) return;
+            isKeyDown = true;
+            startPainting();
+        }
+
+        void startPainting()
+        {
+            if (menuActive) return;
+            if (paint) return;
+            paint = true;
+            paintTimer.Start();
+            trackGaze(gaze, paint, 0);
+            inactivityTimer.Stop();
+        }
+
+        // Stop painting.
+        void stopPainting()
+        {
+            paint = false;
+            paintTimer.Stop();
+            inactivityTimer.Start();
+        }
+
+        void trackGaze(Point p, bool keep = true, int keyhole = 100)
+        {
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
+            gaze = p;
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
+        }
+
+        void rasterizeModel()
+        {
+            Console.WriteLine("raseterize was called");
+            view.Rasterize(model.GetRenderQueue());
+        }
+
+        void setBackGroundToRandomColor()
+        {
+            view.setBackGroundColorRandomly();
+        }
+
+        void savePainting()
+        {
+            //TODO implement
         }
 
         private void InitializeGlobalInteractorSnapshot()
@@ -242,7 +302,7 @@ namespace EyePaint
                 CreateGazeAwareInteractor(id, b, Literals.RootId, windowId, snapshot, queryBoundsRect);
             }
 
-            snapshot.Commit((InteractionSnapshotResult isr) => {});
+            snapshot.Commit((InteractionSnapshotResult isr) => { });
         }
 
         private void CreateGazeAwareInteractor(InteractorId id, Control control, string parentId, string windowId, InteractionSnapshot snapshot, System.Windows.Rect queryBoundsRect)
@@ -283,59 +343,10 @@ namespace EyePaint
                     if (behavior.TryGetGazePointDataEventParams(out r))
                     {
                         trackGaze(new Point(r.X, r.Y), paint, 200); //TODO Set keyhole size dynamically based on how bad the calibration is.
-                        this.Dispatcher.BeginInvoke(new Action(() => drawElipseOnCanvas(gaze, 100))); //TODO we shouldn't have drawElipseOnCanvas here. What shall we have instead? 
+                        this.Dispatcher.BeginInvoke(new Action(() => rasterizeModel()));
                     }
                 }
             }
-        }
-
-        private void OnGaze(string interactorId, bool hasGaze)
-        {
-            var control = gazeAwareButtons[interactorId];
-            if (control != null)
-            {
-                control.Opacity = 0.5;
-                control.Focus();
-            }
-        }
-
-        public void drawElipseOnCanvas(Point p, int radius)
-        {
-            DrawingVisual drawingVisual = new DrawingVisual();
-            DrawingContext drawingContext = drawingVisual.RenderOpen();
-            drawingContext.DrawEllipse(mySolidColorBrush, null, p, radius, radius);
-            drawingContext.Close();
-            painting.Render(drawingVisual);
-            paintingImage.Source = painting;
-        }
-  
-        // Track gaze point if it's far away enough from the previous point, and add it
-        // to the model if the user wants to.
-        void trackGaze(Point p, bool keep = true, int keyhole = 25)
-        {
-            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
-            if (distance < keyhole) return;
-            gaze = p;
-
-            //TODO Change here after test
-            //if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
-        }
-
-        void rasterizeModel()
-        {
-            Console.WriteLine("raseterize was called");
-            view.Rasterize(model.GetRenderQueue());
-        }
-
-        public void Dispose()
-        {
-            if (context != null)
-            {
-                context.Dispose();
-                context = null;
-            }
-
-            system.Dispose();
         }
     }
 }

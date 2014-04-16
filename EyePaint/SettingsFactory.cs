@@ -173,7 +173,6 @@ namespace EyePaint
             this.maxValue = maxValue;
         }
 
-
         public Color getRandomShade(int opacity)
         {
             double randomHue = minHue + (rng.NextDouble() * (maxHue - minHue));
@@ -209,8 +208,3 @@ namespace EyePaint
         }
     }
 }
-
-
-
-
-

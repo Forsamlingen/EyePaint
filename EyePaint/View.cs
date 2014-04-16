@@ -10,11 +10,8 @@ namespace EyePaint
 {
     internal class View
     {
-
-     
         internal Canvas canvas;
 
-        
         internal View(RenderTargetBitmap image)
         {
             canvas = new Canvas(image);
@@ -28,13 +25,11 @@ namespace EyePaint
                 RenderObject renderObject = renderQueue.Dequeue();
                 renderObject.Rasterize(ref canvas); // TODO: Sometimes crashes program. Wrap in try/catch.
             }
-
         }
 
         internal void Clear()
         {
             Color whiteBg = Color.FromArgb(255, 255, 255, 255); 
-
         }
 
         internal void setBackGorundColorRandomly()
@@ -42,7 +37,6 @@ namespace EyePaint
             ColorTool ct = new ColorTool("random", "null", 0, 360, 0.9, 1, 0.9, 1);
             Color color = ct.getRandomShade(255);
             canvas.SetBackGroundColor(color);
-            
         }
     }
 
@@ -54,7 +48,6 @@ namespace EyePaint
         DrawingVisual drawingVisual = new DrawingVisual();
         Random rnd = new Random();
 
-        
         internal Canvas(RenderTargetBitmap image)
         {
             this.image = image;
@@ -90,10 +83,8 @@ namespace EyePaint
                 {
                     points.Add(vertices[i]);
                 }
-
                 geometryContext.PolyLineTo(points, true, true);
             }
-
 
             // Draw the polygon visual
             DrawingContext drawingContext = drawingVisual.RenderOpen();
@@ -102,7 +93,6 @@ namespace EyePaint
             
             drawingContext.Close();
             image.Render(drawingVisual);
-
         }
 
         internal void SetBackGroundColor(Color color)
@@ -116,8 +106,7 @@ namespace EyePaint
             Rect rect = new Rect(size);
             drawingContext.DrawRectangle(mySolidColorBrush, null, rect);
             drawingContext.Close();
-            image.Render(drawingVisual);            
-    
+            image.Render(drawingVisual);
         }
     }
 }

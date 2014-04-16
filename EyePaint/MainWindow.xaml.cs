@@ -36,7 +36,7 @@ namespace EyePaint
         Model model;
         View view;
 
-        private const string InteractorId = "WPF_Test";
+        private const string InteractorId = "EyePaint";
 
         private InteractionSystem system;
         private InteractionContext context;
@@ -64,7 +64,6 @@ namespace EyePaint
 
         public MainWindow()
         {
-
             SettingsFactory sf = new SettingsFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
@@ -147,7 +146,6 @@ namespace EyePaint
             int rightmargin = (int)menuPanel.Margin.Right;
             int btnWidth = (pictureWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
 
-
             //Add Colortools
             DockPanel.SetDock(colorToolPanel, Dock.Left);
 
@@ -170,6 +168,7 @@ namespace EyePaint
                 colorButtons.Add(btn); // TODO Q: What do we need this list for?
                 gazeAwareButtons.Add(ct.name, btn);
             }
+
             foreach (PaintTool pt in paintTools)
             {
                 Button btn = new Button();
@@ -192,7 +191,6 @@ namespace EyePaint
             }
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;
-
         }
 
         private void InitializeGlobalInteractorSnapshot()
@@ -320,7 +318,6 @@ namespace EyePaint
             gaze = p;
 
             //TODO Change here after test
-
             //if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 

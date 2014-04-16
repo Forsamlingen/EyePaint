@@ -1,8 +1,37 @@
-﻿<Window x:Class="EyePaint.MainWindow"
+﻿<Window x:Class="TobiiEyeXTest01.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"        
+        Title="MainWindow" Height="350" Width="525"
+        WindowStyle="None" ResizeMode="NoResize"  
+        WindowStartupLocation="CenterScreen" WindowState="Maximized" Name="PaintingWindow" >
     <Grid>
-        
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20*" />
+            <RowDefinition Height="80*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="100 0 100 0" Name="menuPanel">
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel">
+                <Button Name="saveButton" Click="onSaveClick" DockPanel.Dock="Right">
+                    <Button.Background>
+                        <ImageBrush ImageSource= "save.png" />
+                    </Button.Background>
+                </Button>
+            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" >
+                <Button Name="setRandomBackgroundButton" Click="onSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
+                    <Button.Background>
+                        <ImageBrush ImageSource= "new.png" />
+                    </Button.Background>
+                </Button>
+            </DockPanel>
+        </DockPanel>
+        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage"/>
     </Grid>
+
+
 </Window>

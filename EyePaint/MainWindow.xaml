@@ -13,16 +13,16 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="100 0 100 0" Name="menuPanel">
+        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="0" Name="menuPanel" Background="#FF19E058">
             <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel">
             </DockPanel>
             <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
-                <Button Name="saveButton" Click="onSaveClick" DockPanel.Dock="Right">
+                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right">
                     <Button.Background>
                         <ImageBrush ImageSource="Resources/save.png" />
                     </Button.Background>
                 </Button>
-                <Button Name="setRandomBackgroundButton" Click="onSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
+                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
                     <Button.Background>
                         <ImageBrush ImageSource="Resources/new.png" />
                     </Button.Background>

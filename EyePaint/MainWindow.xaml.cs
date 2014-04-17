@@ -62,31 +62,28 @@ namespace EyePaint
         {
             InitializeComponent();
 
+            // Create a canvas for painting
             paintingHeight = (int)System.Windows.SystemParameters.PrimaryScreenHeight;
             paintingWidth = (int)(System.Windows.SystemParameters.PrimaryScreenWidth * 0.8);
             painting = new RenderTargetBitmap(paintingHeight, paintingWidth, 96, 96, PixelFormats.Pbgra32);
 
+            // Interaction via eye tracker and mouse
             InitializeEyeTracking();
+            InitializeMouseControl();
 
-            //Initialize model and view
+            // Set up model and view
             SettingsFactory sf = new SettingsFactory();
             paintTools = sf.getPaintTools();
             colorTools = sf.getColorTools();
             model = new Model(paintTools[0], colorTools[0]);
             view = new View(painting);
 
+            // Set up GUI
             toolButtons = new List<Button>();
             colorButtons = new List<Button>();
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
-
-            //Initialize GUI
-            initializeMenu();
             paintingImage.Source = painting;
-
-            //Initalize eventhandlers
-            MouseMove += (object s, MouseEventArgs e) => trackGaze(new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y), paint, 0);
-            this.KeyDown += MainWindow_KeyDown;
-            this.KeyUp += MainWindow_KeyUp;
+            InitializeMenu();
 
             //Initialize parameters
             menuActive = false;
@@ -97,7 +94,10 @@ namespace EyePaint
             //Initialize timers
             paintTimer = new DispatcherTimer();
             paintTimer.Interval = TimeSpan.FromMilliseconds(1);
-            paintTimer.Tick += (object s, EventArgs e) => { model.Grow(); rasterizeModel(); };
+            paintTimer.Tick += (object s, EventArgs e) =>
+            {
+                model.Grow(); RasterizeModel();
+            };
 
             // Set timer for inactivity
             inactivityTimer = new DispatcherTimer();
@@ -108,15 +108,14 @@ namespace EyePaint
             };
         }
 
-        void initializeMenu()
+        void InitializeMenu()
         {
             int leftmargin = (int)menuPanel.Margin.Left;
             int rightmargin = (int)menuPanel.Margin.Right;
             int btnWidth = (paintingWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
 
-            //Add Colortools
+            //Add ColorTools
             DockPanel.SetDock(colorToolPanel, Dock.Left);
-
             foreach (ColorTool ct in colorTools)
             {
                 Button btn = new Button();
@@ -126,17 +125,15 @@ namespace EyePaint
                 //brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
 
                 btn.Background = brush;
-                btn.Focusable = false;
                 btn.Width = btnWidth;
-                btn.Click += (object s, RoutedEventArgs e) =>
-                {
-                    model.ChangeColorTool(ct);
-                };
+                btn.Click += (object s, RoutedEventArgs e) => { model.ChangeColorTool(ct); };
                 colorToolPanel.Children.Add(btn);
                 colorButtons.Add(btn); // TODO Q: What do we need this list for?
                 gazeAwareButtons.Add(ct.name, btn);
             }
 
+            //Add PaintTools
+            DockPanel.SetDock(paintToolPanel, Dock.Right);
             foreach (PaintTool pt in paintTools)
             {
                 Button btn = new Button();
@@ -146,12 +143,10 @@ namespace EyePaint
                 //brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
-                btn.Focusable = false;
                 btn.Width = btnWidth;
-                btn.Click += (object s, RoutedEventArgs e) =>
-                {
-                    model.ChangePaintTool(pt);
-                };
+                btn.GotFocus += (object s, RoutedEventArgs e) => { btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0)); };
+                btn.LostFocus += (object s, RoutedEventArgs e) => { btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255)); };
+                btn.Click += (object s, RoutedEventArgs e) => { model.ChangePaintTool(pt); };
                 paintToolPanel.Children.Add(btn);
                 toolButtons.Add(btn); // TODO Q: What do we need this list for?
                 gazeAwareButtons.Add(pt.name, btn);
@@ -159,6 +154,20 @@ namespace EyePaint
 
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;
+
+            // Set focus/blur behavior for gaze aware buttons
+            foreach (var kv in gazeAwareButtons)
+            {
+                Button btn = kv.Value;
+                btn.GotFocus += (object s, RoutedEventArgs e) =>
+                {
+                    btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                };
+                btn.LostFocus += (object s, RoutedEventArgs e) =>
+                {
+                    btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                };
+            }
         }
 
         private void OnGaze(string interactorId, bool hasGaze)
@@ -167,19 +176,18 @@ namespace EyePaint
             Console.WriteLine(interactorId);
             if (control != null)
             {
-                control.Background = new SolidColorBrush(Color.FromRgb(0,0,0));
                 control.Focus();
             }
         }
 
         //ButtonMethods on click
-        void onSetRandomBackGroundClick(object sender, RoutedEventArgs e)
+        void OnSetRandomBackGroundClick(object sender, RoutedEventArgs e)
         {
-            setBackGroundToRandomColor();
+            SetBackGroundToRandomColor();
             model.ResetModel();
         }
 
-        void onSaveClick(object sender, RoutedEventArgs e)
+        void OnSaveClick(object sender, RoutedEventArgs e)
         {
             //TODO CHANGE
             Application.Current.Shutdown();
@@ -189,35 +197,35 @@ namespace EyePaint
         void MainWindow_KeyUp(object sender, KeyEventArgs e)
         {
             isKeyDown = false;
-            stopPainting();
+            StopPainting();
         }
 
         void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (isKeyDown) return;
             isKeyDown = true;
-            startPainting();
+            StartPainting();
         }
 
-        void startPainting()
+        void StartPainting()
         {
             if (menuActive) return;
             if (paint) return;
             paint = true;
             paintTimer.Start();
-            trackGaze(gaze, paint, 0);
+            TrackGaze(gaze, paint, 0);
             inactivityTimer.Stop();
         }
 
         // Stop painting.
-        void stopPainting()
+        void StopPainting()
         {
             paint = false;
             paintTimer.Stop();
             inactivityTimer.Start();
         }
 
-        void trackGaze(Point p, bool keep = true, int keyhole = 100)
+        void TrackGaze(Point p, bool keep = true, int keyhole = 100)
         {
             var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
             if (distance < keyhole) return;
@@ -225,19 +233,33 @@ namespace EyePaint
             if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
-        void rasterizeModel()
+        void RasterizeModel()
         {
             view.Rasterize(model.GetRenderQueue());
         }
 
-        void setBackGroundToRandomColor()
+        void SetBackGroundToRandomColor()
         {
             view.setBackGroundColorRandomly();
         }
 
-        void savePainting()
+        void SavePainting()
         {
             //TODO implement
+        }
+
+        /// <summary>
+        /// Sets up mouse based interaction.
+        /// </summary>
+        void InitializeMouseControl()
+        {
+            this.MouseMove += (object s, MouseEventArgs e) =>
+            {
+                var mousePosition = new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y);
+                TrackGaze(mousePosition, paint, 0);
+            };
+            this.KeyDown += MainWindow_KeyDown;
+            this.KeyUp += MainWindow_KeyUp;
         }
 
         /// <summary>
@@ -357,8 +379,8 @@ namespace EyePaint
                     GazePointDataEventParams r;
                     if (behavior.TryGetGazePointDataEventParams(out r))
                     {
-                        trackGaze(new Point(r.X, r.Y), paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
-                        this.Dispatcher.BeginInvoke(new Action(() => rasterizeModel()));
+                        TrackGaze(new Point(r.X, r.Y), paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                        this.Dispatcher.BeginInvoke(new Action(() => RasterizeModel()));
                     }
                 }
             }

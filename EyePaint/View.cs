@@ -21,7 +21,6 @@ namespace EyePaint
         {
             while (renderQueue.Count() != 0)
             {
-                Console.WriteLine("hejejejejejejejejej!!!!"); //TODO
                 RenderObject renderObject = renderQueue.Dequeue();
                 renderObject.Rasterize(ref canvas); // TODO: Sometimes crashes program. Wrap in try/catch.
             }

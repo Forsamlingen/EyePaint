@@ -38,9 +38,9 @@ namespace EyePaint
         Dictionary<InteractorId, Button> gazeAwareButtons;
 
         //Painting
-        static readonly int pictureWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth;
-        static readonly int pictureHeight = (int)(System.Windows.SystemParameters.PrimaryScreenHeight * 0.8); //TODO CHANGE 0.8 TO Constant
-        RenderTargetBitmap painting = new RenderTargetBitmap(pictureWidth, pictureHeight, 96, 96, PixelFormats.Pbgra32);
+        int paintingWidth;
+        int paintingHeight;
+        RenderTargetBitmap painting;
 
         //Tools 
         List<PaintTool> paintTools;
@@ -62,24 +62,11 @@ namespace EyePaint
         {
             InitializeComponent();
 
-            // initialize the EyeX Engine client library.
-            system = InteractionSystem.Initialize(LogTarget.Trace);
+            paintingHeight = (int)System.Windows.SystemParameters.PrimaryScreenHeight;
+            paintingWidth = (int)(System.Windows.SystemParameters.PrimaryScreenWidth * 0.8);
+            painting = new RenderTargetBitmap(paintingHeight, paintingWidth, 96, 96, PixelFormats.Pbgra32);
 
-            // create a context, register event handlers, and enable the connection to the engine.
-            context = new InteractionContext(false);
-            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
-            context.RegisterEventHandler(HandleEvent);
-            context.EnableConnection();
-
-            // enable gaze point tracking over the entire window
-            InitializeGlobalInteractorSnapshot();
-            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
-            {
-                if (ce.State == ConnectionState.Connected)
-                {
-                    globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
-                }
-            };
+            InitializeEyeTracking();
 
             //Initialize model and view
             SettingsFactory sf = new SettingsFactory();
@@ -110,7 +97,7 @@ namespace EyePaint
             //Initialize timers
             paintTimer = new DispatcherTimer();
             paintTimer.Interval = TimeSpan.FromMilliseconds(1);
-            paintTimer.Tick += (object s, EventArgs e) => { model.Grow(); rasterizeModel(); Console.WriteLine("a tick was ticked"); };
+            paintTimer.Tick += (object s, EventArgs e) => { model.Grow(); rasterizeModel(); };
 
             // Set timer for inactivity
             inactivityTimer = new DispatcherTimer();
@@ -125,7 +112,7 @@ namespace EyePaint
         {
             int leftmargin = (int)menuPanel.Margin.Left;
             int rightmargin = (int)menuPanel.Margin.Right;
-            int btnWidth = 100; // (pictureWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
+            int btnWidth = (paintingWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
 
             //Add Colortools
             DockPanel.SetDock(colorToolPanel, Dock.Left);
@@ -177,9 +164,10 @@ namespace EyePaint
         private void OnGaze(string interactorId, bool hasGaze)
         {
             var control = gazeAwareButtons[interactorId];
+            Console.WriteLine(interactorId);
             if (control != null)
             {
-                control.Opacity = 0.5;
+                control.Background = new SolidColorBrush(Color.FromRgb(0,0,0));
                 control.Focus();
             }
         }
@@ -239,7 +227,6 @@ namespace EyePaint
 
         void rasterizeModel()
         {
-            Console.WriteLine("raseterize was called");
             view.Rasterize(model.GetRenderQueue());
         }
 
@@ -253,7 +240,35 @@ namespace EyePaint
             //TODO implement
         }
 
-        private void InitializeGlobalInteractorSnapshot()
+        /// <summary>
+        /// Sets up the EyeX engine and enables eye tracking.
+        /// </summary>
+        void InitializeEyeTracking()
+        {
+            // initialize the EyeX Engine client library.
+            system = InteractionSystem.Initialize(LogTarget.Trace);
+
+            // create a context, register event handlers, and enable the connection to the engine.
+            context = new InteractionContext(false);
+            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
+            context.RegisterEventHandler(HandleEvent);
+            context.EnableConnection();
+
+            // enable gaze point tracking over the entire window
+            InitializePaintingInteractorSnapshot();
+            context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
+            {
+                if (ce.State == ConnectionState.Connected)
+                {
+                    globalInteractorSnapshot.Commit((InteractionSnapshotResult isr) => { });
+                }
+            };
+        }
+
+        /// <summary>
+        /// Initializes the EyeX snapshot that handles the painting interaction.
+        /// </summary>
+        private void InitializePaintingInteractorSnapshot()
         {
             globalInteractorSnapshot = context.CreateSnapshot();
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
@@ -307,7 +322,8 @@ namespace EyePaint
 
         private void CreateGazeAwareInteractor(InteractorId id, Control control, string parentId, string windowId, InteractionSnapshot snapshot, System.Windows.Rect queryBoundsRect)
         {
-            var controlRect = control.RenderTransform.TransformBounds(new System.Windows.Rect(control.RenderSize));
+            var controlTopLeft = control.TranslatePoint(new Point(0, 0), PaintingWindow);
+            var controlRect = new System.Windows.Rect(controlTopLeft, control.RenderSize);
             if (controlRect.IntersectsWith(queryBoundsRect))
             {
                 var interactor = snapshot.CreateInteractor(id, parentId, windowId);
@@ -332,7 +348,6 @@ namespace EyePaint
                     GazeAwareEventParams r;
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
-                        Console.WriteLine(interactorId + " " + r.HasGaze);
                         // marshal the event to the UI thread, where WPF objects may be accessed.
                         this.Dispatcher.BeginInvoke(new Action<string, bool>(OnGaze), interactorId, r.HasGaze != EyeXBoolean.False);
                     }
@@ -342,7 +357,7 @@ namespace EyePaint
                     GazePointDataEventParams r;
                     if (behavior.TryGetGazePointDataEventParams(out r))
                     {
-                        trackGaze(new Point(r.X, r.Y), paint, 200); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                        trackGaze(new Point(r.X, r.Y), paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
                         this.Dispatcher.BeginInvoke(new Action(() => rasterizeModel()));
                     }
                 }

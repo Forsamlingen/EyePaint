@@ -5,10 +5,9 @@
         WindowStyle="None" ResizeMode="NoResize"  
         WindowStartupLocation="CenterScreen" WindowState="Maximized" Name="PaintingWindow" >
     <Grid>
-
         <Grid.RowDefinitions>
-            <RowDefinition Height="20*" />
-            <RowDefinition Height="80*" />
+            <RowDefinition Name="MenuRow" Height="20*" />
+            <RowDefinition Name="PaintingRow" Height="80*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -16,18 +15,20 @@
 
         <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="100 0 100 0" Name="menuPanel">
             <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel">
+            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
                 <Button Name="saveButton" Click="onSaveClick" DockPanel.Dock="Right">
                     <Button.Background>
                         <ImageBrush ImageSource="Resources/save.png" />
                     </Button.Background>
                 </Button>
-            </DockPanel>
-            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" >
                 <Button Name="setRandomBackgroundButton" Click="onSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
                     <Button.Background>
                         <ImageBrush ImageSource="Resources/new.png" />
                     </Button.Background>
                 </Button>
+            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" >
             </DockPanel>
         </DockPanel>
         <Image Grid.Row="1" Grid.Column="0" Name="paintingImage"/>

@@ -190,7 +190,17 @@ namespace EyePaint
         void OnSaveClick(object sender, RoutedEventArgs e)
         {
             //TODO CHANGE
-            Application.Current.Shutdown();
+            //Application.Current.Shutdown();
+            Window confirmBox = new ConfirmBox();
+            confirmBox.ShowDialog();
+            if (confirmBox.DialogResult.HasValue && confirmBox.DialogResult.Value)
+            {
+                Console.WriteLine("YEAAAAH");
+            }
+            else
+            {
+                Console.WriteLine("Noooooo");
+            }
         }
 
         //Methods for keypress

@@ -67,6 +67,10 @@
     <Reference Include="Tobii.EyeX.Client.Net20">
       <HintPath>lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.Net20.dll</HintPath>
     </Reference>
+    <Reference Include="Tobii.Gaze.Core.Net, Version=2.0.0.157, Culture=neutral, PublicKeyToken=70326046dcdce6cb, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Tobii.Gaze.Core.Net.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -76,6 +80,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CalibrationEvaluationWindow.xaml.cs">
+      <DependentUpon>CalibrationEvaluationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CalibrationWindow.xaml.cs">
+      <DependentUpon>CalibrationWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfirmBox.xaml.cs">
       <DependentUpon>ConfirmBox.xaml</DependentUpon>
     </Compile>
@@ -85,10 +95,21 @@
     </Compile>
     <Compile Include="RenderObject.cs" />
     <Compile Include="SettingsFactory.cs" />
+    <Compile Include="TrackBoxPositioningWindow.xaml.cs">
+      <DependentUpon>TrackBoxPositioningWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View.cs" />
     <Compile Include="Welcome.xaml.cs">
       <DependentUpon>Welcome.xaml</DependentUpon>
     </Compile>
+    <Page Include="CalibrationEvaluationWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CalibrationWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="ConfirmBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -109,6 +130,10 @@
     <Page Include="Paint.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TrackBoxPositioningWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Welcome.xaml">
       <SubType>Designer</SubType>
@@ -153,6 +178,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.dll" />
+    <Content Include="Tobii.Gaze.Core.Net.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tobii.Gaze.Core.Net.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TobiiGazeCore32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

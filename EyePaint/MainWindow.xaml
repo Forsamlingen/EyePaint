@@ -6,7 +6,7 @@
         x:Name="EyePaintWindow" Title="EyePaint" WindowState="Maximized">
 
     <Window.DataContext>
-        <local:MainViewModel/>
+        <local:MainViewModel />
     </Window.DataContext>
 
     <ContentControl x:Name="MainControl" Content="{Binding Control}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

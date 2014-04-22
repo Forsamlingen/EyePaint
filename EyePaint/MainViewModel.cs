@@ -18,7 +18,7 @@ namespace EyePaint
         /// <summary>
         /// Raises a PropertyChanged event
         /// </summary>
-        protected void OnPropertyChanged(UserControl property)
+        protected void OnPropertyChanged(Control property)
         {
             if (PropertyChanged != null)
             {
@@ -28,7 +28,7 @@ namespace EyePaint
 
         #endregion
 
-        void OnControlChanged(UserControl value)
+        void OnControlChanged(Control value)
         {
             OnPropertyChanged(control);
         }

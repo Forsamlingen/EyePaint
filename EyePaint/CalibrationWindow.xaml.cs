@@ -19,7 +19,7 @@ namespace EyePaint
     /// <summary>
     /// Interaction logic for CalibrationWindow.xaml
     /// </summary>
-    public partial class CalibrationWindow : Window
+    public partial class CalibrationWindow : UserControl
     {
         IEyeTracker iet;
         int calibrationStep = 10; //TODO Don't hardcode. Make into a resource property instead.
@@ -27,6 +27,7 @@ namespace EyePaint
         public CalibrationWindow()
         {
             InitializeComponent();
+
             try
             {
                 Uri url = new EyeTrackerCoreLibrary().GetConnectedEyeTracker();
@@ -38,18 +39,22 @@ namespace EyePaint
             }
             catch (EyeTrackerException)
             {
-                DialogResult = false;
+                exit(false);
             }
             catch (NullReferenceException)
             {
-                DialogResult = false;
+                exit(false);
             }
+        }
+
+        void exit(bool status)
+        {
         }
 
         void stopCalibrationCallback(ErrorCode e)
         {
             iet.Disconnect();
-            DialogResult = true;
+            exit(true);
         }
 
         void computeAndSetCalibrationCallback(ErrorCode e)
@@ -71,6 +76,13 @@ namespace EyePaint
                 Thread.Sleep(1000);
             }
             iet.ComputeAndSetCalibrationAsync(computeAndSetCalibrationCallback);
+        }
+
+        private void GazePoint_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Console.WriteLine("Over");
+            ContentControl ctrl = (ContentControl)Parent;
+            ctrl.Content = new Paint();
         }
     }
 }

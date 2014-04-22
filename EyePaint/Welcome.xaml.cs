@@ -28,7 +28,7 @@ namespace EyePaint
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
             ContentControl ctrl = (ContentControl)Parent;
-            ctrl.Content = new Paint();
+            ctrl.Content = new CalibrationWindow();
         }
     }
 }

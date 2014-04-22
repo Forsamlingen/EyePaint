@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -332,7 +333,7 @@ namespace EyePaint
 
         private void HandleQueryOnUiThread(System.Windows.Rect queryBounds)
         {
-            IntPtr windowHandle = new WindowInteropHelper(PaintingWindow).Handle;
+            IntPtr windowHandle = new WindowInteropHelper(Window.GetWindow(this)).Handle;
             var windowId = windowHandle.ToString();
 
             var snapshot = context.CreateSnapshot();
@@ -353,7 +354,7 @@ namespace EyePaint
 
         private void CreateGazeAwareInteractor(InteractorId id, Control control, string parentId, string windowId, InteractionSnapshot snapshot, System.Windows.Rect queryBoundsRect)
         {
-            var controlTopLeft = control.TranslatePoint(new Point(0, 0), PaintingWindow);
+            var controlTopLeft = control.TranslatePoint(new Point(0, 0), this);
             var controlRect = new System.Windows.Rect(controlTopLeft, control.RenderSize);
             if (controlRect.IntersectsWith(queryBoundsRect))
             {

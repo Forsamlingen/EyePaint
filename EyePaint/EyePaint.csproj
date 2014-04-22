@@ -79,6 +79,9 @@
     <Compile Include="ConfirmBox.xaml.cs">
       <DependentUpon>ConfirmBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Paint.xaml.cs">
+      <DependentUpon>Paint.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RenderObject.cs" />
     <Compile Include="SettingsFactory.cs" />
     <Compile Include="View.cs" />
@@ -99,6 +102,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Paint.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model.cs" />

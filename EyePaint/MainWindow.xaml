@@ -5,5 +5,5 @@
         WindowStyle="None" ResizeMode="NoResize"  
         WindowStartupLocation="CenterScreen" WindowState="Maximized"
         Name="EyePaintWindow">
-    <ContentControl Name="MainControl"/>
+    <ContentControl Name="MainControl" />
 </Window>

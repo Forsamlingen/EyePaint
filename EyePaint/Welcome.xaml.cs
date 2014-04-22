@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,25 +16,18 @@ using System.Windows.Shapes;
 namespace EyePaint
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for Welcome.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class Welcome : Window
     {
-        public MainWindow()
+        public Welcome()
         {
             InitializeComponent();
+        }
 
-            Window welcome = new Welcome();
-            welcome.ShowDialog();
-
-            Window paint = new Paint();
-            paint.ShowDialog();
-            /*
-            MainControl.DataContextChanged += (object s, DependencyPropertyChangedEventArgs e) =>
-            {
-                // Todo: implement
-            };
-            */
+        private void Confirm_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
         }
     }
 }

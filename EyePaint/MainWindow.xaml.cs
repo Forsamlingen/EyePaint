@@ -24,18 +24,11 @@ namespace EyePaint
         public MainWindow()
         {
             InitializeComponent();
-
-            Window welcome = new Welcome();
-            welcome.ShowDialog();
-
-            Window paint = new Paint();
-            paint.ShowDialog();
-            /*
-            MainControl.DataContextChanged += (object s, DependencyPropertyChangedEventArgs e) =>
-            {
-                // Todo: implement
-            };
-            */
+            (new Welcome()).ShowDialog(); //TODO Reshow the welcome window according to an inactivity timer.
+            (new TrackBoxPositioningWindow()).ShowDialog();
+            (new CalibrationWindow()).ShowDialog();
+            (new CalibrationEvaluationWindow()).ShowDialog(); //TODO Don't continue to the Paint window if the calibration was bad, instead ask the user if they want to recalibrate.
+            (new Paint()).ShowDialog();
         }
     }
 }

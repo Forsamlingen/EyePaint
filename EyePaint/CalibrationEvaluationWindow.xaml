@@ -1,7 +1,10 @@
 ﻿<Window x:Class="EyePaint.CalibrationEvaluationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="CalibrationEvaluationWindow" Height="300" Width="300">
+        WindowStyle="None" 
+        ResizeMode="NoResize"  
+        WindowState="Maximized"
+        Title="CalibrationEvaluationWindow">
     <Grid>
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="TODO" VerticalAlignment="Center"/>
     </Grid>

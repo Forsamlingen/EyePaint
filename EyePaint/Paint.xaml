@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="EyePaint.Paint"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="350" d:DesignWidth="525"
+             Name="PaintingControl" >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Name="MenuRow" Height="20*" />
+            <RowDefinition Name="PaintingRow" Height="80*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="0" Name="menuPanel" Background="#FF19E058">
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel">
+            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
+                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right">
+                    <Button.Background>
+                        <ImageBrush ImageSource="Resources/save.png" />
+                    </Button.Background>
+                </Button>
+                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
+                    <Button.Background>
+                        <ImageBrush ImageSource="Resources/new.png" />
+                    </Button.Background>
+                </Button>
+            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" >
+            </DockPanel>
+        </DockPanel>
+        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage"/>
+    </Grid>
+</UserControl>

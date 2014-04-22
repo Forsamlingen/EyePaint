@@ -24,7 +24,7 @@ namespace EyePaint
     /// <summary>
     /// Interaction logic for Paint.xaml
     /// </summary>
-    public partial class Paint : Window
+    public partial class Paint : UserControl
     {
         private const string InteractorId = "EyePaint";
         private InteractionSystem system;

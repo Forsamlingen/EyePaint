@@ -24,18 +24,6 @@ namespace EyePaint
         public MainWindow()
         {
             InitializeComponent();
-
-            Window welcome = new Welcome();
-            welcome.ShowDialog();
-
-            Window paint = new Paint();
-            paint.ShowDialog();
-            /*
-            MainControl.DataContextChanged += (object s, DependencyPropertyChangedEventArgs e) =>
-            {
-                // Todo: implement
-            };
-            */
         }
     }
 }

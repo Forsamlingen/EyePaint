@@ -1,15 +1,14 @@
-﻿<Window x:Class="EyePaint.Welcome"
+﻿<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EyePaint" x:Class="EyePaint.Welcome" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
-             Width="640" Height="480" 
-             WindowStyle="None" ResizeMode="NoResize"  
-             WindowStartupLocation="CenterScreen" WindowState="Maximized">
+             Width="Auto" Height="Auto">
     <Grid>
-        <Label x:Name="Message" Content="Hej och välkommen. Gör så här&#xD;&#xA;lorem ipsum" HorizontalAlignment="Left" Height="101" Margin="31,54,0,0" VerticalAlignment="Top" Width="208"/>
-        <Button x:Name="Confirm" Content="OK" HorizontalAlignment="Left" Height="76" Margin="47,184,0,0" VerticalAlignment="Top" Width="208" Click="Confirm_Click"/>
+        <Label x:Name="Message" Content="Hej och välkommen. Gör så här&#xA;lorem ipsum" HorizontalAlignment="Left" Height="101" Margin="31,54,0,0" VerticalAlignment="Top" Width="208"/>
+        <Button x:Name="Confirm" Content="OK" HorizontalAlignment="Left" Height="76" Margin="47,184,0,0" VerticalAlignment="Top" Width="208" Click="Confirm_Click" />
     </Grid>
-</Window>
+</UserControl>

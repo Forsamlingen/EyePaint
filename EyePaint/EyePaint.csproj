@@ -79,6 +79,7 @@
     <Compile Include="ConfirmBox.xaml.cs">
       <DependentUpon>ConfirmBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MainViewModel.cs" />
     <Compile Include="Paint.xaml.cs">
       <DependentUpon>Paint.xaml</DependentUpon>
     </Compile>

@@ -18,7 +18,7 @@ namespace EyePaint
     /// <summary>
     /// Interaction logic for Welcome.xaml
     /// </summary>
-    public partial class Welcome : Window
+    public partial class Welcome : UserControl
     {
         public Welcome()
         {
@@ -27,7 +27,8 @@ namespace EyePaint
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            ContentControl ctrl = (ContentControl)Parent;
+            ctrl.Content = new Paint();
         }
     }
 }

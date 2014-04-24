@@ -6,7 +6,7 @@ namespace EyePaint
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private UserControl control = new Welcome();
+        private UserControl control = new StartControl();
 
         #region INotifyPropertyChanged Members
 

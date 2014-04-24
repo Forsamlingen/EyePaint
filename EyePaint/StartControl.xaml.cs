@@ -10,18 +10,24 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace EyePaint
 {
     /// <summary>
-    /// Interaction logic for TrackBoxPositioningWindow.xaml
+    /// Interaction logic for StartControl.xaml
     /// </summary>
-    public partial class TrackBoxPositioningWindow : Window
+    public partial class StartControl : UserControl
     {
-        public TrackBoxPositioningWindow()
+        public StartControl()
         {
             InitializeComponent();
+        }
+
+        void onSuccess(object s, RoutedEventArgs e)
+        {
+            ((ContentControl)Parent).Content = new CalibrationPositioningControl();
         }
     }
 }

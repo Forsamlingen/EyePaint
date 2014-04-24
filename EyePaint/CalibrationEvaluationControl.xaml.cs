@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 namespace EyePaint
 {
     /// <summary>
-    /// Interaction logic for CalibrationEvaluationWindow.xaml
+    /// Interaction logic for CalibrationEvaluationControl.xaml
     /// </summary>
-    public partial class CalibrationEvaluationWindow : Window
+    public partial class CalibrationEvaluationControl : UserControl
     {
-        public CalibrationEvaluationWindow()
+        public CalibrationEvaluationControl()
         {
             InitializeComponent();
         }

@@ -3,8 +3,5 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="onStartup">
     <Application.Resources>
-        <Style TargetType="Window">
-            <Setter Property="Cursor" Value="Cross"/>
-        </Style>
     </Application.Resources>
 </Application>

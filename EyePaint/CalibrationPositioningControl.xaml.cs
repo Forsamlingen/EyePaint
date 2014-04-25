@@ -20,6 +20,7 @@ namespace EyePaint
     public partial class CalibrationPositioningControl : UserControl
     {
         static EyeTrackingEngine eyeTracker = new EyeTrackingEngine();
+        bool stable = false;
 
         public CalibrationPositioningControl()
         {
@@ -35,11 +36,16 @@ namespace EyePaint
                 {
                     //TODO Include the eye tracker angle in the mount when calculating the distance to the user's eyes.
                     Blur.Radius = Math.Abs(eyeTracker.distance - 550);
-                    if (eyeTracker.distance < 400) Instructions.Text = "Sitt längre bak";
-                    else if (eyeTracker.distance > 700) Instructions.Text = "Sitt närmre";
-                    else ((ContentControl)Parent).Content = new CalibrationControl();
+                    if (eyeTracker.distance < 400) { Instructions.Text = "Sitt längre bak"; stable = false; }
+                    else if (eyeTracker.distance > 700) { Instructions.Text = "Sitt närmre"; stable = false; }
+                    else { Instructions.Text = "Finemang"; stable = true; }
                 })).Wait();
             })).Start();
+        }
+
+        void onKeyDown(object s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space && stable) ((ContentControl)Parent).Content = new CalibrationControl();
         }
     }
 }

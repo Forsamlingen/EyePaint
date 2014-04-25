@@ -25,9 +25,14 @@ namespace EyePaint
             InitializeComponent();
         }
 
-        void onSuccess(object s, RoutedEventArgs e)
+        void onMouseLeftButtonDown(object s, MouseButtonEventArgs e)
         {
             ((ContentControl)Parent).Content = new CalibrationPositioningControl();
+        }
+
+        private void UserControl_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Console.WriteLine("hej");
         }
     }
 }

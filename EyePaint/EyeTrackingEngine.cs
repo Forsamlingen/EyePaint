@@ -75,7 +75,7 @@ namespace EyePaint
             {
                 // Calculate the user's head's distance from the eye tracker camera.
                 distance = (e.GazeData.Left.EyePositionFromEyeTrackerMM.Z + e.GazeData.Right.EyePositionFromEyeTrackerMM.Z) / 2;
-                Debug.WriteLine("Distance: " + distance);
+                //Debug.WriteLine("Distance: " + distance);
 
                 // Set mouse cursor at the gaze point on the screen, so WPF mouse events are triggered by the gaze.
                 SetCursorPos(

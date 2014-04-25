@@ -22,7 +22,14 @@ namespace EyePaint
             while (renderQueue.Count() != 0)
             {
                 RenderObject renderObject = renderQueue.Dequeue();
-                renderObject.Rasterize(ref canvas); // TODO: Sometimes crashes program. Wrap in try/catch.
+                try
+                {
+                    renderObject.Rasterize(ref canvas); // TODO: Sometimes crashes program. Wrap in try/catch.
+                }
+                catch
+                {
+                    Console.WriteLine("crashed");
+                }
             }
         }
 

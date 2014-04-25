@@ -24,7 +24,7 @@ namespace EyePaint
     /// <summary>
     /// Interaction logic for Paint.xaml
     /// </summary>
-    public partial class Paint : UserControl
+    public partial class PaintControl : UserControl
     {
         private const string InteractorId = "EyePaint";
         private InteractionSystem system;
@@ -58,7 +58,7 @@ namespace EyePaint
         private DispatcherTimer paintTimer;
         private DispatcherTimer inactivityTimer;
 
-        public Paint()
+        public PaintControl()
         {
             InitializeComponent();
 
@@ -93,7 +93,8 @@ namespace EyePaint
             paintTimer.Interval = TimeSpan.FromMilliseconds(1);
             paintTimer.Tick += (object s, EventArgs e) =>
             {
-                model.Grow(); RasterizeModel();
+                model.Grow();
+                RasterizeModel();
             };
 
             // Set timer for inactivity
@@ -117,8 +118,8 @@ namespace EyePaint
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage; //TODO ev change to resources
-                brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage;
+                brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
                 btn.Width = btnWidth;
@@ -135,13 +136,11 @@ namespace EyePaint
                 Button btn = new Button();
                 var brush = new ImageBrush();
 
-                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage; //TODO ev change to resource
+                String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage;
                 brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
                 btn.Width = btnWidth;
-                btn.GotFocus += (object s, RoutedEventArgs e) => { btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0)); };
-                btn.LostFocus += (object s, RoutedEventArgs e) => { btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255)); };
                 btn.Click += (object s, RoutedEventArgs e) => { model.ChangePaintTool(pt); };
                 paintToolPanel.Children.Add(btn);
                 toolButtons.Add(btn); // TODO Q: What do we need this list for?
@@ -152,6 +151,7 @@ namespace EyePaint
             setRandomBackgroundButton.Width = btnWidth;
 
             // Set focus/blur behavior for gaze aware buttons
+            /*
             foreach (var kv in gazeAwareButtons)
             {
                 Button btn = kv.Value;
@@ -164,6 +164,7 @@ namespace EyePaint
                     btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
                 };
             }
+            */
         }
 
         private void OnGaze(string interactorId, bool hasGaze)
@@ -191,24 +192,20 @@ namespace EyePaint
             {
                 SavePainting();
             }
-            else
-            {
-                Console.WriteLine("Noooooo");
-            }
         }
 
         //Methods for keypress
         void MainWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            isKeyDown = false;
-            StopPainting();
+            //isKeyDown = false;
+            //StopPainting();
         }
 
         void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (isKeyDown) return;
-            isKeyDown = true;
-            StartPainting();
+            //if (isKeyDown) return;
+            //isKeyDown = true;
+            //StartPainting();
         }
 
         void StartPainting()
@@ -229,8 +226,12 @@ namespace EyePaint
             inactivityTimer.Start();
         }
 
+        /// <summary>
+        /// Tracks gaze point from the tracker. Must run on the UI thread.
+        /// </summary>
         void TrackGaze(Point p, bool keep = true, int keyhole = 100)
         {
+            p = paintingImage.PointFromScreen(p);
             var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
             if (distance < keyhole) return;
             gaze = p;
@@ -270,8 +271,41 @@ namespace EyePaint
             };
             this.MouseDown += (object s, MouseButtonEventArgs e) => { StartPainting(); };
             this.MouseUp += (object s, MouseButtonEventArgs e) => { StopPainting(); };
-            //this.KeyDown += MainWindow_KeyDown;
-            //this.KeyUp += MainWindow_KeyUp;
+        }
+
+        /// <summary>
+        /// Define actions for space and escape keys.
+        /// </summary>
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            Console.WriteLine("Key Down");
+            if (e.Key == Key.Space)
+            {
+                StartPainting();
+                e.Handled = true;
+            }
+            else
+            {
+                base.OnKeyDown(e);
+            }
+        }
+
+        protected override void OnPreviewKeyUp(KeyEventArgs e)
+        {
+            Console.WriteLine("Key Up");
+            if (e.Key == Key.Space)
+            {
+                StopPainting();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                // TODO: Restart app
+            }
+            else
+            {
+                base.OnPreviewKeyUp(e);
+            }
         }
 
         /// <summary>
@@ -391,7 +425,7 @@ namespace EyePaint
                     GazePointDataEventParams r;
                     if (behavior.TryGetGazePointDataEventParams(out r))
                     {
-                        TrackGaze(new Point(r.X, r.Y), paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                        this.Dispatcher.BeginInvoke(new Action(() => TrackGaze(new Point(r.X, r.Y), paint, 50))); //TODO Set keyhole size dynamically based on how bad the calibration is.
                         this.Dispatcher.BeginInvoke(new Action(() => RasterizeModel()));
                     }
                 }

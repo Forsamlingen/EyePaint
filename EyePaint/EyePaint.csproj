@@ -91,8 +91,8 @@
     </Compile>
     <Compile Include="EyeTrackingEngine.cs" />
     <Compile Include="MainViewModel.cs" />
-    <Compile Include="Paint.xaml.cs">
-      <DependentUpon>Paint.xaml</DependentUpon>
+    <Compile Include="PaintControl.xaml.cs">
+      <DependentUpon>PaintControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RenderObject.cs" />
     <Compile Include="SettingsFactory.cs" />
@@ -128,7 +128,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Paint.xaml">
+    <Page Include="PaintControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 namespace EyePaint
 {
     /// <summary>
-    /// Interaction logic for TrackBoxPositioningWindow.xaml
+    /// Interaction logic for CalibrationEvaluationControl.xaml
     /// </summary>
-    public partial class TrackBoxPositioningWindow : Window
+    public partial class CalibrationEvaluationControl : UserControl
     {
-        public TrackBoxPositioningWindow()
+        public CalibrationEvaluationControl()
         {
             InitializeComponent();
         }

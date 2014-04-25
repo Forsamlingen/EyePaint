@@ -1,0 +1,24 @@
+﻿<UserControl 
+    x:Class="EyePaint.CalibrationEvaluationControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Canvas>
+            <Ellipse Name="GazePoint" Fill="Red" />
+        </Canvas>
+        <Grid Grid.RowSpan="2" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Ellipse Grid.Row="0" Grid.Column="0"/>
+            <Ellipse Grid.Row="0" Grid.Column="1"/>
+            <Ellipse Grid.Row="1" Grid.Column="0" />
+            <Ellipse Grid.Row="1" Grid.Column="1" />
+        </Grid>
+    </Grid>
+</UserControl>

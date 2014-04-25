@@ -80,33 +80,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CalibrationEvaluationWindow.xaml.cs">
-      <DependentUpon>CalibrationEvaluationWindow.xaml</DependentUpon>
+    <Compile Include="CalibrationEvaluationControl.xaml.cs">
+      <DependentUpon>CalibrationEvaluationControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CalibrationWindow.xaml.cs">
-      <DependentUpon>CalibrationWindow.xaml</DependentUpon>
+    <Compile Include="CalibrationControl.xaml.cs">
+      <DependentUpon>CalibrationControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfirmBox.xaml.cs">
       <DependentUpon>ConfirmBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EyeTrackingEngine.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="Paint.xaml.cs">
       <DependentUpon>Paint.xaml</DependentUpon>
     </Compile>
     <Compile Include="RenderObject.cs" />
     <Compile Include="SettingsFactory.cs" />
-    <Compile Include="TrackBoxPositioningWindow.xaml.cs">
-      <DependentUpon>TrackBoxPositioningWindow.xaml</DependentUpon>
+    <Compile Include="CalibrationPositioningControl.xaml.cs">
+      <DependentUpon>CalibrationPositioningControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="View.cs" />
-    <Compile Include="Welcome.xaml.cs">
-      <DependentUpon>Welcome.xaml</DependentUpon>
+    <Compile Include="StartControl.xaml.cs">
+      <DependentUpon>StartControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="CalibrationEvaluationWindow.xaml">
+    <Page Include="CalibrationEvaluationControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="CalibrationWindow.xaml">
+    <Page Include="CalibrationControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -131,11 +132,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="TrackBoxPositioningWindow.xaml">
+    <Page Include="CalibrationPositioningControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Welcome.xaml">
+    <Page Include="StartControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -16,19 +16,23 @@ using System.Windows.Shapes;
 namespace EyePaint
 {
     /// <summary>
-    /// Interaction logic for Welcome.xaml
+    /// Interaction logic for StartControl.xaml
     /// </summary>
-    public partial class Welcome : UserControl
+    public partial class StartControl : UserControl
     {
-        public Welcome()
+        public StartControl()
         {
             InitializeComponent();
         }
 
-        private void Confirm_Click(object sender, RoutedEventArgs e)
+        void onMouseLeftButtonDown(object s, MouseButtonEventArgs e)
         {
-            ContentControl ctrl = (ContentControl)Parent;
-            ctrl.Content = new CalibrationWindow();
+            ((ContentControl)Parent).Content = new CalibrationPositioningControl();
+        }
+
+        private void UserControl_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Console.WriteLine("hej");
         }
     }
 }

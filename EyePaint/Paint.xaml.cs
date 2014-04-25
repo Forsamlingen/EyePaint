@@ -88,9 +88,6 @@ namespace EyePaint
             //Initialize parameters
             menuActive = false;
 
-            //MouseDown += (object s, MouseEventArgs e) => startPainting();
-            //MouseUp += (object s, MouseEventArgs e) => stopPainting();
-
             //Initialize timers
             paintTimer = new DispatcherTimer();
             paintTimer.Interval = TimeSpan.FromMilliseconds(1);
@@ -188,13 +185,11 @@ namespace EyePaint
 
         void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            //TODO CHANGE
-            //Application.Current.Shutdown();
             Window confirmBox = new ConfirmBox();
             confirmBox.ShowDialog();
             if (confirmBox.DialogResult.HasValue && confirmBox.DialogResult.Value)
             {
-                Console.WriteLine("YEAAAAH");
+                SavePainting();
             }
             else
             {
@@ -254,7 +249,13 @@ namespace EyePaint
 
         void SavePainting()
         {
-            //TODO implement
+            PngBitmapEncoder encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(painting));
+            string filename = DateTime.Now.TimeOfDay.TotalSeconds + ".png";
+            using (Stream stm = File.Create(filename))
+            {
+                encoder.Save(stm);
+            }
         }
 
         /// <summary>

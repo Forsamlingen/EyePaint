@@ -13,7 +13,7 @@ namespace EyePaint
     /// </summary>
     public partial class App : Application
     {
-        static EyeTrackingEngine eyeTracker = new EyeTrackingEngine(); //TODO Handle hardware errors gracefully.
+        //static EyeTrackingEngine eyeTracker = new EyeTrackingEngine(); //TODO Handle hardware errors gracefully.
 
         void onStartup(object sender, StartupEventArgs e)
         {

@@ -63,9 +63,10 @@ namespace EyePaint
             InitializeComponent();
 
             // Create a canvas for painting
-            paintingHeight = (int)System.Windows.SystemParameters.PrimaryScreenHeight;
-            paintingWidth = (int)(System.Windows.SystemParameters.PrimaryScreenWidth * 0.8);
-            painting = new RenderTargetBitmap(paintingHeight, paintingWidth, 96, 96, PixelFormats.Pbgra32);
+            paintingWidth = (int)(System.Windows.SystemParameters.PrimaryScreenWidth);
+            paintingHeight = (int)(System.Windows.SystemParameters.PrimaryScreenHeight * 0.8);
+            Console.WriteLine(paintingWidth + "x" + paintingHeight);
+            painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
             InitializeEyeTracking();
@@ -110,9 +111,7 @@ namespace EyePaint
 
         void InitializeMenu()
         {
-            int leftmargin = (int)menuPanel.Margin.Left;
-            int rightmargin = (int)menuPanel.Margin.Right;
-            int btnWidth = (paintingWidth - leftmargin - rightmargin) / (colorTools.Count() + paintTools.Count + paintToolPanel.Children.Count + colorToolPanel.Children.Count);
+            int btnWidth = 2*(int)saveButton.BorderThickness.Right + (paintingWidth / (colorTools.Count + paintTools.Count + systemPanel.Children.Count));
 
             //Add ColorTools
             DockPanel.SetDock(colorToolPanel, Dock.Left);

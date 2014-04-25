@@ -15,9 +15,8 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin ="0" Name="menuPanel" Background="#FF19E058">
-            <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel">
-            </DockPanel>
+        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin="0" Name="menuPanel" Background="#FF19E058">
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel" />
             <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
                 <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right">
                     <Button.Background>
@@ -30,9 +29,8 @@
                     </Button.Background>
                 </Button>
             </DockPanel>
-            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" >
-            </DockPanel>
+            <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" />
         </DockPanel>
-        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage"/>
+        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage" Stretch="Fill"/>
     </Grid>
 </UserControl>

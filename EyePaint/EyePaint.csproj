@@ -169,15 +169,23 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\new.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\save.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\new.png" />
+    <Resource Include="Resources\save.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\TobiiEyeXSdk\x86\Tobii.EyeX.Client.dll" />
+    <Resource Include="Resources\blue.png" />
+    <Resource Include="Resources\bolt.png" />
+    <Resource Include="Resources\bullseye.png" />
+    <Resource Include="Resources\cloud.png" />
+    <Resource Include="Resources\cyan.png" />
+    <Resource Include="Resources\exit.png" />
+    <Resource Include="Resources\green.png" />
+    <Resource Include="Resources\magenta.png" />
+    <Resource Include="Resources\red.png" />
+    <Resource Include="Resources\sun.png" />
+    <Resource Include="Resources\yellow.png" />
+    <Resource Include="Resources\rainbow.png" />
     <Content Include="Tobii.Gaze.Core.Net.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -190,7 +198,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.dll" "$(TargetDir)"</PostBuildEvent>
+    <PostBuildEvent>copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.dll" "$(TargetDir)"
+mkdir "$(TargetDir)Resources"
+xcopy "$(ProjectDir)Resources\*.*" "$(TargetDir)Resources" /E</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

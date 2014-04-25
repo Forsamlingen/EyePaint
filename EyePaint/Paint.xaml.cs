@@ -65,7 +65,6 @@ namespace EyePaint
             // Create a canvas for painting
             paintingWidth = (int)(System.Windows.SystemParameters.PrimaryScreenWidth);
             paintingHeight = (int)(System.Windows.SystemParameters.PrimaryScreenHeight * 0.8);
-            Console.WriteLine(paintingWidth + "x" + paintingHeight);
             painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
@@ -111,7 +110,8 @@ namespace EyePaint
 
         void InitializeMenu()
         {
-            int btnWidth = 2*(int)saveButton.BorderThickness.Right + (paintingWidth / (colorTools.Count + paintTools.Count + systemPanel.Children.Count));
+            int btnWidth = 2*(int)saveButton.BorderThickness.Right +
+                (paintingWidth / (colorTools.Count + paintTools.Count + systemPanel.Children.Count));
 
             //Add ColorTools
             DockPanel.SetDock(colorToolPanel, Dock.Left);
@@ -121,7 +121,7 @@ namespace EyePaint
                 var brush = new ImageBrush();
 
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage; //TODO ev change to resources
-                //brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
+                brush.ImageSource = new BitmapImage(new Uri(path)); //TODO this should be uncommented, I just didn't have any pictures to the buttons
 
                 btn.Background = brush;
                 btn.Width = btnWidth;
@@ -139,7 +139,7 @@ namespace EyePaint
                 var brush = new ImageBrush();
 
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage; //TODO ev change to resource
-                //brush.ImageSource = new BitmapImage(new Uri(path));
+                brush.ImageSource = new BitmapImage(new Uri(path));
 
                 btn.Background = brush;
                 btn.Width = btnWidth;

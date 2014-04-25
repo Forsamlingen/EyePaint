@@ -267,8 +267,10 @@ namespace EyePaint
                 var mousePosition = new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y);
                 TrackGaze(mousePosition, paint, 0);
             };
-            this.KeyDown += MainWindow_KeyDown;
-            this.KeyUp += MainWindow_KeyUp;
+            this.MouseDown += (object s, MouseButtonEventArgs e) => { StartPainting(); };
+            this.MouseUp += (object s, MouseButtonEventArgs e) => { StopPainting(); };
+            //this.KeyDown += MainWindow_KeyDown;
+            //this.KeyUp += MainWindow_KeyUp;
         }
 
         /// <summary>

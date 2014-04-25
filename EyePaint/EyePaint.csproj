@@ -200,7 +200,7 @@
   <PropertyGroup>
     <PostBuildEvent>copy "$(ProjectDir)lib\TobiiEyeXSdk\$(PlatformName)\Tobii.EyeX.Client.dll" "$(TargetDir)"
 mkdir "$(TargetDir)Resources"
-xcopy "$(ProjectDir)Resources\*.*" "$(TargetDir)Resources" /E</PostBuildEvent>
+xcopy "$(ProjectDir)Resources\*.*" "$(TargetDir)Resources" /E/Y/I</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

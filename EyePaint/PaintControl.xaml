@@ -31,6 +31,6 @@
             </DockPanel>
             <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" />
         </DockPanel>
-        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage" Stretch="Fill"/>
+        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage" Stretch="Fill" Focusable="True" KeyDown="paintingImage_KeyDown" KeyUp="paintingImage_KeyUp"/>
     </Grid>
 </UserControl>

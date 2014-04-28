@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -32,9 +34,8 @@ namespace EyePaint
         private InteractionSnapshot globalInteractorSnapshot;
 
         Point gaze;
-        bool paint = false;
-        bool menuActive;
-        bool isKeyDown = false; //TODO see if other soultion is possible?
+        bool paintingActive = false;
+        Button activeButton;
         Dictionary<InteractorId, Button> gazeAwareButtons;
 
         //Painting
@@ -45,11 +46,6 @@ namespace EyePaint
         //Tools 
         List<PaintTool> paintTools;
         List<ColorTool> colorTools;
-
-        //Buttons
-        Button activeButton;
-        List<Button> toolButtons;
-        List<Button> colorButtons;
 
         Model model;
         View view;
@@ -68,7 +64,7 @@ namespace EyePaint
             painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
-            //InitializeEyeTracking();
+            InitializeEyeTracking();
             InitializeMouseControl();
 
             // Set up model and view
@@ -79,14 +75,9 @@ namespace EyePaint
             view = new View(painting);
 
             // Set up GUI
-            toolButtons = new List<Button>();
-            colorButtons = new List<Button>();
             gazeAwareButtons = new Dictionary<InteractorId, Button>();
             paintingImage.Source = painting;
             InitializeMenu();
-
-            //Initialize parameters
-            menuActive = false;
 
             //Initialize timers
             paintTimer = new DispatcherTimer();
@@ -126,12 +117,12 @@ namespace EyePaint
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage;
                 brush.ImageSource = new BitmapImage(new Uri(path));
 
+                btn.Name = ct.name;
                 btn.Background = brush;
                 btn.Width = btnWidth;
                 btn.Click += (object s, RoutedEventArgs e) => { model.ChangeColorTool(ct); };
                 colorToolPanel.Children.Add(btn);
-                colorButtons.Add(btn); // TODO Q: What do we need this list for?
-                gazeAwareButtons.Add(ct.name, btn);
+                gazeAwareButtons.Add(btn.Name, btn);
             }
 
             //Add PaintTools
@@ -144,22 +135,23 @@ namespace EyePaint
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage;
                 brush.ImageSource = new BitmapImage(new Uri(path));
 
+                btn.Name = pt.name;
                 btn.Background = brush;
                 btn.Width = btnWidth;
                 btn.Click += (object s, RoutedEventArgs e) => { model.ChangePaintTool(pt); };
                 paintToolPanel.Children.Add(btn);
-                toolButtons.Add(btn); // TODO Q: What do we need this list for?
-                gazeAwareButtons.Add(pt.name, btn);
+                gazeAwareButtons.Add(btn.Name, btn);
             }
 
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;
 
-            // Set focus/blur behavior for gaze aware buttons
-            /*
+            // Bind events to gaze aware buttons
             foreach (var kv in gazeAwareButtons)
             {
                 Button btn = kv.Value;
+                btn.PreviewKeyDown += (object s, KeyEventArgs e) => { gazeAwareButton_PreviewKeyDown(s, e); };
+                /*
                 btn.GotFocus += (object s, RoutedEventArgs e) =>
                 {
                     btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
@@ -168,23 +160,30 @@ namespace EyePaint
                 {
                     btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
                 };
+                */
             }
-            */
         }
 
+        /// <summary>
+        /// Event handler for gaze aware events, which are events triggered
+        /// when the user looks at a gaze aware button.
+        /// </summary>
+        /// <param name="interactorId">ID of the gaze aware button</param>
+        /// <param name="hasGaze">Flag indicating if the user is looking at the button</param>
         private void OnGaze(string interactorId, bool hasGaze)
         {
-            var control = gazeAwareButtons[interactorId];
-            Console.WriteLine(interactorId);
-            if (control != null)
+            Button btn = gazeAwareButtons[interactorId];
+            if (btn != null)
             {
-                control.Focus();
+                btn.Focus();
+                activeButton = btn;
             }
         }
 
         //ButtonMethods on click
         void OnSetRandomBackGroundClick(object sender, RoutedEventArgs e)
         {
+            SavePainting();
             SetBackGroundToRandomColor();
             model.ResetModel();
         }
@@ -194,40 +193,24 @@ namespace EyePaint
             SavePainting();
         }
 
-        //Methods for keypress
-        void MainWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-            //isKeyDown = false;
-            //StopPainting();
-        }
-
-        void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            //if (isKeyDown) return;
-            //isKeyDown = true;
-            //StartPainting();
-        }
-
         void StartPainting()
         {
-            if (menuActive) return;
-            if (paint) return;
-            paint = true;
+            if (paintingActive) return;
+            paintingActive = true;
             paintTimer.Start();
-            TrackGaze(gaze, paint, 0);
+            TrackGaze(gaze, paintingActive, 0);
             inactivityTimer.Stop();
         }
 
-        // Stop painting.
         void StopPainting()
         {
-            paint = false;
+            paintingActive = false;
             paintTimer.Stop();
             inactivityTimer.Start();
         }
 
         /// <summary>
-        /// Tracks gaze point from the tracker. Must run on the UI thread.
+        /// Tracks a gaze point from the tracker. Must run on the UI thread.
         /// </summary>
         void TrackGaze(Point p, bool keep = true, int keyhole = 100)
         {
@@ -271,29 +254,39 @@ namespace EyePaint
             this.MouseMove += (object s, MouseEventArgs e) =>
             {
                 var mousePosition = new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y);
-                TrackGaze(mousePosition, paint, 0);
+                TrackGaze(mousePosition, paintingActive, 0);
             };
             this.MouseDown += (object s, MouseButtonEventArgs e) => { StartPainting(); };
             this.MouseUp += (object s, MouseButtonEventArgs e) => { StopPainting(); };
         }
 
-        /// <summary>
-        /// Define actions for space and escape keys.
-        /// </summary>
-        protected override void OnKeyDown(KeyEventArgs e)
+        #region gazeAwareButtons key event handlers
+
+        private void gazeAwareButton_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                ButtonAutomationPeer peer = new ButtonAutomationPeer(activeButton);
+                IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
+                invokeProv.Invoke();
+                e.Handled = true;
+            }
+        }
+
+        #endregion
+
+        #region paintingImage key event handlers
+
+        private void paintingImage_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Space)
             {
                 StartPainting();
                 e.Handled = true;
             }
-            else
-            {
-                base.OnKeyDown(e);
-            }
         }
 
-        protected override void OnPreviewKeyUp(KeyEventArgs e)
+        private void paintingImage_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Space)
             {
@@ -309,11 +302,11 @@ namespace EyePaint
                     Reset();
                 }
             }
-            else
-            {
-                base.OnPreviewKeyUp(e);
-            }
         }
+
+        #endregion
+
+        #region EyeTracking with EyeX
 
         /// <summary>
         /// Sets up the EyeX engine and enables eye tracking.
@@ -330,7 +323,7 @@ namespace EyePaint
             context.EnableConnection();
 
             // enable gaze point tracking over the entire window
-            InitializePaintingInteractorSnapshot();
+            InitializeGlobalInteractorSnapshot();
             context.ConnectionStateChanged += (object s, ConnectionStateChangedEventArgs ce) =>
             {
                 if (ce.State == ConnectionState.Connected)
@@ -343,7 +336,7 @@ namespace EyePaint
         /// <summary>
         /// Initializes the EyeX snapshot that handles the painting interaction.
         /// </summary>
-        private void InitializePaintingInteractorSnapshot()
+        private void InitializeGlobalInteractorSnapshot()
         {
             globalInteractorSnapshot = context.CreateSnapshot();
             globalInteractorSnapshot.CreateBounds(InteractionBoundsType.None);
@@ -376,7 +369,7 @@ namespace EyePaint
 
         private void HandleQueryOnUiThread(System.Windows.Rect queryBounds)
         {
-            IntPtr windowHandle = new WindowInteropHelper(Window.GetWindow(this)).Handle;
+            IntPtr windowHandle = new WindowInteropHelper(Window.GetWindow(this)).Handle; // TODO: crashes on reset. Make IDisposable and do dispose
             var windowId = windowHandle.ToString();
 
             var snapshot = context.CreateSnapshot();
@@ -399,7 +392,8 @@ namespace EyePaint
         {
             var controlTopLeft = control.TranslatePoint(new Point(0, 0), this);
             var controlRect = new System.Windows.Rect(controlTopLeft, control.RenderSize);
-            if (controlRect.IntersectsWith(queryBoundsRect))
+
+            if (!paintingActive && controlRect.IntersectsWith(queryBoundsRect))
             {
                 var interactor = snapshot.CreateInteractor(id, parentId, windowId);
                 var bounds = interactor.CreateBounds(InteractionBoundsType.Rectangular);
@@ -434,14 +428,27 @@ namespace EyePaint
                     {
                         this.Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            Point p = new Point(r.X, r.Y);
-                            p = paintingImage.PointFromScreen(p);
-                            TrackGaze(p, paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                            if (PresentationSource.FromVisual(paintingImage) != null)
+                            {
+                                Point p = new Point(r.X, r.Y);
+                                p = paintingImage.PointFromScreen(p);
+                                var paintingTopLeft = paintingImage.TranslatePoint(new Point(0, 0), this);
+                                var paintingRect = new System.Windows.Rect(paintingTopLeft, paintingImage.RenderSize);
+
+                                if (paintingRect.Contains(p))
+                                {
+                                    paintingImage.Focus();
+                                    TrackGaze(p, paintingActive, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                                    RasterizeModel();
+                                }
+                            }
                         }));
-                        this.Dispatcher.BeginInvoke(new Action(() => RasterizeModel()));
                     }
                 }
             }
         }
+
+        #endregion
+
     }
 }

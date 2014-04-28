@@ -1,7 +1,9 @@
 ﻿<UserControl
     x:Class="EyePaint.StartControl" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" PreviewMouseLeftButtonDown="onMouseLeftButtonDown" PreviewMouseDown="UserControl_PreviewMouseDown">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    KeyDown="OnKeyDown" Loaded="OnLoaded"
+    Focusable="True">
     <Grid>
         <TextBlock Text="Tryck mellanslag för att börja" HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>

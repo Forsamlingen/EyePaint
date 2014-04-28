@@ -90,7 +90,7 @@
       <DependentUpon>ConfirmBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="EyeTrackingEngine.cs" />
-    <Compile Include="MainViewModel.cs" />
+    <Compile Include="AppStateMachine.cs" />
     <Compile Include="PaintControl.xaml.cs">
       <DependentUpon>PaintControl.xaml</DependentUpon>
     </Compile>

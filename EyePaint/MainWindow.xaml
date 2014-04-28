@@ -2,9 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"        
         xmlns:local="clr-namespace:EyePaint" x:Class="EyePaint.MainWindow" 
         WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized" 
-        x:Name="EyePaintWindow" Cursor="None">
-    <Window.DataContext>
-        <local:MainViewModel />
-    </Window.DataContext>
-    <ContentControl x:Name="MainControl" Content="{Binding Control}" />
+        x:Name="EyePaintWindow">
+    <ContentControl x:Name="MainControl" Content="{Binding Source={x:Static local:AppStateMachine.Instance}, Path=Control, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 </Window>

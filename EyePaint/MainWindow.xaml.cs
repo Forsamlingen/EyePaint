@@ -24,6 +24,7 @@ namespace EyePaint
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = AppStateMachine.Instance;
         }
     }
 }

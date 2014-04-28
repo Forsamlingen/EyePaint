@@ -68,7 +68,7 @@ namespace EyePaint
             painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
-            InitializeEyeTracking();
+            //InitializeEyeTracking();
             InitializeMouseControl();
 
             // Set up model and view
@@ -231,7 +231,6 @@ namespace EyePaint
         /// </summary>
         void TrackGaze(Point p, bool keep = true, int keyhole = 100)
         {
-            p = paintingImage.PointFromScreen(p);
             var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
             if (distance < keyhole) return;
             gaze = p;
@@ -425,7 +424,12 @@ namespace EyePaint
                     GazePointDataEventParams r;
                     if (behavior.TryGetGazePointDataEventParams(out r))
                     {
-                        this.Dispatcher.BeginInvoke(new Action(() => TrackGaze(new Point(r.X, r.Y), paint, 50))); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                        this.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            Point p = new Point(r.X, r.Y);
+                            p = paintingImage.PointFromScreen(p);
+                            TrackGaze(p, paint, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
+                        }));
                         this.Dispatcher.BeginInvoke(new Action(() => RasterizeModel()));
                     }
                 }

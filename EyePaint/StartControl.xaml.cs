@@ -25,14 +25,19 @@ namespace EyePaint
             InitializeComponent();
         }
 
-        void onMouseLeftButtonDown(object s, MouseButtonEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            ((ContentControl)Parent).Content = new CalibrationPositioningControl();
+            this.Focus();
         }
 
-        private void UserControl_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            Console.WriteLine("hej");
+            if (e.Key == Key.Space)
+            {
+                AppStateMachine.Instance.Next();
+            }
         }
+
+        
     }
 }

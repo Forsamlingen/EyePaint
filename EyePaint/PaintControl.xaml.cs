@@ -196,6 +196,7 @@ namespace EyePaint
         {
             if (paintingActive) return;
             paintingActive = true;
+            paintingImage.Focus();
             paintTimer.Start();
             TrackGaze(gaze, paintingActive, 0);
             inactivityTimer.Stop();
@@ -257,7 +258,7 @@ namespace EyePaint
 
         private void gazeAwareButton_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Space)
+            if (e.Key == Key.Space && activeButton != null)
             {
                 ButtonAutomationPeer peer = new ButtonAutomationPeer(activeButton);
                 IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
@@ -441,7 +442,6 @@ namespace EyePaint
 
                                 if (paintingRect.Contains(p))
                                 {
-                                    paintingImage.Focus();
                                     TrackGaze(p, paintingActive, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
                                     RasterizeModel();
                                 }

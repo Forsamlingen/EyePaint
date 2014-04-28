@@ -101,11 +101,6 @@ namespace EyePaint
             };
         }
 
-        public void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            this.Focus();
-        }
-
         void InitializeMenu()
         {
             int btnWidth = 2*(int)saveButton.BorderThickness.Right +
@@ -168,13 +163,15 @@ namespace EyePaint
             }
         }
 
+        #region PaintControl actions
+
         /// <summary>
         /// Event handler for gaze aware events, which are events triggered
         /// when the user looks at a gaze aware button.
         /// </summary>
         /// <param name="interactorId">ID of the gaze aware button</param>
         /// <param name="hasGaze">Flag indicating if the user is looking at the button</param>
-        private void OnGaze(string interactorId, bool hasGaze)
+        private void TrackInteractor(string interactorId, bool hasGaze)
         {
             Button btn = gazeAwareButtons[interactorId];
             if (btn != null)
@@ -184,17 +181,15 @@ namespace EyePaint
             }
         }
 
-        //ButtonMethods on click
-        void OnSetRandomBackGroundClick(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Tracks a gaze point from the tracker. Must run on the UI thread.
+        /// </summary>
+        void TrackGaze(Point p, bool keep = true, int keyhole = 100)
         {
-            SavePainting();
-            SetBackGroundToRandomColor();
-            model.ResetModel();
-        }
-
-        void OnSaveClick(object sender, RoutedEventArgs e)
-        {
-            SavePainting();
+            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
+            if (distance < keyhole) return;
+            gaze = p;
+            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         void StartPainting()
@@ -211,17 +206,6 @@ namespace EyePaint
             paintingActive = false;
             paintTimer.Stop();
             inactivityTimer.Start();
-        }
-
-        /// <summary>
-        /// Tracks a gaze point from the tracker. Must run on the UI thread.
-        /// </summary>
-        void TrackGaze(Point p, bool keep = true, int keyhole = 100)
-        {
-            var distance = Math.Sqrt(Math.Pow(gaze.X - p.X, 2) + Math.Pow(gaze.Y - p.Y, 2));
-            if (distance < keyhole) return;
-            gaze = p;
-            if (keep) model.Add(gaze, true); //TODO Add alwaysAdd argument, or remove it completely from the function declaration.      
         }
 
         void RasterizeModel()
@@ -250,21 +234,26 @@ namespace EyePaint
             AppStateMachine.Instance.Next();
         }
 
-        /// <summary>
-        /// Sets up mouse based interaction.
-        /// </summary>
-        void InitializeMouseControl()
+        #endregion
+
+        #region PaintControl event handlers
+        
+        public void OnLoaded(object sender, RoutedEventArgs e)
         {
-            this.MouseMove += (object s, MouseEventArgs e) =>
-            {
-                var mousePosition = new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y);
-                TrackGaze(mousePosition, paintingActive, 0);
-            };
-            this.MouseDown += (object s, MouseButtonEventArgs e) => { StartPainting(); };
-            this.MouseUp += (object s, MouseButtonEventArgs e) => { StopPainting(); };
+            this.Focus();
         }
 
-        #region gazeAwareButtons key event handlers
+        void OnSetRandomBackGroundClick(object sender, RoutedEventArgs e)
+        {
+            SavePainting();
+            SetBackGroundToRandomColor();
+            model.ResetModel();
+        }
+
+        void OnSaveClick(object sender, RoutedEventArgs e)
+        {
+            SavePainting();
+        }
 
         private void gazeAwareButton_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -276,10 +265,6 @@ namespace EyePaint
                 e.Handled = true;
             }
         }
-
-        #endregion
-
-        #region paintingImage key event handlers
 
         private void paintingImage_KeyDown(object sender, KeyEventArgs e)
         {
@@ -306,6 +291,24 @@ namespace EyePaint
                     Reset();
                 }
             }
+        }
+
+        #endregion
+
+        #region Mouse interaction
+
+        /// <summary>
+        /// Sets up mouse based interaction.
+        /// </summary>
+        void InitializeMouseControl()
+        {
+            this.MouseMove += (object s, MouseEventArgs e) =>
+            {
+                var mousePosition = new Point(Mouse.GetPosition(paintingImage).X, Mouse.GetPosition(paintingImage).Y);
+                TrackGaze(mousePosition, paintingActive, 0);
+            };
+            this.MouseDown += (object s, MouseButtonEventArgs e) => { StartPainting(); };
+            this.MouseUp += (object s, MouseButtonEventArgs e) => { StopPainting(); };
         }
 
         #endregion
@@ -419,7 +422,7 @@ namespace EyePaint
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         // marshal the event to the UI thread, where WPF objects may be accessed.
-                        this.Dispatcher.BeginInvoke(new Action<string, bool>(OnGaze), interactorId, r.HasGaze != EyeXBoolean.False);
+                        this.Dispatcher.BeginInvoke(new Action<string, bool>(TrackInteractor), interactorId, r.HasGaze != EyeXBoolean.False);
                     }
                 }
                 else if (behavior.BehaviorType == InteractionBehaviorType.GazePointData)

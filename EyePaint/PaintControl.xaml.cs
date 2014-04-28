@@ -99,11 +99,16 @@ namespace EyePaint
 
             // Set timer for inactivity
             inactivityTimer = new DispatcherTimer();
-            inactivityTimer.Interval = TimeSpan.FromMinutes(15);
+            inactivityTimer.Interval = TimeSpan.FromMinutes(1);
             inactivityTimer.Tick += (object s, EventArgs e) =>
             {
-                //TODO implement
+                Reset();
             };
+        }
+
+        public void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            this.Focus();
         }
 
         void InitializeMenu()
@@ -186,12 +191,7 @@ namespace EyePaint
 
         void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            Window confirmBox = new ConfirmBox();
-            confirmBox.ShowDialog();
-            if (confirmBox.DialogResult.HasValue && confirmBox.DialogResult.Value)
-            {
-                SavePainting();
-            }
+            SavePainting();
         }
 
         //Methods for keypress
@@ -258,6 +258,11 @@ namespace EyePaint
             }
         }
 
+        void Reset()
+        {
+            AppStateMachine.Instance.Next();
+        }
+
         /// <summary>
         /// Sets up mouse based interaction.
         /// </summary>
@@ -277,7 +282,6 @@ namespace EyePaint
         /// </summary>
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            Console.WriteLine("Key Down");
             if (e.Key == Key.Space)
             {
                 StartPainting();
@@ -291,7 +295,6 @@ namespace EyePaint
 
         protected override void OnPreviewKeyUp(KeyEventArgs e)
         {
-            Console.WriteLine("Key Up");
             if (e.Key == Key.Space)
             {
                 StopPainting();
@@ -299,7 +302,12 @@ namespace EyePaint
             }
             else if (e.Key == Key.Escape)
             {
-                // TODO: Restart app
+                Window confirmBox = new ConfirmBox("Vill du starta om?");
+                confirmBox.ShowDialog();
+                if (confirmBox.DialogResult.HasValue && confirmBox.DialogResult.Value)
+                {
+                    Reset();
+                }
             }
             else
             {

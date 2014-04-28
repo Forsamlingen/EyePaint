@@ -30,10 +30,10 @@ namespace EyePaint
 
         Dictionary<InteractorId, Button> gazeAwareButtons = new Dictionary<InteractorId, Button>();
 
-        public ConfirmBox()
+        public ConfirmBox(string msg)
         {
             InitializeComponent();
-
+            Message.Content = msg;
             gazeAwareButtons.Add(Confirm.Name, Confirm);
         }
 

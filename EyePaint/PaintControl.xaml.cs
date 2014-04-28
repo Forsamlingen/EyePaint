@@ -26,12 +26,14 @@ namespace EyePaint
     /// <summary>
     /// Interaction logic for Paint.xaml
     /// </summary>
-    public partial class PaintControl : UserControl
+    public partial class PaintControl : UserControl, IDisposable
     {
         private const string InteractorId = "EyePaint";
         private InteractionSystem system;
         private InteractionContext context;
         private InteractionSnapshot globalInteractorSnapshot;
+        private int queryHandlerTicket;
+        private int eventHandlerTicket;
 
         Point gaze;
         bool paintingActive = false;
@@ -54,7 +56,8 @@ namespace EyePaint
         private DispatcherTimer paintTimer;
         private DispatcherTimer inactivityTimer;
 
-        public PaintControl()
+        // initialize the EyeX Engine client library.
+        public PaintControl(InteractionSystem sys)
         {
             InitializeComponent();
 
@@ -64,6 +67,7 @@ namespace EyePaint
             painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
+            system = sys;
             InitializeEyeTracking();
             InitializeMouseControl();
 
@@ -313,13 +317,10 @@ namespace EyePaint
         /// </summary>
         void InitializeEyeTracking()
         {
-            // initialize the EyeX Engine client library.
-            system = InteractionSystem.Initialize(LogTarget.Trace);
-
             // create a context, register event handlers, and enable the connection to the engine.
             context = new InteractionContext(false);
-            context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
-            context.RegisterEventHandler(HandleEvent);
+            queryHandlerTicket = context.RegisterQueryHandlerForCurrentProcess(HandleQuery);
+            eventHandlerTicket = context.RegisterEventHandler(HandleEvent);
             context.EnableConnection();
 
             // enable gaze point tracking over the entire window
@@ -450,5 +451,13 @@ namespace EyePaint
 
         #endregion
 
+        public void Dispose()
+        {
+            context.UnregisterHandler(queryHandlerTicket);
+            context.UnregisterHandler(eventHandlerTicket);
+            context.DisableConnection();
+            context.Dispose();
+            globalInteractorSnapshot.Dispose();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Controls;
+using Tobii.EyeX.Client;
 
 namespace EyePaint
 {
@@ -43,6 +44,15 @@ namespace EyePaint
 
         private State state = State.Start;
         private UserControl control = new StartControl();
+        InteractionSystem system;
+
+        public AppStateMachine()
+        {
+            // Initialize EyeX interaction "system". EyeX API only allows one
+            // instance, so this must be set here in the AppStateMachine and
+            // passed to EyeX enabled controls.
+            system = InteractionSystem.Initialize(LogTarget.Trace);
+        }
 
         /// <summary>
         /// Switch states
@@ -55,7 +65,7 @@ namespace EyePaint
                     //Instance.appState = State.Position;
                     //Instance.control = new CalibrationPositioningControl();
                     Instance.state = State.Paint;
-                    Instance.Control = new PaintControl();
+                    Instance.Control = new PaintControl(system);
                     break;
                 case State.Position:
                     Instance.state = State.Position;
@@ -63,10 +73,12 @@ namespace EyePaint
                     break;
                 case State.Calibrate:
                     Instance.state = State.Paint;
-                    Instance.Control = new PaintControl();
+                    Instance.Control = new PaintControl(system);
                     break;
                 case State.Paint:
                     Instance.state = State.Start;
+                    PaintControl pctrl = (PaintControl)Instance.Control;
+                    pctrl.Dispose();
                     Instance.Control = new StartControl();
                     break;
             }

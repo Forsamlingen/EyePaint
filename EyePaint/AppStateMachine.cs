@@ -62,23 +62,23 @@ namespace EyePaint
             switch (Instance.state)
             {
                 case State.Start:
-                    //Instance.appState = State.Position;
-                    //Instance.control = new CalibrationPositioningControl();
-                    Instance.state = State.Paint;
-                    Instance.Control = new PaintControl(system);
+                    //TODO Dispose previous control.
+                    Instance.state = State.Position;
+                    Instance.control = new PositioningControl();
                     break;
                 case State.Position:
-                    Instance.state = State.Position;
+                    //TODO Dispose previous control.
+                    Instance.state = State.Calibrate;
                     Instance.Control = new CalibrationControl();
                     break;
                 case State.Calibrate:
+                    //TODO Dispose previous control.
                     Instance.state = State.Paint;
                     Instance.Control = new PaintControl(system);
                     break;
                 case State.Paint:
+                    ((PaintControl)Instance.Control).Dispose();
                     Instance.state = State.Start;
-                    PaintControl pctrl = (PaintControl)Instance.Control;
-                    pctrl.Dispose();
                     Instance.Control = new StartControl();
                     break;
             }

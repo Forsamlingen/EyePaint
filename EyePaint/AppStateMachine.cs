@@ -64,7 +64,7 @@ namespace EyePaint
                 case State.Start:
                     //TODO Dispose previous control.
                     Instance.state = State.Position;
-                    Instance.control = new PositioningControl();
+                    Instance.Control = new PositioningControl();
                     break;
                 case State.Position:
                     //TODO Dispose previous control.

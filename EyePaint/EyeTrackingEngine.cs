@@ -80,8 +80,9 @@ namespace EyePaint
 
         void onGazeData(object s, GazeDataEventArgs e)
         {
+            //TODO Add support for one-eyed users (pirate-mode, yeaarrrgh!).
             if (e.GazeData.TrackingStatus == TrackingStatus.NoEyesTracked) return;
-            else
+            else if (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked)
             {
                 // Calculate the user's head's distance from the eye tracker camera.
                 //TODO Include the eye tracker angle in the mount when calculating the distance to the user's eyes.

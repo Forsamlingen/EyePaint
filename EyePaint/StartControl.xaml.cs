@@ -25,17 +25,14 @@ namespace EyePaint
             InitializeComponent();
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        void onLoaded(object s, RoutedEventArgs e)
         {
-            this.Focus();
+            Focus();
         }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
+        void onKeyDown(object s, KeyEventArgs e)
         {
-            if (e.Key == Key.Space)
-            {
-                AppStateMachine.Instance.Next();
-            }
+            if (e.Key == Key.Space) AppStateMachine.Instance.Next();
         }
 
         

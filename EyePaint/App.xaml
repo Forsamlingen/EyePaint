@@ -3,5 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="onStartup">
     <Application.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="72" />
+            <Setter Property="FontFamily" Value="Palatino Linotype" />
+        </Style>
     </Application.Resources>
 </Application>

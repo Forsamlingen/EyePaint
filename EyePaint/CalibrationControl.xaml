@@ -2,7 +2,7 @@
     x:Class="EyePaint.CalibrationControl" 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Loaded="onLoaded" Unloaded="onUnloaded">
+    Loaded="onLoaded" Unloaded="onUnloaded" KeyDown="onKeyDown">
     <Grid>
         <Path Fill="LightGray">
             <Path.Data>

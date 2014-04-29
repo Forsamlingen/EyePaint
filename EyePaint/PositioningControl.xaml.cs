@@ -27,7 +27,7 @@ namespace EyePaint
     {
         static EyeTrackingEngine eyeTracker = new EyeTrackingEngine();
         bool stable = false;
-        const double OPTIMAL_DISTANCE_FROM_EYE_TRACKER = 800;
+        const double OPTIMAL_DISTANCE_FROM_EYE_TRACKER = 500; //TODO Set this value for the actual hardware installation.
 
         public PositioningControl()
         {
@@ -47,27 +47,16 @@ namespace EyePaint
 
         void onKeyDown(object s, KeyEventArgs e)
         {
-            if (e.Key == Key.Space && stable) ((ContentControl)Parent).Content = new CalibrationControl();
+            if (e.Key == Key.Space && stable) AppStateMachine.Instance.Next();
         }
 
         void onPositionChanged(object s, PositionChangedEventArgs e)
         {
-            Blur.Radius = Math.Abs(e.Distance - OPTIMAL_DISTANCE_FROM_EYE_TRACKER);
-            if (e.Distance < 400)
+            Dispatcher.Invoke(() =>
             {
-                Instructions.Text = "Sitt längre bak";
-                stable = false;
-            }
-            else if (e.Distance > 700)
-            {
-                Instructions.Text = "Sitt närmre";
-                stable = false;
-            }
-            else
-            {
-                Instructions.Text = "Finemang";
-                stable = true;
-            }
+                Blur.Radius = Math.Abs(e.Distance - OPTIMAL_DISTANCE_FROM_EYE_TRACKER);
+                stable = 300 <= e.Distance && e.Distance <= 600;
+            });
         }
     }
 }

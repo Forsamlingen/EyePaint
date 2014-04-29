@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Tobii.Gaze.Core;
 
 namespace EyePaint
@@ -17,6 +18,7 @@ namespace EyePaint
     {
         static EyeTrackingEngine eyeTracker = new EyeTrackingEngine();
         int calibrationStep = 10; //TODO Don't hardcode.
+        bool stable = false; //TODO Calculate calibration success as the average offset for all calibration points.
 
         public CalibrationControl()
         {
@@ -31,6 +33,11 @@ namespace EyePaint
         void onUnloaded(object s, RoutedEventArgs e)
         {
             //TODO
+        }
+
+        void onKeyDown(object s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space && stable) AppStateMachine.Instance.Next();
         }
 
         void calibrate()

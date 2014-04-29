@@ -12,8 +12,8 @@ namespace EyePaint
     /// </summary>
     public class AppStateMachine : INotifyPropertyChanged
     {
-        private static volatile AppStateMachine instance;
-        private static object m_lock = new object();
+        static volatile AppStateMachine instance;
+        static object m_lock = new object();
         /// <summary>
         /// Thread safe singleton instance
         /// </summary>
@@ -42,8 +42,8 @@ namespace EyePaint
             Paint
         }
 
-        private State state = State.Start;
-        private UserControl control = new StartControl();
+        State state = State.Start;
+        UserControl control = new StartControl();
         InteractionSystem system;
 
         public AppStateMachine()

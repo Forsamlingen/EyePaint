@@ -5,6 +5,6 @@
     KeyDown="onKeyDown" Loaded="onLoaded"
     Focusable="True">
     <Grid>
-        <TextBlock Text="Tryck mellanslag för att börja" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <TextBlock Text="Tryck mellanslag för att börja" />
     </Grid>
 </UserControl>

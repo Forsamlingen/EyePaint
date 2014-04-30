@@ -42,8 +42,8 @@ namespace EyePaint
             Paint
         }
 
-        State state = State.Start;
-        UserControl control = new StartControl();
+        State state = State.Calibrate;
+        UserControl control = new CalibrationControl();
         InteractionSystem system;
 
         public AppStateMachine()

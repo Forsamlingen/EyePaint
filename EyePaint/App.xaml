@@ -6,6 +6,8 @@
         <Style TargetType="TextBlock">
             <Setter Property="FontSize" Value="72" />
             <Setter Property="FontFamily" Value="Palatino Linotype" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
     </Application.Resources>
 </Application>

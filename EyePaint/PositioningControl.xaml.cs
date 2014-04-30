@@ -36,13 +36,13 @@ namespace EyePaint
 
         void onLoaded(object s, RoutedEventArgs e)
         {
-            eyeTracker.PositionChanged += onPositionChanged;
+            eyeTracker.HeadMovement += onPositionChanged;
             Focus();
         }
 
         void onUnloaded(object s, RoutedEventArgs e)
         {
-            eyeTracker.PositionChanged -= onPositionChanged;
+            eyeTracker.HeadMovement -= onPositionChanged;
         }
 
         void onKeyDown(object s, KeyEventArgs e)
@@ -50,7 +50,7 @@ namespace EyePaint
             if (e.Key == Key.Space && stable) AppStateMachine.Instance.Next();
         }
 
-        void onPositionChanged(object s, PositionChangedEventArgs e)
+        void onPositionChanged(object s, HeadMovementEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {

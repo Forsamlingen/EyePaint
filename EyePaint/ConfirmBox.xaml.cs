@@ -37,7 +37,7 @@ namespace EyePaint
             gazeAwareButtons.Add(Confirm.Name, Confirm);
         }
 
-        private void Confirm_Click(object sender, RoutedEventArgs e)
+        void onConfirmClick(object s, RoutedEventArgs e)
         {
             DialogResult = true;
         }
@@ -45,7 +45,7 @@ namespace EyePaint
         /// <summary>
         /// Method called when a gaze aware object has gaze.
         /// </summary>
-        private void OnGaze(string interactorId, bool hasGaze)
+        void onGaze(string interactorId, bool hasGaze)
         {
             var control = gazeAwareButtons[interactorId];
             Console.WriteLine(interactorId);
@@ -75,7 +75,7 @@ namespace EyePaint
         /// Note that this method is called from a worker thread, so it may not access any WPF Window objects.
         /// </summary>
         /// <param name="query">Query.</param>
-        private void HandleQuery(InteractionQuery query)
+        void HandleQuery(InteractionQuery query)
         {
             var queryBounds = query.Bounds;
             double x, y, w, h;
@@ -87,7 +87,7 @@ namespace EyePaint
             }
         }
 
-        private void HandleQueryOnUiThread(System.Windows.Rect queryBounds)
+        void HandleQueryOnUiThread(System.Windows.Rect queryBounds)
         {
             IntPtr windowHandle = new WindowInteropHelper(Window.GetWindow(this)).Handle;
             var windowId = windowHandle.ToString();
@@ -108,7 +108,7 @@ namespace EyePaint
             snapshot.Commit((InteractionSnapshotResult isr) => { });
         }
 
-        private void CreateGazeAwareInteractor(InteractorId id, Control control, string parentId, string windowId, InteractionSnapshot snapshot, System.Windows.Rect queryBoundsRect)
+        void CreateGazeAwareInteractor(InteractorId id, Control control, string parentId, string windowId, InteractionSnapshot snapshot, System.Windows.Rect queryBoundsRect)
         {
             var controlTopLeft = control.TranslatePoint(new Point(0, 0), this);
             var controlRect = new System.Windows.Rect(controlTopLeft, control.RenderSize);
@@ -126,7 +126,7 @@ namespace EyePaint
         /// Note that this method is called from a worker thread, so it may not access any WPF objects.
         /// </summary>
         /// <param name="@event">Event.</param>
-        private void HandleEvent(InteractionEvent @event)
+        void HandleEvent(InteractionEvent @event)
         {
             var interactorId = @event.InteractorId;
             foreach (var behavior in @event.Behaviors)
@@ -137,7 +137,7 @@ namespace EyePaint
                     if (behavior.TryGetGazeAwareEventParams(out r))
                     {
                         // marshal the event to the UI thread, where WPF objects may be accessed.
-                        this.Dispatcher.BeginInvoke(new Action<string, bool>(OnGaze), interactorId, r.HasGaze != EyeXBoolean.False);
+                        this.Dispatcher.BeginInvoke(new Action<string, bool>(onGaze), interactorId, r.HasGaze != EyeXBoolean.False);
                     }
                 }
             }

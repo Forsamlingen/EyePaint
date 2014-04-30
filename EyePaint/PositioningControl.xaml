@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Loaded="onLoaded" Unloaded="onUnloaded" KeyDown="onKeyDown" Focusable="True">
     <Grid>
-        <TextBlock Text="Tryck mellanslag för att fortsätta." VerticalAlignment="Center" HorizontalAlignment="Center" />
+        <TextBlock Text="Tryck mellanslag för att fortsätta."/>
         <Grid.Effect>
             <BlurEffect x:Name="Blur" RenderingBias="Quality"/>
         </Grid.Effect>

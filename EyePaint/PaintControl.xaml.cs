@@ -115,9 +115,12 @@ namespace EyePaint
 
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + ct.iconImage;
                 brush.ImageSource = new BitmapImage(new Uri(path));
+                brush.Stretch = System.Windows.Media.Stretch.None;
 
                 btn.Name = ct.name;
                 btn.Background = brush;
+                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                btn.FocusVisualStyle = null;
                 btn.Width = btnWidth;
                 btn.Click += (object s, RoutedEventArgs e) => { model.ChangeColorTool(ct); };
                 colorToolPanel.Children.Add(btn);
@@ -133,9 +136,12 @@ namespace EyePaint
 
                 String path = Directory.GetCurrentDirectory() + "\\Resources\\" + pt.iconImage;
                 brush.ImageSource = new BitmapImage(new Uri(path));
+                brush.Stretch = System.Windows.Media.Stretch.None;
 
                 btn.Name = pt.name;
                 btn.Background = brush;
+                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255 ,255));
+                btn.FocusVisualStyle = null;
                 btn.Width = btnWidth;
                 btn.Click += (object s, RoutedEventArgs e) => { model.ChangePaintTool(pt); };
                 paintToolPanel.Children.Add(btn);
@@ -145,21 +151,24 @@ namespace EyePaint
             saveButton.Width = btnWidth;
             setRandomBackgroundButton.Width = btnWidth;
 
+            gazeAwareButtons.Add(saveButton.Name, saveButton);
+            gazeAwareButtons.Add(setRandomBackgroundButton.Name, setRandomBackgroundButton);
+
             // Bind events to gaze aware buttons
             foreach (var kv in gazeAwareButtons)
             {
                 Button btn = kv.Value;
                 btn.PreviewKeyDown += (object s, KeyEventArgs e) => { gazeAwareButton_PreviewKeyDown(s, e); };
-                /*
                 btn.GotFocus += (object s, RoutedEventArgs e) =>
                 {
-                    btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                    //btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
                 };
                 btn.LostFocus += (object s, RoutedEventArgs e) =>
                 {
-                    btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                    //btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
                 };
-                */
             }
         }
 
@@ -196,7 +205,6 @@ namespace EyePaint
         {
             if (paintingActive) return;
             paintingActive = true;
-            paintingImage.Focus();
             paintTimer.Start();
             TrackGaze(gaze, paintingActive, 0);
             inactivityTimer.Stop();
@@ -442,6 +450,7 @@ namespace EyePaint
 
                                 if (paintingRect.Contains(p))
                                 {
+                                    paintingImage.Focus();
                                     TrackGaze(p, paintingActive, 50); //TODO Set keyhole size dynamically based on how bad the calibration is.
                                     RasterizeModel();
                                 }

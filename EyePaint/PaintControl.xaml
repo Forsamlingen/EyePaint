@@ -12,22 +12,22 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin="0" Name="menuPanel" Background="#FF19E058">
+        <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin="0" Name="menuPanel">
             <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel" />
             <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
-                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right">
+                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right" BorderBrush="White" FocusVisualStyle="{x:Null}">
                     <Button.Background>
-                        <ImageBrush ImageSource="Resources/save.png" />
+                        <ImageBrush ImageSource="Resources/save.png" Stretch="None" />
                     </Button.Background>
                 </Button>
-                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" Focusable="False">
+                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" BorderBrush="White" FocusVisualStyle="{x:Null}">
                     <Button.Background>
-                        <ImageBrush ImageSource="Resources/new.png" />
+                        <ImageBrush ImageSource="Resources/new.png" Stretch="None" />
                     </Button.Background>
                 </Button>
             </DockPanel>
             <DockPanel Grid.Column="0" Grid.Row="0" Name="paintToolPanel" />
         </DockPanel>
-        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage" Stretch="Fill" Focusable="True" KeyDown="paintingImage_KeyDown" KeyUp="paintingImage_KeyUp"/>
+        <Image Grid.Row="1" Grid.Column="0" Name="paintingImage" Stretch="Fill" Focusable="True" FocusVisualStyle="{x:Null}" KeyDown="paintingImage_KeyDown" KeyUp="paintingImage_KeyUp"/>
     </Grid>
 </UserControl>

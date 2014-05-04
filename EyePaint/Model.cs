@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Windows;
+using System.Windows.Media;
 
 namespace EyePaint
 {
@@ -228,6 +228,9 @@ namespace EyePaint
                 case "ModernArtTree":
                     tree = new ModernArtTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
                     break;
+                case "BubbleTree":
+                    tree = new BubbleTree(color, root, branchLength, leaves.Count(), parents, leaves, branchWidth, hullWidth, leafSize);
+                    break;
                 default:
                     break;
             }
@@ -253,8 +256,8 @@ namespace EyePaint
             // Create a set number of leaves with the root of of the tree as parent to all of them
             for (int i = 0; i < nLeaves; i++)
             {
-                int x = Convert.ToInt32(branchLength * Math.Cos(v)) + root.X;
-                int y = Convert.ToInt32(branchLength * Math.Sin(v)) + root.Y;
+                double x = branchLength * Math.Cos(v) + root.X;
+                double y = branchLength * Math.Sin(v) + root.Y;
                 Point leaf = new Point(x, y);
                 startLeaves[i] = leaf;
                 v += 2 * Math.PI / nLeaves;

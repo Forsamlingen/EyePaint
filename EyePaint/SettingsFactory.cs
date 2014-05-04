@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
+using System.Windows;
+using System.Windows.Media;
 
 namespace EyePaint
 {
@@ -39,10 +40,24 @@ namespace EyePaint
                                         stringToToolType("TREE"),
                                         "bullseye.png",
                                         "CellNetTree", 25, 300, 800, 25, 2, 5, 0, 10);
+            TreeTool bubbleTool =       new TreeTool(4,
+                                        "bubblePaint",
+                                        stringToToolType("TREE"),
+                                        "cloud.png",
+                                        "BubbleTree",
+                                        15,   // branch length
+                                        10, // number of leaves
+                                        800, // max generation
+                                        120,  // opacity
+                                        0,   // branchWidth
+                                        1,   // hullWidth
+                                        30,10
+                                        );  // leaf size
             paintTools.Add(woolTool);
             paintTools.Add(polyTool);
             paintTools.Add(modernArtTool);
             paintTools.Add(cellNetTool);
+            paintTools.Add(bubbleTool);
             return paintTools;
         }
 
@@ -67,6 +82,7 @@ namespace EyePaint
             colorTools.Add(new ColorTool("blue", "blue.png",  200, 255, 0.9, 1, 0.5, 1));
             colorTools.Add(new ColorTool( "yellow", "yellow.png",  28, 60, 0.9, 1, 0.9, 1));
             colorTools.Add(new ColorTool( "green", "green.png", 90, 148, 0.9, 1, 0.5, 1));
+            colorTools.Add(new ColorTool("rainbow", "rainbow.png", 0, 360, 0.9, 1, 0.5, 1));
 
             return colorTools;
         }
@@ -157,26 +173,25 @@ namespace EyePaint
             this.maxValue = maxValue;
         }
 
-
         public Color getRandomShade(int opacity)
         {
             double randomHue = minHue + (rng.NextDouble() * (maxHue - minHue));
             double randomSaturation = minSaturation + (rng.NextDouble() * (maxSaturation - minSaturation));
             double randomValue = minValue + (rng.NextDouble() * (maxValue - minValue));
-            Color c = ColorFromHSV(opacity, randomHue, randomSaturation, randomValue);
+            Color c = ColorFromHSV((byte) opacity, randomHue, randomSaturation, randomValue);
             return c;
         }
 
-        Color ColorFromHSV(int opacity, double hue, double saturation, double value)
+        Color ColorFromHSV(byte opacity, double hue, double saturation, double value)
         {
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
             double f = hue / 60 - Math.Floor(hue / 60);
 
             value = value * 255;
-            int v = Convert.ToInt32(value);
-            int p = Convert.ToInt32(value * (1 - saturation));
-            int q = Convert.ToInt32(value * (1 - f * saturation));
-            int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
+            byte v = Convert.ToByte(value);
+            byte p = Convert.ToByte(value * (1 - saturation));
+            byte q = Convert.ToByte(value * (1 - f * saturation));
+            byte t = Convert.ToByte(value * (1 - (1 - f) * saturation));
 
             if (hi == 0)
                 return Color.FromArgb(opacity, v, t, p);
@@ -193,8 +208,3 @@ namespace EyePaint
         }
     }
 }
-
-
-
-
-

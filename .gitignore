@@ -109,3 +109,4 @@ UpgradeLog*.XML
 
 # Sublime backup files
 *~
+*.db

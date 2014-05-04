@@ -1,0 +1,17 @@
+﻿<Window x:Class="EyePaint.ConfirmBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Name="Message" Content="Test" HorizontalAlignment="Center" />
+        <Button Grid.Row="1" Name="Cancel" Content="Nej" Width="243" HorizontalAlignment="Center" IsCancel="True" Click="onCancelClick" Margin="90,0,435,93"/>
+        <Button Grid.Row="1" Name="Confirm" Content="OK" Width="243" HorizontalAlignment="Center" IsDefault="True" Click="onConfirmClick" Margin="435,0,90,93"/>
+    </Grid>
+</Window>

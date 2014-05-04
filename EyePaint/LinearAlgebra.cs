@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Windows;
 
 namespace EyePaint
 {
@@ -141,7 +140,11 @@ namespace EyePaint
         // ccw < 0, and collinear if ccw == 0
         static int Ccw(Point p1, Point p2, Point p3)
         {
-            return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+            double result = (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+            return (int)result;
+
+
+            
         }
 
         /**
@@ -174,7 +177,7 @@ namespace EyePaint
          **/
         public static int[] GetVector(Point p1, Point p2)
         {
-            int[] vector = new int[2] { p2.X - p1.X, p2.Y - p1.Y };
+            int[] vector = new int[2] { Convert.ToInt32(p2.X - p1.X), Convert.ToInt32(p2.Y - p1.Y) };
             return vector;
         }
 

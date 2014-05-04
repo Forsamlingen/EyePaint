@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
+using System.Windows;
+using System.Windows.Media;
 
 namespace EyePaint
 {
@@ -90,6 +91,30 @@ namespace EyePaint
             {
                 Point leaf = new Point(leaves[i].X, leaves[i].Y);
                 imageObject.DrawElipse(color, leafSize, leaf);
+            }
+        }
+        protected void DrawBubbleLeaves(ref Canvas imageObject)
+        {
+            Random rnd = new Random();
+            for (int i = leaves.Count() / 2; i < leaves.Count(); i++)
+            {
+                double scaleFactor = 0.10;
+                int xMinCord = (int)Math.Round(leaves[i].X * (1 - scaleFactor));
+                int xMaxCord = (int)Math.Round(leaves[i].X + leaves[i].X * scaleFactor);
+                int yMinCord = (int)Math.Round(leaves[i].Y * (1 - scaleFactor));
+                int yMaxCord = (int)Math.Round(leaves[i].Y + leaves[i].Y * scaleFactor);
+                if (xMinCord < xMaxCord && yMinCord < yMaxCord)
+                {
+
+                    Point leaf = new Point(rnd.Next(xMinCord, xMaxCord + 1), rnd.Next(yMinCord, yMaxCord + 1));
+                    int rndLeafSize = rnd.Next(leafSize);
+                    int rndBias = rnd.Next(rndLeafSize);
+                    if ((rndLeafSize - rndBias) > 0)
+                    {
+                        rndLeafSize = rndLeafSize - rndBias;
+                    }
+                    imageObject.DrawElipse(color, rndLeafSize, leaf);
+                }
             }
         }
     }
@@ -185,6 +210,31 @@ namespace EyePaint
         {
             DrawHull(ref imageObject);
             DrawBranches(ref imageObject);
+        }
+    }
+    class BubbleTree : Tree
+    {
+        internal BubbleTree(
+              Color color,
+              Point root,
+              int branchLength,
+              int nLeaves,
+              Point[] previousGen,
+              Point[] startLeaves,
+              int branchWidth,
+              int hullWidth,
+              int leafSize)
+            : base(
+                     color, root, branchLength, nLeaves, previousGen, startLeaves, branchWidth, hullWidth, leafSize)
+        {
+        }
+
+        internal override void Rasterize(ref Canvas imageObject)
+        {
+            //DrawBranches(ref imageObject);
+            //FillHull(ref imageObject);
+            DrawBubbleLeaves(ref imageObject);
+            //DrawHull(ref imageObject);
         }
     }
 }

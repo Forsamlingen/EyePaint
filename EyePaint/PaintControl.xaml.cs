@@ -121,10 +121,17 @@ namespace EyePaint
 
                 btn.Name = ct.name;
                 btn.Background = brush;
-                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                btn.BorderThickness = new System.Windows.Thickness(0, 0, 0, 4);
+                btn.BorderBrush = Brushes.Transparent;
                 btn.FocusVisualStyle = null;
                 btn.Width = btnWidth;
-                btn.Click += (object s, RoutedEventArgs e) => { model.ChangeColorTool(ct); };
+                btn.Click += (object s, RoutedEventArgs e) =>
+                {
+                    activeColorTool.BorderBrush = Brushes.Transparent;
+                    activeColorTool = btn;
+                    activeColorTool.BorderBrush = Brushes.Black;
+                    model.ChangeColorTool(ct);
+                };
                 colorToolPanel.Children.Add(btn);
                 gazeAwareButtons.Add(btn.Name, btn);
             }
@@ -142,10 +149,17 @@ namespace EyePaint
 
                 btn.Name = pt.name;
                 btn.Background = brush;
-                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255 ,255));
+                btn.BorderThickness = new System.Windows.Thickness(0, 0, 0, 4);
+                btn.BorderBrush = Brushes.Transparent;
                 btn.FocusVisualStyle = null;
                 btn.Width = btnWidth;
-                btn.Click += (object s, RoutedEventArgs e) => { model.ChangePaintTool(pt); };
+                btn.Click += (object s, RoutedEventArgs e) =>
+                {
+                    activePaintTool.BorderBrush = Brushes.Transparent;
+                    model.ChangePaintTool(pt);
+                    btn.BorderBrush = Brushes.Black;
+                    activePaintTool = btn;
+                };
                 paintToolPanel.Children.Add(btn);
                 gazeAwareButtons.Add(btn.Name, btn);
             }
@@ -156,6 +170,12 @@ namespace EyePaint
             gazeAwareButtons.Add(saveButton.Name, saveButton);
             gazeAwareButtons.Add(setRandomBackgroundButton.Name, setRandomBackgroundButton);
 
+            // Set active buttons
+            activePaintTool = gazeAwareButtons[paintTools[0].name];
+            activeColorTool = gazeAwareButtons[colorTools[0].name];
+            activePaintTool.BorderBrush = new SolidColorBrush(Color.FromRgb(0,0,0));
+            activeColorTool.BorderBrush = new SolidColorBrush(Color.FromRgb(0,0,0));
+
             // Bind events to gaze aware buttons
             foreach (var kv in gazeAwareButtons)
             {
@@ -163,13 +183,15 @@ namespace EyePaint
                 btn.PreviewKeyDown += (object s, KeyEventArgs e) => { gazeAwareButton_PreviewKeyDown(s, e); };
                 btn.GotFocus += (object s, RoutedEventArgs e) =>
                 {
-                    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                    //btn.Background = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                    System.Windows.Media.Effects.DropShadowEffect eff = new System.Windows.Media.Effects.DropShadowEffect();
+                    eff.Color = Color.FromRgb(180, 180, 180);
+                    eff.Direction = 270;
+                    eff.BlurRadius = 16;
+                    btn.Effect = eff;
                 };
                 btn.LostFocus += (object s, RoutedEventArgs e) =>
                 {
-                    btn.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255));
-                    //btn.Background = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                    btn.Effect = null;
                 };
             }
         }

@@ -15,12 +15,12 @@
         <DockPanel Grid.Column="0" Grid.Row="0" LastChildFill="False" Margin="0" Name="menuPanel">
             <DockPanel Grid.Column="0" Grid.Row="0" Name="colorToolPanel" />
             <DockPanel Grid.Column="0" Grid.Row="0" Name="systemPanel">
-                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right" BorderBrush="White" FocusVisualStyle="{x:Null}">
+                <Button Name="saveButton" Click="OnSaveClick" DockPanel.Dock="Right" BorderBrush="Transparent" FocusVisualStyle="{x:Null}" BorderThickness="0,0,0,4">
                     <Button.Background>
-                        <ImageBrush ImageSource="Resources/save.png" Stretch="None" />
+                        <ImageBrush ImageSource="Resources/save.png" Stretch="None"/>
                     </Button.Background>
                 </Button>
-                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" BorderBrush="White" FocusVisualStyle="{x:Null}">
+                <Button Name="setRandomBackgroundButton" Click="OnSetRandomBackGroundClick" DockPanel.Dock="Left" BorderBrush="Transparent" FocusVisualStyle="{x:Null}" BorderThickness="0,0,0,4">
                     <Button.Background>
                         <ImageBrush ImageSource="Resources/new.png" Stretch="None" />
                     </Button.Background>

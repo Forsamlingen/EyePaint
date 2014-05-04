@@ -43,15 +43,15 @@ namespace EyePaint
         }
 
         State state = State.Start;
-        UserControl control = new StartControl();
-        InteractionSystem system;
+        UserControl _control = new StartControl();
+        InteractionSystem _system;
 
         private AppStateMachine()
         {
             // Initialize EyeX interaction "system". EyeX API only allows one
             // instance, so this must be set here in the AppStateMachine and
             // passed to EyeX enabled controls.
-            system = InteractionSystem.Initialize(LogTarget.Trace);
+            _system = InteractionSystem.Initialize(LogTarget.Trace);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace EyePaint
                     //Instance.state = State.Position;
                     //Instance.Control = new PositioningControl();
                     Instance.state = State.Paint;
-                    Instance.Control = new PaintControl(system);
+                    Instance.Control = new PaintControl();
                     break;
                 case State.Position:
                     //TODO Dispose previous control.
@@ -76,7 +76,7 @@ namespace EyePaint
                 case State.Calibrate:
                     //TODO Dispose previous control.
                     Instance.state = State.Paint;
-                    Instance.Control = new PaintControl(system);
+                    Instance.Control = new PaintControl();
                     break;
                 case State.Paint:
                     ((PaintControl)Instance.Control).Dispose();
@@ -111,12 +111,20 @@ namespace EyePaint
         /// </summary>
         public UserControl Control
         {
-            get { return control; }
+            get { return _control; }
             set
             {
-                control = value;
+                _control = value;
                 OnPropertyChanged("Control");
             }
+        }
+
+        /// <summary>
+        /// Public property System. Readonly.
+        /// </summary>
+        public InteractionSystem System
+        {
+            get { return _system; }
         }
     }
 }

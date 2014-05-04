@@ -11,6 +11,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Name="Message" Content="Test" HorizontalAlignment="Center" />
-        <Button Grid.Row="1" Name="Confirm" Content="OK" Width="300" HorizontalAlignment="Center" IsDefault="True" Click="onConfirmClick"/>
+        <Button Grid.Row="1" Name="Cancel" Content="Nej" Width="243" HorizontalAlignment="Center" Click="onCancelClick" Margin="90,0,435,93"/>
+        <Button Grid.Row="1" Name="Confirm" Content="OK" Width="243" HorizontalAlignment="Center" IsDefault="True" Click="onConfirmClick" Margin="435,0,90,93"/>
     </Grid>
 </Window>

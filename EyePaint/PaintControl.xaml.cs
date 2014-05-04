@@ -38,6 +38,8 @@ namespace EyePaint
         Point gaze;
         bool paintingActive = false;
         Button activeButton;
+        Button activePaintTool;
+        Button activeColorTool;
         Dictionary<InteractorId, Button> gazeAwareButtons;
 
         //Painting
@@ -57,7 +59,7 @@ namespace EyePaint
         private DispatcherTimer inactivityTimer;
 
         // initialize the EyeX Engine client library.
-        public PaintControl(InteractionSystem sys)
+        public PaintControl()
         {
             InitializeComponent();
 
@@ -67,7 +69,7 @@ namespace EyePaint
             painting = new RenderTargetBitmap(paintingWidth, paintingHeight, 96, 96, PixelFormats.Pbgra32);
 
             // Interaction via eye tracker and mouse
-            system = sys;
+            system = AppStateMachine.Instance.System;
             InitializeEyeTracking();
             InitializeMouseControl();
 

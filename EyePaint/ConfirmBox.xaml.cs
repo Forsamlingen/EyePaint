@@ -33,13 +33,22 @@ namespace EyePaint
         public ConfirmBox(string msg)
         {
             InitializeComponent();
+
+            system = AppStateMachine.Instance.System;
             Message.Content = msg;
             gazeAwareButtons.Add(Confirm.Name, Confirm);
+            gazeAwareButtons.Add(Cancel.Name, Cancel);
+            InitializeEyeTracking();
         }
 
         void onConfirmClick(object s, RoutedEventArgs e)
         {
             DialogResult = true;
+        }
+
+        void onCancelClick(object s, RoutedEventArgs e)
+        {
+            DialogResult = false;
         }
 
         /// <summary>
@@ -52,6 +61,7 @@ namespace EyePaint
             if (control != null)
             {
                 control.Focus();
+                control.Background = new SolidColorBrush(Color.FromRgb(30,30,30));
             }
         }
 
@@ -60,9 +70,6 @@ namespace EyePaint
         /// </summary>
         void InitializeEyeTracking()
         {
-            // initialize the EyeX Engine client library.
-            system = InteractionSystem.Initialize(LogTarget.Trace);
-
             // create a context, register event handlers, and enable the connection to the engine.
             context = new InteractionContext(false);
             context.RegisterQueryHandlerForCurrentProcess(HandleQuery);

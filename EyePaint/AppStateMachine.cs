@@ -46,7 +46,7 @@ namespace EyePaint
         UserControl control = new StartControl();
         InteractionSystem system;
 
-        public AppStateMachine()
+        private AppStateMachine()
         {
             // Initialize EyeX interaction "system". EyeX API only allows one
             // instance, so this must be set here in the AppStateMachine and
@@ -63,8 +63,10 @@ namespace EyePaint
             {
                 case State.Start:
                     //TODO Dispose previous control.
-                    Instance.state = State.Position;
-                    Instance.Control = new PositioningControl();
+                    //Instance.state = State.Position;
+                    //Instance.Control = new PositioningControl();
+                    Instance.state = State.Paint;
+                    Instance.Control = new PaintControl(system);
                     break;
                 case State.Position:
                     //TODO Dispose previous control.

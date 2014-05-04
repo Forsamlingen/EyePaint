@@ -242,6 +242,7 @@ namespace EyePaint
 
         void Reset()
         {
+            SavePainting();
             AppStateMachine.Instance.Next();
         }
 

@@ -50,7 +50,7 @@ namespace EyePaint
         {
             // Initialize EyeX interaction "system". EyeX API only allows one
             // instance, so this must be set here in the AppStateMachine and
-            // passed to EyeX enabled controls.
+            // accessed from EyeX enabled controls.
             _system = InteractionSystem.Initialize(LogTarget.Trace);
         }
 

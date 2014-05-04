@@ -27,7 +27,6 @@ namespace EyePaint
         private const string InteractorId = "EyePaintConfirmBox";
         private InteractionSystem system;
         private InteractionContext context;
-
         Dictionary<InteractorId, Button> gazeAwareButtons = new Dictionary<InteractorId, Button>();
 
         public ConfirmBox(string msg)
@@ -57,7 +56,6 @@ namespace EyePaint
         void onGaze(string interactorId, bool hasGaze)
         {
             var control = gazeAwareButtons[interactorId];
-            Console.WriteLine(interactorId);
             if (control != null)
             {
                 control.Focus();

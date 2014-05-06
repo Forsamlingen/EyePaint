@@ -77,7 +77,8 @@ namespace EyePaint
             {
                 Window confirmBox = new ConfirmBox("Kalibreringen blev dålig. Gör om?");
                 confirmBox.ShowDialog();
-                if (confirmBox.DialogResult.HasValue && confirmBox.DialogResult.Value) startCalibration();
+                if (confirmBox.DialogResult.Value) startCalibration();
+                else stopCalibration();
             }
         }
 

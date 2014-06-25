@@ -1,0 +1,90 @@
+﻿<Window x:Class="EyePaint.DialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource FullScreen}"
+        Topmost="True">
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+                <Storyboard Name="FadeIn">
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:1">
+                        <DoubleAnimation.EasingFunction>
+                            <ExponentialEase/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
+    <Grid VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="8*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1">
+            <TextBlock Name="Instructions" Text="Default" HorizontalAlignment="Center" FontSize="72" />
+            <Grid Name="Buttons">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Name="Confirm">
+                    <Ellipse Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}" Width="Auto" Stroke="DarkGreen" StrokeThickness="0" Fill="Lime">
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard Name="ConfirmAnimation">
+                                    <Storyboard Completed="onConfirm">
+                                        <DoubleAnimation Storyboard.TargetProperty="StrokeThickness" To="250" Duration="0:0:2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase EasingMode="EaseIn"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.75" Duration="0:0:0.5" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="StrokeThickness" To="0" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <StopStoryboard BeginStoryboardName="ConfirmAnimation" />
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+                    <TextBlock Foreground="White" Text="JA" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Grid>
+                <Grid Name="Cancel" Grid.Column="2">
+                    <Ellipse Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}" Width="Auto" Stroke="#FF640000" StrokeThickness="0" Fill="Red">
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard Name="CancelAnimation">
+                                    <Storyboard Completed="onCancel">
+                                        <DoubleAnimation Storyboard.TargetProperty="StrokeThickness" To="250" Duration="0:0:2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase EasingMode="EaseIn"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.75" Duration="0:0:0.5" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="StrokeThickness" To="0" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <StopStoryboard BeginStoryboardName="CancelAnimation" />
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+                    <TextBlock Foreground="White" Text="NEJ" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Grid>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Window>

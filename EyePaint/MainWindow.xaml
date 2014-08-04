@@ -1,96 +1,35 @@
 ﻿<Window x:Class="EyePaint.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Loaded="Window_Loaded"
         Style="{StaticResource FullScreen}">
-    <Window.Resources>
-
-        <!-- Brushes (the appearance of a stroke) -->
-        <RadialGradientBrush x:Key="Blue" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
-            <RadialGradientBrush.GradientStops>
-                <GradientStop Color="Blue" Offset="0" />
-                <GradientStop Color="Transparent" Offset="1" />
-            </RadialGradientBrush.GradientStops>
-        </RadialGradientBrush>
-        <SolidColorBrush x:Shared="False"  x:Key="Green" Color="Green"/>
-        <SolidColorBrush x:Shared="False" x:Key="Red" Color="Red"/>
-        <ImageBrush x:Key="Kalkyl" ImageSource="Resources/kalkyl.png"/>
-        <DrawingBrush x:Key="myBrush">
-            <DrawingBrush.Drawing>
-                <GeometryDrawing Brush="Red">
-                    <GeometryDrawing.Geometry>
-                        <GeometryGroup>
-                            <EllipseGeometry RadiusX="20" RadiusY="45" Center="50,50" />
-                            <EllipseGeometry RadiusX="45" RadiusY="20" Center="50,50" />
-                        </GeometryGroup>
-                    </GeometryDrawing.Geometry>
-                    <GeometryDrawing.Pen>
-                        <Pen Thickness="10">
-                            <Pen.Brush>
-                                <LinearGradientBrush>
-                                    <GradientStop Offset="0.0" Color="Black" />
-                                    <GradientStop Offset="1.0" Color="Gray" />
-                                </LinearGradientBrush>
-                            </Pen.Brush>
-                        </Pen>
-                    </GeometryDrawing.Pen>
-                </GeometryDrawing>
-            </DrawingBrush.Drawing>
-        </DrawingBrush>
-
-        <!-- Shapes (how a stroke is animated) -->
-        <Polyline x:Key="FreeDraw" x:Shared="False" Stroke="White" Fill="Transparent" />
-        <Ellipse x:Key="SplatterDot" x:Shared="False" Height="100" Width="100" RenderTransformOrigin="0.5,0.5">
-            <Ellipse.Effect>
-                <BlurEffect KernelType="Box" Radius="0" />
-            </Ellipse.Effect>
-            <Ellipse.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform />
-                    <SkewTransform />
-                    <RotateTransform />
-                    <TranslateTransform />
-                </TransformGroup>
-            </Ellipse.RenderTransform>
-            <Ellipse.Triggers>
-                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Completed="onShapeFadedOut" BeginTime="0:0:0.5" Duration="0:0:0.5" />
-                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX" By="2" IsCumulative="True" RepeatBehavior="Forever" />
-                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY" By="2" IsCumulative="True" RepeatBehavior="Forever" />
-                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Children[2].Angle" By="360" RepeatBehavior="Forever" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Ellipse.Triggers>
-        </Ellipse>
-        <Rectangle x:Key="InstantSquare" x:Shared="False" Height="100" Width="100">
-            <Rectangle.RenderTransform>
-                <ScaleTransform />
-            </Rectangle.RenderTransform>
-            <Rectangle.Triggers>
-                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" By="2" IsCumulative="True" RepeatBehavior="Forever" />
-                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" By="2" IsCumulative="True" RepeatBehavior="Forever" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Rectangle.Triggers>
-        </Rectangle>
-    </Window.Resources>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Window.MouseEnter">
+            <BeginStoryboard Name="FadeOut">
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.1" BeginTime="0" Duration="0:1:0" Completed="onInactivity">
+                        <DoubleAnimation.EasingFunction>
+                            <ExponentialEase EasingMode="EaseIn"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="Window.MouseMove">
+            <SeekStoryboard BeginStoryboardName="FadeOut" Origin="BeginTime" Offset="0" />
+        </EventTrigger>
+    </Window.Triggers>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="9*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
-        <Canvas Name="Drawing" MouseMove="Drawing_MouseMove" MouseDown="Drawing_MouseDown" MouseUp="Drawing_MouseUp" Background="Black" ClipToBounds="True"/>
-        <UniformGrid Grid.Row="1" Rows="1">
-            <Button Template="{StaticResource ImageButton}" Name="ClearButton" Click="ClearButton_Click" />
-            <Button Template="{StaticResource ImageButton}" Name="SaveButton" Click="SaveButton_Click" />
-            <Button Template="{StaticResource ImageButton}" Name="ShapeButton" Click="ShapeButton_Click" />
-            <Button Template="{StaticResource ImageButton}" Name="BrushButton" Click="BrushButton_Click" />
+        <Canvas Name="Drawing" MouseMove="Drawing_MouseMove" MouseDown="Drawing_MouseDown" MouseLeave="Drawing_MouseLeave" MouseUp="Drawing_MouseUp" Background="Transparent"/>
+        <UniformGrid Grid.Row="1" Rows="1" Background="White">
+            <Button Content="Spara bild" Template="{StaticResource ImageButton}" Name="SaveButton" Click="SaveButton_Click" />
+            <Button Content="Byt ritverktyg" Template="{StaticResource ImageButton}" Name="ToolButton" Click="ToolButton_Click" />
+            <Button Content="Byt färg" Template="{StaticResource ImageButton}" Name="ColorButton" Click="ColorButton_Click" />
+            <Button Content="Slumpa" Template="{StaticResource ImageButton}" Name="RandomButton" Click="RandomButton_Click" />
         </UniformGrid>
     </Grid>
 </Window>

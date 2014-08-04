@@ -30,7 +30,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Name="Confirm">
+                <Grid Name="Confirm" MouseDown="onConfirm">
                     <Ellipse Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}" Width="Auto" Stroke="DarkGreen" StrokeThickness="0" Fill="Lime">
                         <Ellipse.Triggers>
                             <EventTrigger RoutedEvent="MouseEnter">
@@ -57,7 +57,7 @@
                     </Ellipse>
                     <TextBlock Foreground="White" Text="JA" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                 </Grid>
-                <Grid Name="Cancel" Grid.Column="2">
+                <Grid Name="Cancel" Grid.Column="2" MouseDown="onCancel">
                     <Ellipse Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}" Width="Auto" Stroke="#FF640000" StrokeThickness="0" Fill="Red">
                         <Ellipse.Triggers>
                             <EventTrigger RoutedEvent="MouseEnter">

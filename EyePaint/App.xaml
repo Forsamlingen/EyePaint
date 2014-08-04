@@ -24,10 +24,8 @@
                     <Setter Property="Opacity" Value="1" />
                 </Trigger>
             </ControlTemplate.Triggers>
-            <!--<Grid Background="{TemplateBinding Background}"> -->
             <Grid Margin="2" Background="Transparent">
-                <Rectangle Stroke="White" Fill="White" StrokeThickness="10" RadiusX="10" RadiusY="10"/>
-                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="{TemplateBinding Content}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Black" />
             </Grid>
         </ControlTemplate>
     </Application.Resources>

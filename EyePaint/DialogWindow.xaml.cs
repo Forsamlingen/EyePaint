@@ -21,15 +21,10 @@ namespace EyePaint
     /// </summary>
     public partial class DialogWindow : Window
     {
-        //TODO Remove.
-        [DllImport("User32.dll")]
-        private static extern bool SetCursorPos(int x, int y);
-
         public DialogWindow(string instructions, Action a = null)
         {
             InitializeComponent();
             Instructions.Text = instructions;
-            SetCursorPos(-1, -1); //TODO Remove.
 
             if (a != null)
             {

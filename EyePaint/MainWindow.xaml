@@ -1,13 +1,13 @@
 ﻿<Window x:Class="EyePaint.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Loaded="Window_Loaded"
+        Loaded="onWindowLoaded"
         Style="{StaticResource FullScreen}">
     <Window.Triggers>
         <EventTrigger RoutedEvent="Window.MouseEnter">
             <BeginStoryboard Name="FadeOut">
                 <Storyboard>
-                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.1" BeginTime="0" Duration="0:1:0" Completed="onInactivity">
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.1" BeginTime="0" Duration="0:0:3" Completed="onInactivity">
                         <DoubleAnimation.EasingFunction>
                             <ExponentialEase EasingMode="EaseIn"/>
                         </DoubleAnimation.EasingFunction>
@@ -20,16 +20,52 @@
         </EventTrigger>
     </Window.Triggers>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="8*"/>
-            <RowDefinition Height="2*"/>
-        </Grid.RowDefinitions>
-        <Canvas Name="Drawing" MouseMove="Drawing_MouseMove" MouseDown="Drawing_MouseDown" MouseLeave="Drawing_MouseLeave" MouseUp="Drawing_MouseUp" Background="Transparent"/>
-        <UniformGrid Grid.Row="1" Rows="1" Background="White">
-            <Button Content="Spara bild" Template="{StaticResource ImageButton}" Name="SaveButton" Click="SaveButton_Click" />
-            <Button Content="Byt ritverktyg" Template="{StaticResource ImageButton}" Name="ToolButton" Click="ToolButton_Click" />
-            <Button Content="Byt färg" Template="{StaticResource ImageButton}" Name="ColorButton" Click="ColorButton_Click" />
-            <Button Content="Slumpa" Template="{StaticResource ImageButton}" Name="RandomButton" Click="RandomButton_Click" />
-        </UniformGrid>
+        <Canvas Name="Drawing" Grid.ColumnSpan="5" Grid.RowSpan="5" MouseMove="onDrawingMouseMove" MouseDown="onDrawingMouseDown" MouseLeave="onDrawingMouseLeave" MouseUp="onDrawingMouseUp" Background="Black">
+            <!--TODO <Ellipse Name="PaintIndicator" Height="50" Width="50" Stroke="Red" StrokeThickness="10" /> -->
+            <Image Name="Raster" />
+        </Canvas>
+        <Viewbox Name="Menu">
+            <Grid Grid.IsSharedSizeScope="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="A"/>
+                    <ColumnDefinition SharedSizeGroup="A"/>
+                    <ColumnDefinition SharedSizeGroup="A"/>
+                    <ColumnDefinition SharedSizeGroup="A"/>
+                    <ColumnDefinition SharedSizeGroup="A"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition SharedSizeGroup="A"/>
+                    <RowDefinition SharedSizeGroup="A"/>
+                    <RowDefinition SharedSizeGroup="A"/>
+                    <RowDefinition SharedSizeGroup="A"/>
+                    <RowDefinition SharedSizeGroup="A"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="1" Grid.Column="1" Template="{StaticResource GazeButton}" Tag="Ritinstruktioner till användaren borde stå här." Click="onStartButtonClick" Background="White">
+                    <Button.Content>
+                        <Image Source="Resources/eye.png" StretchDirection="DownOnly"/>
+                    </Button.Content>
+                </Button>
+                <Button Grid.Row="0" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Spara bild" Click="onSaveButtonClick" Background="White">
+                    <Button.Content>
+                        <Image Source="Resources/export.png" StretchDirection="DownOnly"/>
+                    </Button.Content>
+                </Button>
+                <Button Grid.Row="0" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Byt färg" Click="onColorButtonClick" Background="White">
+                    <Button.Content>
+                        <Image Source="Resources/pipette.png" StretchDirection="DownOnly"/>
+                    </Button.Content>
+                </Button>
+                <Button Grid.Row="2" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Byt ritverktyg" Click="onToolButtonClick" Background="White">
+                    <Button.Content>
+                        <Image Source="Resources/brush.png" StretchDirection="DownOnly"/>
+                    </Button.Content>
+                </Button>
+                <Button Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Slumpa" Click="onRandomButtonClick" Background="White">
+                    <Button.Content>
+                        <Image Source="Resources/beaker.png" StretchDirection="DownOnly"/>
+                    </Button.Content>
+                </Button>
+            </Grid>
+        </Viewbox>
     </Grid>
 </Window>

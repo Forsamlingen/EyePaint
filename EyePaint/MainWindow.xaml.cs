@@ -41,17 +41,18 @@ namespace EyePaint
         {
             InitializeComponent();
             rng = new Random();
-            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Normal, (s, e) => update(), Dispatcher)).Stop();
+            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Normal, (s, e) => updateDrawing(), Dispatcher)).Stop();
             tool = tools.First();
             color = colors.First();
         }
 
-        void Window_Loaded(object s, EventArgs e)
+        void onWindowLoaded(object s, EventArgs e)
         {
             bitmap = new RenderTargetBitmap((int)(Drawing.ActualWidth), (int)(Drawing.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
+            Raster.Source = bitmap;
         }
 
-        void start(Point p)
+        void startDrawing(Point p)
         {
             root = p;
             paintTimer.Start();
@@ -61,7 +62,7 @@ namespace EyePaint
             parents.Add(root, root);
         }
 
-        void update()
+        void updateDrawing()
         {
             // Grow model.
             var newLeaves = new PointCollection();
@@ -104,14 +105,17 @@ namespace EyePaint
                     dc.DrawGeometry(null, pen, gg);
 
                     // Vertices
+                    var gg2 = new GeometryGroup();
                     brush = new SolidColorBrush(getRandomColor(color, tool.ColorVariety));
                     brush.Opacity = rng.NextDouble() * tool.VerticesOpacity;
                     foreach (var leaf in leaves)
                     {
                         var r = rng.NextDouble();
                         var eg = new EllipseGeometry(leaf, tool.VerticesSize * (r + tool.VerticesSquash * rng.NextDouble()), tool.VerticesSize * (r + tool.VerticesSquash * rng.NextDouble()));
-                        dc.DrawGeometry(brush, null, eg);
+                        //dc.DrawGeometry(brush, null, eg);
+                        gg2.Children.Add(eg);
                     }
+                    dc.DrawGeometry(brush, null, gg2);
 
                     // Hull
                     StreamGeometry sg = new StreamGeometry();
@@ -130,10 +134,6 @@ namespace EyePaint
             leaves = newLeaves;
             parents = newParents;
             bitmap.Render(dv);
-            var image = new Image();
-            image.Source = bitmap;
-            Drawing.Children.Clear(); //TODO Implement undo history.
-            Drawing.Children.Add(image);
         }
 
         Color getRandomColor(Color? baseColor = null, double randomness = 1)
@@ -142,7 +142,7 @@ namespace EyePaint
             return (baseColor.HasValue) ? baseColor.Value + Color.Multiply(c, (float)randomness) : c;
         }
 
-        void save()
+        void saveDrawing()
         {
             var e = new PngBitmapEncoder();
             e.Frames.Add(BitmapFrame.Create(bitmap));
@@ -152,45 +152,54 @@ namespace EyePaint
             }
         }
 
-        void Drawing_MouseDown(object s, MouseButtonEventArgs e)
+        void onDrawingMouseDown(object s, MouseButtonEventArgs e)
         {
-            start(e.GetPosition(Drawing));
+            startDrawing(e.GetPosition(Drawing));
         }
 
-        void Drawing_MouseUp(object s, MouseButtonEventArgs e)
-        {
-            paintTimer.Stop();
-        }
-
-        void Drawing_MouseLeave(object s, MouseEventArgs e)
+        void onDrawingMouseUp(object s, MouseButtonEventArgs e)
         {
             paintTimer.Stop();
         }
 
-        void Drawing_MouseMove(object s, MouseEventArgs e)
+        void onDrawingMouseLeave(object s, MouseEventArgs e)
+        {
+            paintTimer.Stop();
+        }
+
+        void onDrawingMouseMove(object s, MouseEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed) { paintTimer.Stop(); return; }
-            if ((root - e.GetPosition(Drawing)).Length > 20) start(e.GetPosition(Drawing));
+            if ((root - e.GetPosition(Drawing)).Length > 50) startDrawing(e.GetPosition(Drawing));
         }
 
-        void SaveButton_Click(object s, RoutedEventArgs e)
+        void onStartButtonClick(object s, EventArgs e)
         {
-            if (new DialogWindow("Spara bilden?").DialogResult.Value) save();
+            var b = s as Button;
+            b.IsEnabled = false;
+            b.Visibility = Visibility.Hidden;
         }
 
-        void ToolButton_Click(object s, RoutedEventArgs e)
+        void onSaveButtonClick(object s, EventArgs e)
+        {
+            if (new DialogWindow("Spara bilden?").DialogResult.Value) saveDrawing();
+        }
+
+        void onToolButtonClick(object s, EventArgs e)
         {
             tool = tools[(tools.IndexOf(tool) + 1) % tools.Count];
         }
 
-        void ColorButton_Click(object s, RoutedEventArgs e)
+        void onColorButtonClick(object s, EventArgs e)
         {
             color = colors[(colors.IndexOf(color) + 1) % colors.Count];
+            (s as Button).Background = new SolidColorBrush(color);
         }
 
-        void RandomButton_Click(object s, RoutedEventArgs e)
+        void onRandomButtonClick(object s, EventArgs e)
         {
             color = getRandomColor();
+            (s as Button).Background = new SolidColorBrush(color);
             tool = new Tool
             {
                 BranchCount = rng.Next(1, 20),
@@ -213,8 +222,9 @@ namespace EyePaint
         {
             if (new DialogWindow("Börja om?").DialogResult.Value)
             {
-                (new MainWindow()).Show();
-                Close();
+                var mw = new MainWindow();
+                mw.Loaded += (_,__) => Close();
+                mw.Show();
             }
         }
     }

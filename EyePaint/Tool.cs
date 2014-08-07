@@ -126,14 +126,14 @@ namespace EyePaint
                 return new Tool
                 {
                     BranchCount = 10,
-                    BranchLength = 20,
+                    BranchLength = 10,
                     BranchStraightness = 0.9,
-                    Rotation = 0.2,
-                    ColorVariety = 0.25,
+                    Rotation = 0.25,
+                    ColorVariety = 0.5,
                     CenterOpacity = 0,
                     EdgesOpacity = 0,
                     VerticesOpacity = 0,
-                    HullOpacity = 0.75,
+                    HullOpacity = 0.1,
                     CenterSize = 0,
                     EdgesThickness = 0,
                     VerticesSize = 0,

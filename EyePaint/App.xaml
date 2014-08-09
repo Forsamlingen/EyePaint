@@ -5,56 +5,80 @@
     <Application.Resources>
         <Style x:Key="FullScreen" TargetType="Window">
             <Setter Property="Background" Value="Black" />
-            <Setter Property="Cursor" Value="Cross" />
+            <Setter Property="Cursor" Value="None" />
             <Setter Property="ResizeMode" Value="NoResize" />
             <Setter Property="WindowStyle" Value="None" />
             <Setter Property="WindowState" Value="Maximized" />
         </Style>
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontFamily" Value="/EyePaint;component/Resources/#ITC Officina Sans Std" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontSize" Value="36" />
         </Style>
-        <Storyboard x:Key="CountdownStoryboard" x:Name="CountdownStoryboard" Completed="onGazeClick">
-            <DoubleAnimation Storyboard.TargetName="CountdownIndicator" Storyboard.TargetProperty="StrokeThickness" To="100" Duration="0:0:2">
+        <Storyboard x:Key="GazeClickStoryboard" CurrentTimeInvalidated="onGazeClick" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0">
                 <DoubleAnimation.EasingFunction>
                     <PowerEase EasingMode="EaseIn"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
+        <Storyboard x:Key="CancelGazeClickStoryboard">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1" />
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1" />
+        </Storyboard>
         <ControlTemplate x:Key="GazeButton" TargetType="Button">
             <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.9" />
+                    <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}" />
+                </Trigger>
                 <Trigger Property="IsMouseOver" Value="False">
                     <Setter Property="Opacity" Value="0.5" />
                 </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="1" />
-                    <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}" />
-                </Trigger>
                 <EventTrigger RoutedEvent="MouseEnter">
-                    <BeginStoryboard Name="Animation">
-                        <StaticResource ResourceKey="CountdownStoryboard"/>
+                    <BeginStoryboard Name="GazeButtonAnimation">
+                        <StaticResource ResourceKey="GazeClickStoryboard"/>
                     </BeginStoryboard>
                 </EventTrigger>
                 <EventTrigger RoutedEvent="PreviewMouseDown">
-                    <SeekStoryboard BeginStoryboardName="Animation" Offset="0" Origin="BeginTime" />
+                    <StopStoryboard BeginStoryboardName="GazeButtonAnimation" />
                 </EventTrigger>
                 <EventTrigger RoutedEvent="MouseLeave">
                     <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetName="CountdownIndicator" Storyboard.TargetProperty="StrokeThickness" To="0" />
-                        </Storyboard>
+                        <StaticResource ResourceKey="CancelGazeClickStoryboard"/>
                     </BeginStoryboard>
-                    <StopStoryboard BeginStoryboardName="Animation" />
+                    <StopStoryboard BeginStoryboardName="GazeButtonAnimation" />
                 </EventTrigger>
             </ControlTemplate.Triggers>
             <Grid Background="Transparent">
-                <Ellipse Fill="{TemplateBinding Background}"/>
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <ContentPresenter Content="{TemplateBinding Content}"/>
-                    <TextBlock TextAlignment="Center" Text="{TemplateBinding Tag}" FontSize="18" Foreground="{TemplateBinding Foreground}"/>
-                </StackPanel>
-                <Ellipse Name="CountdownIndicator" Stroke="Black"/>
+                <Grid RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <ScaleTransform x:Name="ScaleTransform" ScaleY="1" ScaleX="1" />
+                    </Grid.RenderTransform>
+                    <Ellipse Fill="{TemplateBinding Foreground}">
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="0" ShadowDepth="1" Color="{TemplateBinding Background}"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    <Border Name="Mask" Background="Black" Margin="10" CornerRadius="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}" />
+                    <Grid Background="{TemplateBinding Background}" Margin="10">
+                        <Grid.OpacityMask>
+                            <VisualBrush Visual="{Binding ElementName=Mask}" />
+                        </Grid.OpacityMask>
+                        <ContentPresenter Content="{TemplateBinding Content}"/>
+                        <Viewbox Margin="20" VerticalAlignment="Center">
+                            <TextBlock TextAlignment="Center" Text="{TemplateBinding Tag}" Foreground="{TemplateBinding Foreground}">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="0" ShadowDepth="1" Color="#3F000000"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Viewbox>
+                    </Grid>
+                </Grid>
             </Grid>
         </ControlTemplate>
     </Application.Resources>

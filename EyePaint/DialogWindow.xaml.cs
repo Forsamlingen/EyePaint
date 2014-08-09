@@ -21,17 +21,16 @@ namespace EyePaint
     /// </summary>
     public partial class DialogWindow : Window
     {
-        public DialogWindow(string instructions, Action a = null)
+        [DllImport("User32.dll")]
+        static extern bool SetCursorPos(int X, int Y);
+
+        public DialogWindow(string instructions, string confirm, string cancel)
         {
             InitializeComponent();
             Instructions.Text = instructions;
-
-            if (a != null)
-            {
-                Buttons.Visibility = Visibility.Collapsed;
-                FadeIn.Completed += (s, e) => { a(); Close(); };
-            }
-
+            ConfirmButton.Tag = confirm;
+            CancelButton.Tag = cancel;
+            SetCursorPos(0, 0);
             ShowDialog();
         }
 
@@ -43,11 +42,6 @@ namespace EyePaint
         void onCancel(object s, EventArgs e)
         {
             DialogResult = false;
-        }
-
-        void onClose(object s, EventArgs e)
-        {
-            Close();
         }
     }
 }

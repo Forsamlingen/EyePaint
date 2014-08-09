@@ -6,33 +6,27 @@
     <Window.Triggers>
         <EventTrigger RoutedEvent="Window.Loaded">
             <BeginStoryboard>
-                <Storyboard Name="FadeIn">
-                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:1">
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1">
                         <DoubleAnimation.EasingFunction>
-                            <ExponentialEase/>
+                            <PowerEase EasingMode="EaseIn"/>
                         </DoubleAnimation.EasingFunction>
                     </DoubleAnimation>
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
     </Window.Triggers>
-    <Grid>
+    <Grid Margin="100">
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
-        <TextBlock Name="Instructions" Text="Default" HorizontalAlignment="Center" FontSize="72" />
+        <Viewbox>
+            <TextBlock Name="Instructions" Text="Default" HorizontalAlignment="Center"/>
+        </Viewbox>
         <UniformGrid Grid.Row="1" Name="Buttons" Rows="1">
-            <Button Template="{StaticResource GazeButton}" Tag="Ja" Background="Lime" Click="onConfirm" Foreground="Green">
-                <Button.Content>
-                    <Image Source="Resources/thumbs-up.png" StretchDirection="DownOnly"/>
-                </Button.Content>
-            </Button>
-            <Button Template="{StaticResource GazeButton}" Tag="Nej" Background="Red" Click="onCancel" Foreground="DarkRed">
-                <Button.Content>
-                    <Image Source="Resources/thumbs-down.png" StretchDirection="DownOnly"/>
-                </Button.Content>
-            </Button>
+            <Button Width="{Binding ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Name="ConfirmButton" Template="{StaticResource GazeButton}" Tag="Ja" Background="Lime" Click="onConfirm" Foreground="Green"/>
+            <Button Width="{Binding ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Name="CancelButton" Template="{StaticResource GazeButton}" Tag="Nej" Background="Red" Click="onCancel" Foreground="DarkRed"/>
         </UniformGrid>
     </Grid>
 </Window>

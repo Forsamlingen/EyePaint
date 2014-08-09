@@ -47,6 +47,7 @@ namespace EyePaint
         void onEyeTrackerError(object s, EyeTrackerErrorEventArgs e)
         {
             EyeTracking = false; //TODO Retry eye tracker connection, and eventually notify the museum staff.
+            (new ErrorWindow()).Show();
         }
 
         void onGazeData(object s, GazeDataEventArgs e)
@@ -82,34 +83,34 @@ namespace EyePaint
             if (offset.Length < 100) gazePoint += offset;
             */
 
-            SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
-        }
-
-        void onGazeClick(object s, EventArgs e)
-        {
-            var activeWindow = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-            var focusedButton = FocusManager.GetFocusedElement(activeWindow) as Button;
-            focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-
-            if (gazePoints.Count > 0)
-            {
-                var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
-                var actualPoint = new Point(
-                    gazePoints.Average(x => x.X),
-                    gazePoints.Average(x => x.Y)
-                );
-                offsets.Add(actualPoint - expectedPoint);
-            }
-        }
-
-        Point calibrate(Point pointToCalibrate, PointCollection calibrationPoints)
-        {
-            var calibratedPoint = new Point(pointToCalibrate.X, pointToCalibrate.Y); // TODO Remove uneccessary copy.
+            // Calibrate point.
             //TODO Weight by distance to calibration point.
             //var distances = calibrationPoints.Select(p => (pointToCalibrate - p).Length);
             //var normalizedDistances = distances.Select(d => d / distances.Average());
-            foreach (var o in offsets) calibratedPoint.Offset(o.X, o.Y);
-            return calibratedPoint;
+            foreach (var o in this.offsets) gazePoint.Offset(o.X, o.Y);
+
+            SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
+        }
+
+        TimeSpan? time;
+        void onGazeClick(object s, EventArgs e)
+        {
+            var c = s as Clock;
+
+            if (time.HasValue && c.CurrentTime.HasValue && c.CurrentTime.Value < time.Value)
+            {
+                var activeWindow = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                var focusedButton = FocusManager.GetFocusedElement(activeWindow) as Button;
+                focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                /* TODO
+                var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
+                var actualPoint = new Point(gazePoints.Average(x => x.X), gazePoints.Average(x => x.Y));
+                offsets.Add(actualPoint - expectedPoint);
+                */
+            }
+
+            time = (c.CurrentState == ClockState.Active) ? c.CurrentTime : null;
         }
     }
 }

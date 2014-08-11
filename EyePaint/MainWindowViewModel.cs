@@ -82,7 +82,7 @@ namespace EyePaint
             {
                 return new Tool
                 {
-                    BranchCount = 10,
+                    BranchCount = 100,
                     BranchLength = 50,
                     BranchStraightness = 0.8,
                     Rotation = 0,
@@ -115,7 +115,7 @@ namespace EyePaint
                     VerticesOpacityVariety = 0,
                     HullOpacityVariety = 0,
                     CenterSize = 10,
-                    EdgesThickness = 10,
+                    EdgesThickness = 5,
                     VerticesSize = 0,
                     VerticesSquashVariety = 0,
                 };
@@ -136,7 +136,7 @@ namespace EyePaint
                     CenterOpacityVariety = 0,
                     EdgesOpacity = 0,
                     VerticesOpacityVariety = 0,
-                    HullOpacityVariety = 0.1,
+                    HullOpacityVariety = 0.2,
                     CenterSize = 0,
                     EdgesThickness = 0,
                     VerticesSize = 0,
@@ -159,7 +159,7 @@ namespace EyePaint
                     CenterOpacityVariety = 0,
                     EdgesOpacity = 1,
                     VerticesOpacityVariety = 0,
-                    HullOpacityVariety = 0,
+                    HullOpacityVariety = 0.5,
                     CenterSize = 0,
                     EdgesThickness = 1,
                     VerticesSize = 0,

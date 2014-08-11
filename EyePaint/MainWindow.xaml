@@ -3,11 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Loaded="onWindowLoaded"
         ContentRendered="onContentRendered"
-        LostFocus="onLostFocus"
-        GotFocus="onGotFocus"
         Style="{StaticResource FullScreen}">
     <Window.Triggers>
-        <EventTrigger RoutedEvent="Window.MouseEnter">
+        <EventTrigger RoutedEvent="Window.MouseMove">
+            <StopStoryboard BeginStoryboardName="FadeOut"/>
             <BeginStoryboard Name="FadeOut">
                 <Storyboard>
                     <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" BeginTime="0" Duration="0:0:5" Completed="onInactivity">
@@ -18,8 +17,8 @@
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
-        <EventTrigger RoutedEvent="Window.MouseMove">
-            <SeekStoryboard BeginStoryboardName="FadeOut" Origin="BeginTime" Offset="0" />
+        <EventTrigger RoutedEvent="Window.LostFocus">
+            <StopStoryboard BeginStoryboardName="FadeOut"/>
         </EventTrigger>
     </Window.Triggers>
     <Grid>
@@ -59,15 +58,11 @@
                 <Ellipse Name="PaintIndicator" Height="50" Width="50" Stroke="White" StrokeThickness="10" />
                 <Image Name="Raster" />
             </Canvas>
-            <Button Name="ExportButton" Grid.Row="0" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Spara bild" Click="onSaveButtonClick" Background="Black" Foreground="White">
-                <Button.Content>
-                    <Image Source="Resources/export.png" StretchDirection="DownOnly"/>
-                </Button.Content>
-            </Button>
+            <Button Name="ExportButton" Grid.Row="0" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Dela bild" Click="onSaveButtonClick" Background="Black" Foreground="White"/>
             <Button Name="ColorButton" Grid.Row="0" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Byt färg" Click="onColorButtonClick" Background="Black" Foreground="White"/>
             <Button Name="ToolButton" Grid.Row="2" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Byt ritverktyg" Click="onToolButtonClick" Background="Black" Foreground="White"/>
-            <Button Name="RandomButton" Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Slumpa" Click="onRandomButtonClick" Background="Black" Foreground="White"/>
+            <Button Name="RandomButton" Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Skapa slumpverktyg" Click="onRandomButtonClick" Background="Black" Foreground="White"/>
         </Grid>
-        <Button Width="{Binding ActualWidth, ElementName=ColumndWidth, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=ColumndWidth, Mode=OneWay}" Grid.Row="1" Grid.Column="1" Template="{StaticResource GazeButton}" Tag="Titta här" Click="onStartButtonClick" Background="Black" Foreground="White"/>
+        <Button Margin="200" Template="{StaticResource GazeButton}" Tag="Titta här" Click="onStartButtonClick" Background="Black" Foreground="White" Width="{Binding ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
     </Grid>
 </Window>

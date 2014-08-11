@@ -28,39 +28,25 @@ namespace EyePaint
         DispatcherTimer paintTimer;
         Tree model;
         Tool tool;
-        List<Tool> tools = new List<Tool> { Tools.Splatter, Tools.Flower, Tools.Neuron, Tools.Circle, Tools.Polygon, Tools.Snowflake };
+        List<Tool> tools;
         Color color;
-        List<Color> colors = new List<Color> { Colors.Red, Colors.Green, Colors.Blue, Colors.Yellow, Colors.Black, Colors.White };
+        List<Color> colors;
 
         public MainWindow()
         {
             InitializeComponent();
-            rng = new Random();
-            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Normal, (s, e) => updateDrawing(model, (RenderTargetBitmap)Raster.Source), Dispatcher)).Stop();
-            tool = tools.First();
-            color = colors.First();
         }
 
-        void onWindowLoaded(object s, EventArgs e)
-        {
-            Raster.Source = new RenderTargetBitmap((int)(Drawing.ActualWidth), (int)(Drawing.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
-        }
-
-        void onContentRendered(object s, EventArgs e)
-        {
-            ColorButton.Background = new SolidColorBrush(color);
-            ToolButton.Content = generateIcon();
-        }
-
-        Tree startDrawing(Point p)
+        #region Drawing Functionality
+        Tree initializePaintStroke(Point p)
         {
             var t = new Tree { root = p, leaves = new PointCollection(), parents = new Dictionary<Point, Point>() };
             for (int i = 0; i < rng.Next((tool.BranchCount + 1) / 2, tool.BranchCount + 1); ++i) t.leaves.Add(t.root);
-            t.parents.Add(t.root, t.root);
+            t.parents[t.root] = t.root;
             return t;
         }
 
-        void updateDrawing(Tree t, RenderTargetBitmap drawing)
+        void doPaintStroke(Tree t, RenderTargetBitmap drawing)
         {
             // Grow model.
             var newLeaves = new PointCollection();
@@ -74,7 +60,7 @@ namespace EyePaint
                     q.X + tool.BranchLength * Math.Cos(angle),
                     q.Y + tool.BranchLength * Math.Sin(angle)
                 );
-                if (!newParents.ContainsKey(p)) newParents.Add(p, q);
+                newParents[p] = q;
                 newLeaves.Add(p);
             }
 
@@ -82,13 +68,13 @@ namespace EyePaint
             var dv = new DrawingVisual();
             using (var dc = dv.RenderOpen())
             {
-                var centerBrush = new SolidColorBrush(getRandomColor(color, tool.ColorVariety));
+                var centerBrush = new SolidColorBrush(generateColor(color, tool.ColorVariety));
                 centerBrush.Opacity = rng.NextDouble() * tool.CenterOpacityVariety;
                 var centerSize = rng.NextDouble() * tool.CenterSize;
                 dc.DrawEllipse(centerBrush, null, t.root, centerSize, centerSize);
 
                 var edges = new GeometryGroup();
-                var edgesBrush = new SolidColorBrush(getRandomColor(color, tool.ColorVariety));
+                var edgesBrush = new SolidColorBrush(generateColor(color, tool.ColorVariety));
                 edgesBrush.Opacity = tool.EdgesOpacity;
                 var pen = new Pen(edgesBrush, tool.EdgesThickness);
                 pen.EndLineCap = pen.StartLineCap = PenLineCap.Round;
@@ -97,7 +83,7 @@ namespace EyePaint
                 dc.DrawGeometry(null, pen, edges);
 
                 var vertices = new GeometryGroup();
-                var verticesBrush = new SolidColorBrush(getRandomColor(color, tool.ColorVariety));
+                var verticesBrush = new SolidColorBrush(generateColor(color, tool.ColorVariety));
                 verticesBrush.Opacity = rng.NextDouble() * tool.VerticesOpacityVariety;
                 foreach (var leaf in t.leaves)
                 {
@@ -108,7 +94,7 @@ namespace EyePaint
                 dc.DrawGeometry(verticesBrush, null, vertices);
 
                 var hull = new StreamGeometry();
-                var hullBrush = new SolidColorBrush(getRandomColor(color, tool.ColorVariety));
+                var hullBrush = new SolidColorBrush(generateColor(color, tool.ColorVariety));
                 hullBrush.Opacity = rng.NextDouble() * tool.HullOpacityVariety;
                 using (var sgc = hull.Open())
                 {
@@ -122,14 +108,8 @@ namespace EyePaint
             t.leaves.Clear();
             t.parents.Clear();
             foreach (var l in newLeaves) t.leaves.Add(l);
-            foreach (var kvp in newParents) t.parents.Add(kvp.Key, kvp.Value);
+            foreach (var kvp in newParents) t.parents[kvp.Key] = kvp.Value;
             drawing.Render(dv);
-        }
-
-        Color getRandomColor(Color? baseColor = null, double randomness = 1)
-        {
-            var c = Color.FromScRgb(1.0f, (float)rng.NextDouble(), (float)rng.NextDouble(), (float)rng.NextDouble());
-            return (baseColor.HasValue) ? baseColor.Value + Color.Multiply(c, (float)randomness) : c;
         }
 
         void saveDrawing()
@@ -139,10 +119,50 @@ namespace EyePaint
             using (var fs = System.IO.File.OpenWrite("image.png")) e.Save(fs);
         }
 
+        void clearDrawing()
+        {
+            Raster.Source = new RenderTargetBitmap((int)(Drawing.ActualWidth), (int)(Drawing.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
+        }
+
+        Color generateColor(Color? baseColor = null, double randomness = 1)
+        {
+            var c = Color.FromScRgb(1.0f, (float)rng.NextDouble(), (float)rng.NextDouble(), (float)rng.NextDouble());
+            return (baseColor.HasValue) ? baseColor.Value + Color.Multiply(c, (float)randomness) : c;
+        }
+
+        Image generateIcon()
+        {
+            var toolIcon = new Image();
+            toolIcon.Source = new RenderTargetBitmap((int)(ToolButton.ActualWidth), (int)(ToolButton.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
+            var t = initializePaintStroke(new Point(ToolButton.ActualWidth / 2, ToolButton.ActualHeight / 2));
+            for (int i = 0; i < 10; ++i) doPaintStroke(t, (RenderTargetBitmap)toolIcon.Source);
+            return toolIcon;
+        }
+        #endregion
+
+        #region Event Handlers
+        void onWindowLoaded(object s, EventArgs e)
+        {
+            App.SetCursorPos(0, 0);
+            tools = new List<Tool> { Tools.Splatter, Tools.Flower, Tools.Neuron, Tools.Circle, Tools.Polygon, Tools.Snowflake };
+            colors = new List<Color> { Colors.Red, Colors.Green, Colors.Blue, Colors.Yellow, Colors.Black, Colors.White };
+            rng = new Random();
+            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Normal, (_, __) => doPaintStroke(model, (RenderTargetBitmap)Raster.Source), Dispatcher)).Stop();
+            tool = tools.First();
+            color = colors.First();
+            clearDrawing();
+        }
+
+        void onContentRendered(object s, EventArgs e)
+        {
+            ColorButton.Background = new SolidColorBrush(color);
+            ToolButton.Content = generateIcon();
+        }
+
         void onDrawingMouseDown(object s, MouseButtonEventArgs e)
         {
             var p = e.GetPosition(Drawing);
-            model = startDrawing(p);
+            model = initializePaintStroke(p);
             paintTimer.Start();
         }
 
@@ -162,7 +182,7 @@ namespace EyePaint
             Canvas.SetLeft(PaintIndicator, p.X - PaintIndicator.ActualWidth / 2);
             Canvas.SetTop(PaintIndicator, p.Y - PaintIndicator.ActualHeight / 2);
             if (e.LeftButton != MouseButtonState.Pressed) { paintTimer.Stop(); return; } //TODO
-            if ((this.model.root - p).Length > 50) model = startDrawing(p);
+            if ((this.model.root - p).Length > 25) model = initializePaintStroke(p);
             paintTimer.Start();
         }
 
@@ -177,8 +197,16 @@ namespace EyePaint
 
         void onSaveButtonClick(object s, EventArgs e)
         {
-            if (new DialogWindow("Har du ritat färdigt och vill publicera bilden?", "Ja, jag är färdig.", "Nej, jag är inte färdig.").DialogResult.Value) saveDrawing();
-            //TODO Test: else if (new DialogWindow("Vill du rensa bilden och börja om?", "Ja, jag vill börja om.", "Nej, jag vill gå tillbaka.").DialogResult.Value) Raster.Source = new RenderTargetBitmap((int)(Drawing.ActualWidth), (int)(Drawing.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
+            if (new DialogWindow("Har du ritat färdigt och vill publicera bilden?", "Ja, jag är färdig.", "Nej, gå tillbaka.", false).DialogResult.Value)
+            {
+                saveDrawing();
+                clearDrawing();
+                var mw = new MainWindow();
+                mw.Loaded += (_, __) => Close();
+                mw.Show();
+            } else if (new DialogWindow("Vill du bara rensa bilden?", "Ja, jag vill börja om.", "Nej, jag är inte färdig.", false).DialogResult.Value) {
+                clearDrawing();
+            }
         }
 
         void onToolButtonClick(object s, EventArgs e)
@@ -196,7 +224,7 @@ namespace EyePaint
 
         void onRandomButtonClick(object s, EventArgs e)
         {
-            color = getRandomColor();
+            color = generateColor();
             tool = new Tool
             {
                 BranchCount = rng.Next(1, 100),
@@ -221,7 +249,7 @@ namespace EyePaint
 
         void onInactivity(object s, EventArgs e)
         {
-            if (new DialogWindow("Vill du rensa bilden och börja om?", "Ja, jag vill börja om.", "Nej, jag vill gå tillbaka.").DialogResult.Value)
+            if (new DialogWindow("Vill du rensa bilden och börja om?", "Ja, jag vill börja om.", "Nej, jag vill gå tillbaka.", true).DialogResult.Value)
             {
                 var mw = new MainWindow();
                 mw.Loaded += (_, __) => Close();
@@ -229,30 +257,10 @@ namespace EyePaint
             }
         }
 
-        Image generateIcon()
-        {
-            var toolIcon = new Image();
-            toolIcon.Source = new RenderTargetBitmap((int)(ToolButton.ActualWidth), (int)(ToolButton.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
-            var t = startDrawing(new Point(ToolButton.ActualWidth / 2, ToolButton.ActualHeight / 2));
-            for (int i = 0; i < 10; ++i) updateDrawing(t, (RenderTargetBitmap)toolIcon.Source);
-            return toolIcon;
-        }
-
-        void onLostFocus(object s, RoutedEventArgs e)
-        {
-            foreach (var sb in Resources.OfType<Storyboard>()) sb.Pause(); //TODO
-        }
-
-
-        void onGotFocus(object s, RoutedEventArgs e)
-        {
-            foreach (var sb in Resources.OfType<Storyboard>()) sb.Resume(); //TODO
-        }
-
         void onGazePaintStart(object s, EventArgs e)
         {
             var p = Mouse.GetPosition(Application.Current.MainWindow); //TODO Don't use Application.Current.MainWindow.
-            model = startDrawing(p);
+            model = initializePaintStroke(p);
             paintTimer.Start();
         }
 
@@ -261,5 +269,6 @@ namespace EyePaint
         {
             paintTimer.Stop();
         }
+        #endregion
     }
 }

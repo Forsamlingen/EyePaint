@@ -15,6 +15,18 @@
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
+        <EventTrigger RoutedEvent="Window.MouseMove">
+            <StopStoryboard BeginStoryboardName="FadeOut"/>
+            <BeginStoryboard Name="FadeOut">
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" BeginTime="0" Duration="0:1:0" Completed="onInactivity">
+                        <DoubleAnimation.EasingFunction>
+                            <PowerEase EasingMode="EaseIn"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
     </Window.Triggers>
     <Grid Margin="100">
         <Grid.RowDefinitions>

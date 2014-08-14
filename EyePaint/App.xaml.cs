@@ -78,13 +78,15 @@ namespace EyePaint
 
         void onGazeData(object s, GazeDataEventArgs e)
         {
-            if (e.GazeData.TrackingStatus != TrackingStatus.BothEyesTracked) return; //TODO Implement one-eye operation.
+            if (e.GazeData.TrackingStatus == TrackingStatus.NoEyesTracked) return;
+            var left = (e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyLeft || e.GazeData.TrackingStatus == TrackingStatus.OnlyLeftEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Left.GazePointOnDisplayNormalized : new Point2D(0, 0);
+            var right = (e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyRight || e.GazeData.TrackingStatus == TrackingStatus.OnlyRightEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Right.GazePointOnDisplayNormalized : new Point2D(0, 0);
 
             var newGazePoint = Dispatcher.Invoke(() =>
             {
                 return new Point(
-                    (int)Application.Current.MainWindow.ActualWidth * (e.GazeData.Left.GazePointOnDisplayNormalized.X + e.GazeData.Right.GazePointOnDisplayNormalized.X) / 2,
-                    (int)Application.Current.MainWindow.ActualHeight * (e.GazeData.Left.GazePointOnDisplayNormalized.Y + e.GazeData.Right.GazePointOnDisplayNormalized.Y) / 2
+                    (int)Application.Current.MainWindow.ActualWidth * (left.X + right.X) / 2,
+                    (int)Application.Current.MainWindow.ActualHeight * (left.Y + right.Y) / 2
                 );
             });
             gazePoints.Add(newGazePoint);
@@ -105,9 +107,9 @@ namespace EyePaint
             }
 
             // Calibrate point with known offsets.
-            var distances = calibrationPoints.Select(t => (gazePoint - t.Key).Length);
-            var normalizedDistances = distances.Select(d => d / distances.Average());
-            foreach (var v in calibrationPoints.Zip(normalizedDistances, (kvp, d) => d * kvp.Value))
+            var distances = calibrationPoints.Select(kvp => (gazePoint - kvp.Key).Length);
+            var normalizedDistances = distances.Select(d => d / distances.Sum());
+            foreach (var v in calibrationPoints.Zip(normalizedDistances, (kvp, d) => kvp.Value)) //TODO Scale by normalized distance.
             {
                 gazePoint.Offset(v.X, v.Y);
             }
@@ -115,6 +117,7 @@ namespace EyePaint
             SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
         }
 
+        //TODO Fix gaze click sequence bug.
         void onGazeClick(object s, EventArgs e)
         {
             var c = s as Clock;

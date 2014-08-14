@@ -1,30 +1,23 @@
 ﻿<Window x:Class="EyePaint.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Loaded="onWindowLoaded"
+        xmlns:local="clr-namespace:EyePaint"
         ContentRendered="onContentRendered"
+        PreviewMouseDown="onPreviewMouseDown"
         Style="{StaticResource FullScreen}">
-    <Window.Triggers>
-        <EventTrigger RoutedEvent="Window.MouseMove">
-            <StopStoryboard BeginStoryboardName="FadeOut"/>
-            <BeginStoryboard Name="FadeOut">
-                <Storyboard>
-                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" BeginTime="0" Duration="0:0:5" Completed="onInactivity">
-                        <DoubleAnimation.EasingFunction>
-                            <PowerEase EasingMode="EaseIn"/>
-                        </DoubleAnimation.EasingFunction>
-                    </DoubleAnimation>
-                </Storyboard>
-            </BeginStoryboard>
-        </EventTrigger>
-        <EventTrigger RoutedEvent="Window.LostFocus">
-            <StopStoryboard BeginStoryboardName="FadeOut"/>
-        </EventTrigger>
-    </Window.Triggers>
+    <Window.Resources>
+        <Storyboard x:Key="InactivityAnimation">
+            <DoubleAnimation Storyboard.TargetName="PaintControls" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:5" Completed="onInactivity" AccelerationRatio="1">
+                <DoubleAnimation.EasingFunction>
+                    <PowerEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
     <Grid>
-        <Grid Name="GUI" IsEnabled="False">
+        <Grid Name="PaintControls" IsEnabled="False">
             <Grid.Effect>
-                <BlurEffect x:Name="Blur" Radius="20"/>
+                <BlurEffect x:Name="Blur" Radius="5" KernelType="Box"/>
             </Grid.Effect>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding ActualHeight, ElementName=ColumndWidth, Mode=OneWay}"/>
@@ -37,32 +30,30 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Grid Name="ColumndWidth" />
-            <Canvas Name="Drawing" Grid.ColumnSpan="3" Grid.RowSpan="3" MouseMove="onDrawingMouseMove" MouseDown="onDrawingMouseDown" MouseLeave="onDrawingMouseLeave" MouseUp="onDrawingMouseUp" Background="Black">
-                <Canvas.Triggers>
-                    <EventTrigger RoutedEvent="MouseEnter">
-                        <BeginStoryboard Name="PaintIndicatorAnimation">
-                            <Storyboard>
-                                <DoubleAnimation Storyboard.TargetName="PaintIndicator" Storyboard.TargetProperty="Opacity" From="0.1" To="1" Duration="3" Completed="onGazePaintStart" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
-                    <EventTrigger RoutedEvent="MouseMove">
-                        <SeekStoryboard BeginStoryboardName="PaintIndicatorAnimation" Origin="BeginTime" Offset="0" />
-                        <!--<BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation Storyboard.TargetName="PaintIndicator" Storyboard.TargetProperty="Opacity" To="0" Duration="3" Completed="onGazePaintStop" />
-                            </Storyboard>
-                        </BeginStoryboard>-->
-                    </EventTrigger>
-                </Canvas.Triggers>
-                <Ellipse Name="PaintIndicator" Height="50" Width="50" Stroke="White" StrokeThickness="10" />
+            <Canvas Grid.ColumnSpan="3" Grid.RowSpan="3" MouseMove="onCanvasMouseMove" MouseDown="onCanvasMouseDown" MouseEnter="onCanvasMouseEnter" MouseLeave="onCanvasMouseLeave" MouseUp="onCanvasMouseUp" Background="Black">
                 <Image Name="Raster" />
+                <Ellipse Name="GazePaintMarker" Opacity="0" Height="200" Width="200" Stroke="White" StrokeThickness="20">
+                    <Ellipse.Resources>
+                        <Storyboard x:Key="GazePaintAnimation">
+                            <DoubleAnimation Storyboard.TargetName="GazePaintMarker" Storyboard.TargetProperty="Opacity" From="0.1" To="1" Completed="onGazePaint" AccelerationRatio="1">
+                                <DoubleAnimation.EasingFunction>
+                                    <PowerEase EasingMode="EaseIn"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </Ellipse.Resources>
+                    <Ellipse.Effect>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="0"/>
+                    </Ellipse.Effect>
+                </Ellipse>
             </Canvas>
-            <Button Name="ExportButton" Grid.Row="0" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Dela bild" Click="onSaveButtonClick" Background="Black" Foreground="White"/>
-            <Button Name="ColorButton" Grid.Row="0" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Byt färg" Click="onColorButtonClick" Background="Black" Foreground="White"/>
-            <Button Name="ToolButton" Grid.Row="2" Grid.Column="0" Template="{StaticResource GazeButton}" Tag="Byt ritverktyg" Click="onToolButtonClick" Background="Black" Foreground="White"/>
-            <Button Name="RandomButton" Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Tag="Skapa slumpverktyg" Click="onRandomButtonClick" Background="Black" Foreground="White"/>
+            <Button Name="ShapeButton" Grid.Row="2" Grid.Column="0" Template="{StaticResource GazeButton}" Click="onShapeButtonClick" Background="Black" Foreground="White"/>
+            <Button Name="ColorButton" Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Click="onColorButtonClick" Background="Black" Foreground="White"/>
         </Grid>
-        <Button Margin="200" Template="{StaticResource GazeButton}" Tag="Titta här" Click="onStartButtonClick" Background="Black" Foreground="White" Width="{Binding ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+        <Button Margin="200" Template="{StaticResource GazeButton}" Click="onStartButtonClick" Background="Black" Foreground="White" Width="{Binding ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}">
+            <Button.Content>
+                <StaticResource ResourceKey="Eye"/>
+            </Button.Content>
+        </Button>
     </Grid>
 </Window>

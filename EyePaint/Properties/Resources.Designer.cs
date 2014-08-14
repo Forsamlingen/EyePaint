@@ -69,5 +69,15 @@ namespace EyePaint.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Presets {
+            get {
+                object obj = ResourceManager.GetObject("Presets", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

@@ -1,7 +1,24 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="uri:settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="EyePaint.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AdminEmail" Type="System.String" Scope="User">
+      <Value Profile="(Default)">default@default.default</Value>
+    </Setting>
+    <Setting Name="SmtpServer" Type="System.String" Scope="User">
+      <Value Profile="(Default)">default.default.default</Value>
+    </Setting>
+    <Setting Name="FlickrKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">a81591b96318cd9799982c11663df750</Value>
+    </Setting>
+    <Setting Name="FlickrSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">05e84b538d7d4cf5</Value>
+    </Setting>
+    <Setting Name="Spacing" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="Stability" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

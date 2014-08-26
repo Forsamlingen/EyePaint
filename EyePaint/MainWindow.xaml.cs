@@ -1,190 +1,254 @@
-﻿using System;
+﻿using FlickrNet;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Xml;
 
 namespace EyePaint
 {
-    public struct Tree
+    /// <summary>
+    /// Model representing a paint stroke in the application.
+    /// </summary>
+    struct Tree
     {
-        public Point root;
-        public PointCollection leaves;
-        public Dictionary<Point, Point> parents;
-    }
+        public Point Root;
+        public PointCollection Leaves;
+        public Dictionary<Point, Point> Parents;
 
-    public struct Shape
-    {
-        public int maxBranches, strokeThickness;
-        public double branchStepLength, branchStraightness, generationRotation, colorVariety, verticesSize, verticesSquashVariety, centerSize, centerOpacity, edgesOpacity, verticesOpacity, hullOpacity;
-    }
-
-    public class Presets
-    {
-        public HashSet<Shape> shapes;
-        public HashSet<Color> colors;
-
-        public static Presets Load()
+        public Tree(Point p, int maxBranches, ref Random rng)
         {
-            using (var fs = new FileStream("Presets.json", FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                using (var jrwf = JsonReaderWriterFactory.CreateJsonReader(fs, XmlDictionaryReaderQuotas.Max))
-                {
-                    return (Presets)(new DataContractJsonSerializer(typeof(Presets))).ReadObject(jrwf);
-                }
-            }
-        }
-
-        public void Save()
-        {
-            using (var fs = new FileStream("Presets.json", FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                using (var xdw = JsonReaderWriterFactory.CreateJsonWriter(fs))
-                {
-                    (new DataContractJsonSerializer(GetType())).WriteObject(xdw, this);
-                }
-            }
+            Root = p;
+            Leaves = new PointCollection();
+            Parents = new Dictionary<Point, Point>();
+            for (int i = 0; i < rng.Next((maxBranches + 1) / 2, maxBranches + 1); ++i) Leaves.Add(Root);
+            Parents[Root] = Root;
         }
     }
 
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Graphical interpretation parameters of paint strokes in the application.
+    /// </summary>
+    struct Shape
+    {
+        //TODO Add getters/setters with validation instead of using the public access modifier.
+        public double MaxBranches, BranchStepLength, BranchStraightness, GenerationRotation, ColorVariety, VerticesSize, VerticesSquashVariety, CenterSize, CenterOpacity, EdgesOpacity, VerticesOpacity, HullOpacity;
+    }
+
+    /// <summary>
+    /// Lets the user draw different shapes and colors.
     /// </summary>
     public partial class MainWindow : Window
     {
-        Random rng;
-        DateTime time;
-        TimeSpan timePainted;
+        Random rng = new Random();
         DispatcherTimer paintTimer;
         Tree model;
         Point gaze;
         Shape shape;
         Color color;
-        Presets presets;
+        DateTime time;
+        HashSet<Shape> shapes = new HashSet<Shape>();
+        HashSet<Color> colors = new HashSet<Color>();
+        Dictionary<Shape, TimeSpan> shapeUsage = new Dictionary<Shape, TimeSpan>();
+        Dictionary<Color, TimeSpan> colorUsage = new Dictionary<Color, TimeSpan>();
 
         public MainWindow()
         {
             InitializeComponent();
-#if DEBUG
-            var p = new Presets();
-            p.colors = new HashSet<Color> { Colors.Red, Colors.Blue, Colors.Green, Colors.Yellow, Colors.White, Colors.Black };
-            p.shapes = new HashSet<Shape> { new Shape { maxBranches = 100, strokeThickness = 1, branchStepLength = 10, branchStraightness = 1, generationRotation = 1, colorVariety = 1, verticesSize = 10, verticesSquashVariety = 0, centerSize = 100, centerOpacity = 1, edgesOpacity = 1, verticesOpacity = 1, hullOpacity = 1 } };
-            p.Save();
-            KeyDown += (s, e) => { presets.shapes.Add(shape); presets.Save(); };
-#endif
         }
 
         void onContentRendered(object s, EventArgs e)
         {
-            App.SetCursorPos(0, 0);
-            rng = new Random();
-            presets = Presets.Load();
-            color = presets.colors.ElementAt(rng.Next(presets.colors.Count));
-            shape = presets.shapes.ElementAt(rng.Next(presets.shapes.Count));
-            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Normal, (_, __) => updateDrawing(ref model, (RenderTargetBitmap)Raster.Source), Dispatcher)).Stop();
-            clearDrawing();
-            updateIcons();
+            // Choose initial shape and color by simulating a button click.
+            ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+
+            // Initialize drawing.
+            Raster.Source = createDrawing((int)ActualWidth, (int)ActualHeight);
+
+            // Render clock. Note: single-threaded.
+            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(50), DispatcherPriority.Render, (_, __) => paint(ref this.model, Raster.Source as RenderTargetBitmap), Dispatcher)).Stop();
         }
 
-        void onPreviewMouseDown(object s, MouseButtonEventArgs e)
+        void onFadedIn(object s, EventArgs e)
         {
-            ((Storyboard)FindResource("InactivityAnimation")).Seek(TimeSpan.Zero);
+#if !DEBUG
+            // Disable functionality if the user isn't in front of the eye tracker.
+            ((App)Application.Current).TrackingStatusChanged += (_s, _e) => Dispatcher.Invoke(() =>
+            {
+                if (_e.Tracking) IsEnabled = true;
+            });
+#else
+            IsEnabled = true;
+#endif
+        }
+
+        void onKeyDown(object s, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    (new SettingsWindow()).ShowDialog();
+                    break;
+                case Key.S:
+                    // Save drawing, but only if the user has painted enough stuff.
+                    if (shapeUsage.Sum(sh => sh.Value.Seconds) > 5)
+                    {
+                        //TODO Implement yes/no gaze dialog.
+                        if (new CountdownWindow().DialogResult.Value)
+                        {
+                            ((App)Application.Current).Clear();
+                            PaintControls.IsEnabled = false;
+                            stopPainting();
+                            ((Storyboard)FindResource("SaveDrawingAnimation")).Begin();
+                        }
+                    }
+                    else
+                    {
+                        // Reset application for the next user.
+                        ((App)Application.Current).Reset();
+                    }
+
+                    break;
+            }
         }
 
         void onCanvasMouseDown(object s, MouseButtonEventArgs e)
         {
             gaze = e.GetPosition(s as Canvas);
             startPainting();
-            ((Storyboard)GazePaintMarker.FindResource("GazePaintAnimation")).Stop();
+            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Stop();
         }
 
         void onCanvasMouseUp(object s, MouseButtonEventArgs e)
         {
             stopPainting();
-            ((Storyboard)GazePaintMarker.FindResource("GazePaintAnimation")).Begin();
+            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Begin();
         }
 
         void onCanvasMouseEnter(object s, MouseEventArgs e)
         {
-            ((Storyboard)GazePaintMarker.FindResource("GazePaintAnimation")).Begin();
+            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Begin();
         }
 
         void onCanvasMouseLeave(object s, MouseEventArgs e)
         {
             stopPainting();
-            ((Storyboard)GazePaintMarker.FindResource("GazePaintAnimation")).Stop();
+            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Stop();
         }
 
         void onCanvasMouseMove(object s, MouseEventArgs e)
         {
             var p = e.GetPosition(s as Canvas);
-            ((Storyboard)FindResource("InactivityAnimation")).Seek(TimeSpan.Zero);
-            Canvas.SetLeft(GazePaintMarker, p.X - GazePaintMarker.ActualWidth / 2);
-            Canvas.SetTop(GazePaintMarker, p.Y - GazePaintMarker.ActualHeight / 2);
-            if ((gaze - p).Length > 50)
+            Canvas.SetLeft(GazeMarker, p.X - GazeMarker.ActualWidth / 2);
+            Canvas.SetTop(GazeMarker, p.Y - GazeMarker.ActualHeight / 2);
+
+            if (paintTimer.IsEnabled && (model.Root - p).Length > EyePaint.Properties.Settings.Default.Spacing) model = new Tree(p, (int)shape.MaxBranches, ref rng);
+            if ((gaze - p).Length > EyePaint.Properties.Settings.Default.Spacing / 2)
             {
-                gaze = p;
-                if (paintTimer.IsEnabled) model = createTree(gaze);
-                var sb = (Storyboard)GazePaintMarker.FindResource("GazePaintAnimation");
-                if (sb.GetCurrentState() == ClockState.Filling) stopPainting();
-                if (sb.GetCurrentState() != ClockState.Stopped) sb.Seek(TimeSpan.Zero);
+                var sb = (Storyboard)GazeMarker.FindResource("GazePaintAnimation");
+                switch (sb.GetCurrentState())
+                {
+                    case ClockState.Active: sb.Seek(TimeSpan.Zero); break;
+                    case ClockState.Filling: sb.Seek(TimeSpan.Zero); stopPainting(); break;
+                }
             }
-            if (!paintTimer.IsEnabled) gaze = p;
+            gaze = p;
         }
 
         void onStartButtonClick(object s, EventArgs e)
         {
             (s as Button).Visibility = Visibility.Hidden;
-            ((Storyboard)FindResource("InactivityAnimation")).Begin();
-            Blur.Radius = 0;
-            PaintControls.IsEnabled = true;
+#if !DEBUG
+            ((App)Application.Current).TrackingStatusChanged += (_s, _e) => Dispatcher.Invoke(() => PaintControls.IsEnabled = _e.Tracking);
+#endif
         }
 
         void onShapeButtonClick(object s, EventArgs e)
         {
-            if (timePainted > TimeSpan.FromSeconds(10)) presets.shapes.Add(shape);
-            timePainted = TimeSpan.Zero;
-            var candidates = presets.shapes.Where(c => !c.Equals(shape)).ToList();
-            shape = (rng.NextDouble() <= 0.5 && candidates.Count > 1) ? candidates.ElementAt(rng.Next(candidates.Count)) : new Shape
+            // Sort shapes by usage.
+            shapes.OrderBy(sh => shapeUsage[sh]);
+
+            // Remove underused shapes.
+            foreach (var sh in shapes.ToList())
             {
-                maxBranches = rng.Next(1, 101),
-                strokeThickness = (int)Math.Sqrt(rng.Next(1, 10)),
-                branchStepLength = Math.Sqrt(rng.Next(10, 101)),
-                branchStraightness = Math.Sqrt(rng.NextDouble()),
-                generationRotation = rng.NextDouble(),
-                colorVariety = rng.NextDouble(),
-                verticesSize = Math.Sqrt(rng.Next(1, 51)),
-                verticesSquashVariety = Math.Pow(rng.NextDouble(), 2),
-                centerSize = Math.Sqrt(rng.Next(1, 101)),
-                centerOpacity = Math.Pow(rng.NextDouble(), 2),
-                edgesOpacity = rng.NextDouble(),
-                verticesOpacity = rng.NextDouble(),
-                hullOpacity = Math.Pow(rng.NextDouble(), 2),
-            };
+                if (shapeUsage[sh].Seconds < 0.1 * shapeUsage.Max(kvp => kvp.Value).Seconds || shapeUsage[sh] == TimeSpan.Zero)
+                {
+                    shapes.Remove(sh);
+                    shapeUsage.Remove(sh);
+                }
+            }
+
+            // Determine whether to pick a previous shape or generate a new.
+            if (shapes.Count > 0 && rng.NextDouble() <= 0.01 * shapes.Count - 0.1)
+            {
+                // Pick a previously used shape.
+                shape = shapes.ElementAt((shapes.ToList().IndexOf(shape) + 1) % shapes.Count); //TODO Verify that the index applies to the HashSet.
+            }
+            else
+            {
+                // Generate a new shape.
+                var maxBranches = rng.Next(1, 100);
+                var branchStepLength = Math.Sqrt(rng.Next(1, 1001));
+                var branchStraightness = Math.Sqrt(rng.NextDouble());
+                var generationRotation = rng.NextDouble();
+                var colorVariety = rng.NextDouble();
+                var verticesSize = Math.Sqrt(rng.Next(0, 101));
+                var verticesSquashVariety = rng.NextDouble() * rng.NextDouble();
+                var centerSize = (branchStepLength < 10) ? rng.Next(10, 101) : Math.Sqrt(rng.Next(1, 101));
+                var centerOpacity = Math.Max(0, rng.NextDouble() * (rng.NextDouble() - centerSize / 100d));
+                var edgesOpacity = rng.NextDouble() * rng.NextDouble() * branchStraightness;
+                var verticesOpacity = (verticesSize == 0) ? 0 : rng.NextDouble();
+                var hullOpacity = rng.NextDouble() * branchStraightness * generationRotation;
+                var sumOpacity = centerOpacity + edgesOpacity + verticesOpacity + hullOpacity;
+                centerOpacity /= sumOpacity; edgesOpacity /= sumOpacity; verticesOpacity /= sumOpacity; hullOpacity /= sumOpacity;
+                shape = new Shape { MaxBranches = maxBranches, BranchStepLength = branchStepLength, BranchStraightness = branchStraightness, GenerationRotation = generationRotation, ColorVariety = colorVariety, VerticesSize = verticesSize, VerticesSquashVariety = verticesSquashVariety, CenterSize = centerSize, CenterOpacity = centerOpacity, EdgesOpacity = edgesOpacity, VerticesOpacity = verticesOpacity, HullOpacity = hullOpacity };
+            }
+
+            // Add shape.
+            shapes.Add(shape);
+            shapeUsage[shape] = TimeSpan.Zero;
+
+            // Update GUI.
             updateIcons();
         }
 
         void onColorButtonClick(object s, EventArgs e)
         {
-            if (timePainted > TimeSpan.FromSeconds(10)) presets.colors.Add(color);
-            timePainted = TimeSpan.Zero;
-            var candidates = presets.colors.Where(c => c != color).ToList();
-            color = (rng.NextDouble() <= 0.5 && candidates.Count > 1) ? candidates.ElementAt(rng.Next(candidates.Count)) : createColor();
+            // Sort colors by usage.
+            colors.OrderBy(c => colorUsage[c]);
+
+            // Remove underused colors.
+            foreach (var c in colors.ToList())
+            {
+                if (colorUsage[c].Seconds < 0.1 * colorUsage.Max(kvp => kvp.Value).Seconds || colorUsage[c] == TimeSpan.Zero)
+                {
+                    colors.Remove(c);
+                    colorUsage.Remove(c);
+                }
+            }
+
+            // Either pick a previously used color or generate a new, based on how many previously used colors there are.
+            color = (colors.Count > 0 && rng.NextDouble() <= 0.01 * colors.Count - 0.1) ? colors.ElementAt((colors.ToList().IndexOf(color) + 1) % colors.Count) : createColor(); //TODO Verify that the index applies to the HashSet.
+
+            // Add color.
+            colors.Add(color);
+            colorUsage[color] = TimeSpan.Zero;
+
+            // Update GUI.
             updateIcons();
         }
 
         void onInactivity(object s, EventArgs e)
         {
-            (new MainWindow()).Show();
-            Close();
+            if (shapeUsage.Sum(sh => sh.Value.Seconds) > 60) ((Storyboard)FindResource("SaveDrawingAnimation")).Begin();
+            else ((App)Application.Current).Reset();
         }
 
         void onGazePaint(object s, EventArgs e)
@@ -192,9 +256,41 @@ namespace EyePaint
             startPainting();
         }
 
+        void onPaintControlsIsEnabledChanged(object s, DependencyPropertyChangedEventArgs e)
+        {
+            /*
+            var sb = ((Storyboard)FindResource("InactivityAnimation"));
+            if (PaintControls == null || sb == null) return;
+            if (!PaintControls.IsEnabled)
+            {
+                stopPainting();
+                sb.Begin();
+            }
+            else sb.Stop();
+            */
+        }
+
+        void onSaveDrawing(object s, EventArgs e)
+        {
+            var pbe = new PngBitmapEncoder();
+            pbe.Frames.Add(BitmapFrame.Create(Raster.Source as RenderTargetBitmap));
+            using (var fs = System.IO.File.OpenWrite("image.png")) pbe.Save(fs);
+            //TODO Backend upload.
+            //var f = new Flickr(EyePaint.Properties.Settings.Default.FlickrKey, EyePaint.Properties.Settings.Default.FlickrSecret);
+            //var requestToken = f.OAuthGetRequestToken("oob");
+            //System.Diagnostics.Process.Start(f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write));
+            //var accessToken = f.OAuthGetAccessToken(requestToken, VerifierTextBox.Text);
+            //f.OAuthAccessToken = "";
+            //f.OAuthAccessTokenSecret = "";
+            //f.UploadPicture("image.png");
+            ((App)Application.Current).Restart();
+        }
+
         void startPainting()
         {
-            model = createTree(gaze);
+            if (!PaintControls.IsEnabled) return;
+            model = new Tree(gaze, (int)shape.MaxBranches, ref rng);
+            if (paintTimer.IsEnabled) return;
             paintTimer.Start();
             time = DateTime.Now;
         }
@@ -202,33 +298,32 @@ namespace EyePaint
         void stopPainting()
         {
             paintTimer.Stop();
-            timePainted += DateTime.Now - time;
+            var t = DateTime.Now - time;
+            shapeUsage[shape] += t;
+            colorUsage[color] += t;
         }
 
-        Tree createTree(Point p)
+        RenderTargetBitmap createDrawing(int width, int height)
         {
-            var t = new Tree { root = p, leaves = new PointCollection(), parents = new Dictionary<Point, Point>() };
-            for (int i = 0; i < rng.Next((shape.maxBranches + 1) / 2, shape.maxBranches + 1); ++i) t.leaves.Add(t.root);
-            t.parents[t.root] = t.root;
-            return t;
+            return new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
         }
 
-        void updateDrawing(ref Tree model, RenderTargetBitmap drawing)
+        void paint(ref Tree model, RenderTargetBitmap drawing)
         {
             // Grow model.
             var newLeaves = new PointCollection();
             var newParents = new Dictionary<Point, Point>();
-            var rotation = shape.generationRotation * rng.NextDouble() * 2 * Math.PI;
-            for (int i = 0; i < model.leaves.Count; ++i)
+            var rotation = shape.GenerationRotation * rng.NextDouble() * 2 * Math.PI;
+            for (int i = 0; i < model.Leaves.Count; ++i)
             {
-                var q = (model.leaves.Count == 0) ? model.root : model.leaves[i];
+                var q = (model.Leaves.Count == 0) ? model.Root : model.Leaves[i];
                 var angle =
-                    i * (2 * Math.PI / model.leaves.Count)
+                    i * (2 * Math.PI / model.Leaves.Count)
                     + rotation
-                    + (1 - shape.branchStraightness) * rng.NextDouble() * 2 * Math.PI;
+                    + (1 - shape.BranchStraightness) * rng.NextDouble() * 2 * Math.PI;
                 var p = new Point(
-                    q.X + shape.branchStepLength * Math.Cos(angle),
-                    q.Y + shape.branchStepLength * Math.Sin(angle)
+                    q.X + shape.BranchStepLength * Math.Cos(angle),
+                    q.Y + shape.BranchStepLength * Math.Sin(angle)
                 );
                 newParents[p] = q;
                 newLeaves.Add(p);
@@ -238,71 +333,94 @@ namespace EyePaint
             var dv = new DrawingVisual();
             using (var dc = dv.RenderOpen())
             {
-                var centerSize = rng.NextDouble() * shape.centerSize;
-                var centerBrush = new SolidColorBrush(createColor(color, shape.colorVariety));
-                centerBrush.Opacity = rng.NextDouble() * shape.centerOpacity;
-                var centerPen = new Pen(new SolidColorBrush(createColor(color, shape.colorVariety)), 1);
-                centerPen.Brush.Opacity = rng.NextDouble() * shape.centerOpacity;
-                dc.DrawEllipse(centerBrush, centerPen, model.root, centerSize, centerSize);
+#if !DEBUG
+                var centerSize = rng.NextDouble() * shape.CenterSize;
+                var centerBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
+                centerBrush.Opacity = rng.NextDouble() * shape.CenterOpacity;
+                var centerPen = new Pen(centerBrush, 1);
+                dc.DrawEllipse(centerBrush, centerPen, model.Root, centerSize, centerSize);
 
                 var edges = new GeometryGroup();
-                var edgesPen = new Pen(new SolidColorBrush(createColor(color, shape.colorVariety)), shape.strokeThickness);
-                edgesPen.Brush.Opacity = shape.edgesOpacity;
-                foreach (var leaf in model.leaves) edges.Children.Add(new LineGeometry(leaf, model.parents[leaf]));
+                var edgesPen = new Pen(new SolidColorBrush(createColor(color, shape.ColorVariety)), 1);
+                edgesPen.StartLineCap = edgesPen.EndLineCap = PenLineCap.Round;
+                edgesPen.LineJoin = PenLineJoin.Round;
+                edgesPen.Brush.Opacity = shape.EdgesOpacity;
+                foreach (var p in model.Leaves) edges.Children.Add(new LineGeometry(p, model.Parents[p]));
                 dc.DrawGeometry(null, edgesPen, edges);
 
                 var vertices = new GeometryGroup();
-                var verticesBrush = new SolidColorBrush(createColor(color, shape.colorVariety));
-                verticesBrush.Opacity = rng.NextDouble() * shape.verticesOpacity;
+                var verticesBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
+                verticesBrush.Opacity = rng.NextDouble() * shape.VerticesOpacity;
                 var verticesPen = new Pen(verticesBrush, 1);
-                foreach (var leaf in model.leaves)
+                foreach (var p in model.Leaves)
                 {
                     var r = rng.NextDouble();
-                    var eg = new EllipseGeometry(leaf, shape.verticesSize * (r + shape.verticesSquashVariety * rng.NextDouble()), shape.verticesSize * (r + shape.verticesSquashVariety * rng.NextDouble()));
+                    var eg = new EllipseGeometry(p, shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()), shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()));
                     vertices.Children.Add(eg);
                 }
                 dc.DrawGeometry(verticesBrush, verticesPen, vertices);
 
                 var hull = new StreamGeometry();
-                var hullBrush = new SolidColorBrush(createColor(color, shape.colorVariety));
-                hullBrush.Opacity = rng.NextDouble() * shape.hullOpacity;
-                var hullPen = new Pen(hullBrush, shape.strokeThickness);
+                var hullBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
+                hullBrush.Opacity = rng.NextDouble() * shape.HullOpacity;
+                var hullPen = new Pen(hullBrush, 1);
                 using (var sgc = hull.Open())
                 {
-                    sgc.BeginFigure(model.leaves[0], true, true);
-                    sgc.PolyLineTo(model.leaves, true, true);
+                    sgc.BeginFigure(model.Leaves[0], true, true);
+                    sgc.PolyLineTo(model.Leaves, true, true);
                 }
                 dc.DrawGeometry(hullBrush, hullPen, hull);
+#else
+                GazeMarker.Visibility = Visibility.Hidden;
+                drawing.Clear();
+                foreach (var o in ((App)Application.Current).offsets)
+                {
+                    var p = new Point(o.Key.X, o.Key.Y);
+                    p.Offset(o.Value.X, o.Value.Y);
+                    var pen = new Pen(Brushes.Yellow, 5);
+                    pen.EndLineCap = PenLineCap.Triangle;
+                    dc.DrawLine(pen, o.Key, p);
+                }
+                var offsets = ((App)Application.Current).offsets;
+                if (offsets.Count == 1)
+                {
+                    var p = new Point(gaze.X, gaze.Y);
+                    gaze += offsets.First().Value;
+                    var pen = new Pen(Brushes.Red, 5);
+                    pen.EndLineCap = PenLineCap.Triangle;
+                    dc.DrawLine(pen, p, gaze);
+                }
+                else if (offsets.Count > 1)
+                {
+                    var sum = offsets.Select(kvp => (kvp.Key - gaze).Length).Sum();
+                    var calibratedGazePoint = new Point(gaze.X, gaze.Y);
+                    foreach (var kvp in offsets)
+                    {
+                        var p = new Point(calibratedGazePoint.X, calibratedGazePoint.Y);
+                        calibratedGazePoint += (1 - (kvp.Key - gaze).Length / sum) * kvp.Value;
+                        var pen = new Pen(Brushes.Red, 5);
+                        pen.EndLineCap = PenLineCap.Triangle;
+                        dc.DrawLine(pen, p, calibratedGazePoint);
+                    }
+                    gaze = calibratedGazePoint;
+                }
+                dc.DrawEllipse(Brushes.Green, null, gaze, 10, 10);
+#endif
             }
 
             // Persist update.
-            model.leaves.Clear();
-            model.parents.Clear();
-            foreach (var l in newLeaves) model.leaves.Add(l);
-            foreach (var kvp in newParents) model.parents.Add(kvp.Key, kvp.Value);
+            model.Leaves = newLeaves;
+            model.Parents = newParents;
             drawing.Render(dv);
-
-        }
-
-        void saveDrawing()
-        {
-            var e = new PngBitmapEncoder();
-            e.Frames.Add(BitmapFrame.Create((RenderTargetBitmap)Raster.Source));
-            using (var fs = System.IO.File.OpenWrite("image.png")) e.Save(fs);
-        }
-
-        void clearDrawing()
-        {
-            Raster.Source = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
         }
 
         Color createColor(Color? baseColor = null, double randomness = 1)
         {
+            // Generate a random color.
             var H = rng.NextDouble();
-            var S = 1.0;
-            var V = 1.0;
+            var S = rng.NextDouble() > 0 || baseColor.HasValue ? 1.0 : 0;
+            var V = rng.NextDouble() > 0 || baseColor.HasValue ? 1.0 : 0;
             byte R, G, B;
-
             if (S == 0)
             {
                 R = (byte)(V * 255);
@@ -333,17 +451,25 @@ namespace EyePaint
                 B = (byte)(b * 255);
             }
 
-            var c = Color.FromRgb(R, G, B);
-            return (baseColor.HasValue) ? baseColor.Value + Color.Multiply(c, (float)randomness) : c;
+            // Mix colors if neccessary.
+            if (baseColor.HasValue)
+            {
+                var c1 = baseColor.Value;
+                var c2 = Color.Multiply(Color.FromRgb(R, G, B), (float)randomness);
+                var brightness = System.Drawing.Color.FromArgb(baseColor.Value.A, baseColor.Value.R, baseColor.Value.G, baseColor.Value.B).GetBrightness();
+                return (brightness >= 0.5) ? c1 + c2 : c1 - c2;
+            }
+            else return Color.FromRgb(R, G, B);
         }
 
         void updateIcons()
         {
-            ColorButton.Background = new SolidColorBrush(color);
+            ColorButtonBackgroundBaseColor.Color = color;
+            ColorButtonBackgroundColorVariety.Color = createColor(color, shape.ColorVariety);
             var toolIcon = new Image();
-            toolIcon.Source = new RenderTargetBitmap((int)(ShapeButton.ActualWidth), (int)(ShapeButton.ActualHeight), 96.0, 96.0, PixelFormats.Pbgra32);
-            var t = createTree(new Point(ShapeButton.ActualWidth / 2, ShapeButton.ActualHeight / 2));
-            for (int i = 0; i < 10; ++i) updateDrawing(ref t, (RenderTargetBitmap)toolIcon.Source);
+            toolIcon.Source = createDrawing((int)(ShapeButton.ActualWidth), (int)(ShapeButton.ActualHeight));
+            var model = new Tree(new Point(ShapeButton.ActualWidth / 2, ShapeButton.ActualHeight / 2), (int)shape.MaxBranches, ref rng);
+            for (int i = 0; i < 10; ++i) paint(ref model, toolIcon.Source as RenderTargetBitmap);
             ShapeButton.Content = toolIcon;
         }
     }

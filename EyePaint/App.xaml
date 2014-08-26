@@ -1,36 +1,24 @@
 ﻿<Application x:Class="EyePaint.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Startup="onStartup"
-             StartupUri="MainWindow.xaml">
+             Startup="onStartup">
     <Application.Resources>
-        <Style x:Key="FullScreen" TargetType="Window">
+        <Style x:Key="FullscreenWindow" TargetType="Window">
             <Setter Property="Background" Value="Black" />
             <Setter Property="Cursor" Value="None" />
             <Setter Property="ResizeMode" Value="NoResize" />
             <Setter Property="WindowStyle" Value="None" />
             <Setter Property="WindowState" Value="Maximized" />
         </Style>
-        <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="/EyePaint;component/#ITC Officina Sans Std" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Viewbox x:Key="Eye">
-            <Path Fill="White">
-                <Path.Data>
-                    <PathGeometry Figures="m 38.242602 51.6786 c -13.934968 -2.5235 -26.211761 -9.9289 -35.3971373 -21.3517 -3.79395293 -4.7181 -3.79395293 -5.8337 0 -10.5518 9.2684263 -11.526 21.6289583 -18.9143 35.7690003 -21.3801 5.312415 -0.92641 17.603487 -0.92641 22.915902 0 14.203106 2.4768 26.459238 9.8026 35.769 21.3801 4.266093 5.3053 3.850323 6.8882 -3.941486 15.0058 -8.46601 8.82 -19.747365 14.8196 -31.827514 16.9261 -5.081798 0.8863 -18.326089 0.87 -23.287765 -0.029 z m 24.801996 -7.0047 c 5.927571 -1.5452 14.030335 -5.4787 19.000766 -9.224 3.53308 -2.6623 10.481467 -9.5559 10.481467 -10.3989 0 -0.8451 -6.955067 -7.7423 -10.542087 -10.4544 -4.792462 -3.6235 -12.756028 -7.4994 -18.940146 -9.2183 -4.343365 -1.2072 -5.371295 -1.3102 -12.972182 -1.2995 -7.516502 0.011 -8.677041 0.1273 -12.972182 1.3047 -6.022461 1.6508 -14.157482 5.6191 -19.000766 9.2687 -3.53308 2.6622 -10.4814667 9.5558 -10.4814667 10.3988 0 0.8451 6.9550657 7.7423 10.5420867 10.4544 6.30582 4.7678 15.693397 8.8314 23.855136 10.3262 1.188412 0.2177 5.344827 0.3229 9.236481 0.2338 5.737809 -0.1313 7.967689 -0.3944 11.792893 -1.3915 z m -19.946744 -4.5712 c -3.378876 -1.3262 -6.807202 -4.8104 -8.079618 -8.2112 -1.368041 -3.6565 -1.368041 -10.0245 0 -13.6809 1.313304 -3.5101 4.703629 -6.9004 8.213736 -8.2138 3.656419 -1.368 10.024468 -1.368 13.680888 0 3.554335 1.3299 6.898257 4.6988 8.252327 8.314 1.45245 3.8779 1.236654 11.0943 -0.433219 14.4872 -1.454941 2.9561 -3.956431 5.4576 -6.912607 6.9126 -3.305001 1.6266 -11.050634 1.8329 -14.721507 0.3921 z m 10.173795 -5.8771 c 3.582629 -1.4943 6.673753 -5.6819 6.696438 -9.0718 0.03189 -4.7688 -5.139083 -9.9881 -9.895671 -9.9881 -4.700081 0 -9.90603 5.1951 -9.90603 9.8853 0 3.3425 2.852918 7.3789 6.368162 9.0099 2.315671 1.0744 4.431925 1.1261 6.737101 0.1647 z m -6.972959 -5.4008 c -0.733782 -0.7338 -0.943431 -1.5724 -0.943431 -3.7738 0 -2.2013 0.209649 -3.0399 0.943431 -3.7737 0.733782 -0.7338 1.572384 -0.9434 3.773726 -0.9434 3.855851 0 4.717157 0.8613 4.717157 4.7171 0 2.2014 -0.209649 3.04 -0.943431 3.7738 -0.733782 0.7337 -1.572384 0.9434 -3.773726 0.9434 -2.201342 0 -3.039944 -0.2097 -3.773726 -0.9434 z" FillRule="NonZero"/>
-                </Path.Data>
-            </Path>
-        </Viewbox>
         <Storyboard x:Key="GazeClickStoryboard" CurrentTimeInvalidated="onGazeClick" RepeatBehavior="Forever">
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" AccelerationRatio="1">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:2">
                 <DoubleAnimation.EasingFunction>
-                    <PowerEase EasingMode="EaseIn"/>
+                    <CubicEase EasingMode="EaseIn"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" AccelerationRatio="1">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:2">
                 <DoubleAnimation.EasingFunction>
-                    <PowerEase EasingMode="EaseIn"/>
+                    <CubicEase EasingMode="EaseIn"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>

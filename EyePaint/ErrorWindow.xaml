@@ -1,11 +1,21 @@
 ﻿<Window x:Class="EyePaint.ErrorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Style="{StaticResource FullScreen}"
-        Topmost="True">
+        Style="{StaticResource FullscreenWindow}"
+        Topmost="True"
+        KeyDown="onKeyDown">
     <Grid>
-        <Viewbox Margin="100">
-            <TextBlock Text="Den här stationen är trasig. Kontakta en museivärd." />
+        <Viewbox>
+            <Canvas Width="16" Height="16">
+                <Canvas.RenderTransform>
+                    <TranslateTransform X="-768.000000" Y="-336.000000"/>
+                </Canvas.RenderTransform>
+                <Path Fill="White">
+                    <Path.Data>
+                        <PathGeometry Figures="M776 337 L784 351 L768 351 Z M775 347 L775 349 L777 349 L777 347 Z M775 341 L775 346 L777 346 L777 341 Z M775 341"/>
+                    </Path.Data>
+                </Path>
+            </Canvas>
         </Viewbox>
     </Grid>
 </Window>

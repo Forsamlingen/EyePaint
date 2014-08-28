@@ -3,12 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="onStartup">
     <Application.Resources>
-        <Style x:Key="FullscreenWindow" TargetType="Window">
+        <Style x:Key="GazeWindow" TargetType="Window">
             <Setter Property="Background" Value="Black" />
             <Setter Property="Cursor" Value="None" />
             <Setter Property="ResizeMode" Value="NoResize" />
             <Setter Property="WindowStyle" Value="None" />
             <Setter Property="WindowState" Value="Maximized" />
+            <Setter Property="IsEnabled" Value="False"/>
+            <!--TODO <Setter Property="IsEnabled" Value="{Binding Path=Tracking, Source={StaticResource AppProperties}}" />-->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Window">
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Window.IsEnabled" Value="False">
+                                <Setter Property="Window.Effect">
+                                    <Setter.Value>
+                                        <BlurEffect Radius="5" KernelType="Box"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard Name="InactivityAnimation">
+                                        <Storyboard Completed="onInactivity"><!-- TODO -->
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:15">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="InactivityAnimation"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Storyboard x:Key="GazeClickStoryboard" CurrentTimeInvalidated="onGazeClick" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:2">
@@ -40,7 +74,7 @@
                         <StaticResource ResourceKey="GazeClickStoryboard"/>
                     </BeginStoryboard>
                 </EventTrigger>
-                <EventTrigger RoutedEvent="PreviewMouseDown">
+                <EventTrigger RoutedEvent="Button.Click">
                     <StopStoryboard BeginStoryboardName="GazeButtonAnimation" />
                 </EventTrigger>
                 <EventTrigger RoutedEvent="MouseLeave">
@@ -55,28 +89,12 @@
                     <Grid.RenderTransform>
                         <ScaleTransform x:Name="ScaleTransform" ScaleY="1" ScaleX="1" />
                     </Grid.RenderTransform>
-                    <Ellipse Name="Mask" Fill="{TemplateBinding Foreground}" Stroke="#7F000000"/>
-                    <Grid>
-                        <Grid.OpacityMask>
-                            <VisualBrush Visual="{Binding ElementName=Mask}" />
-                        </Grid.OpacityMask>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition Width="20*"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition Height="20*"/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Column="1" Grid.Row="1" Background="{TemplateBinding Background}">
-                            <ContentPresenter Content="{TemplateBinding Content}"/>
-                            <Viewbox Margin="25">
-                                <TextBlock TextAlignment="Center" Text="{TemplateBinding Tag}" Foreground="{TemplateBinding Foreground}"/>
-                            </Viewbox>
-                        </Grid>
-                    </Grid>
+                    <Grid.Effect>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="5"/>
+                    </Grid.Effect>
+                    <Border CornerRadius="9999" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding Foreground}" BorderThickness="10">
+                        <ContentPresenter Content="{TemplateBinding Content}"/>
+                    </Border>
                 </Grid>
             </Grid>
         </ControlTemplate>

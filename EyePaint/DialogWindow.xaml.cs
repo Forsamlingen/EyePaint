@@ -4,16 +4,20 @@ using System.Windows;
 namespace EyePaint
 {
     /// <summary>
-    /// Used to display a countdown to the user before returning a dialog result. The user can abort the countdown with a keypress.
+    /// Used to display a yes/no dialog to the user.
     /// </summary>
-    public partial class CountdownWindow : Window
+    public partial class DialogWindow : Window
     {
-        public CountdownWindow()
+        public DialogWindow()
         {
             InitializeComponent();
+            ShowDialog();
+        }
+
+        void onContentVisible(object s, EventArgs e)
+        {
             IsEnabled = ((App)Application.Current).Tracking;
             ((App)Application.Current).TrackingChanged += (_s, _e) => Dispatcher.Invoke(() => IsEnabled = _e.Tracking);
-            ShowDialog();
         }
 
         void onConfirm(object s, EventArgs e)

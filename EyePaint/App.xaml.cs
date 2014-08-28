@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,26 +15,45 @@ using Tobii.Gaze.Core;
 
 namespace EyePaint
 {
-    public class TrackingStatusChangedEventArgs : EventArgs
+    /// <summary>
+    /// Globally XAML bindable properties
+    /// </summary>
+    /* TODO
+    public class AppProperties : DependencyObject
     {
-        public bool Tracking;
+        public static DependencyProperty TrackingProperty = DependencyProperty.Register("Tracking", typeof(bool), typeof(AppProperties));
+        public bool Tracking
+        {
+            get { return (bool)GetValue(TrackingProperty); }
+            set { SetValue(TrackingProperty, value); }
+        }
+
+        public static DependencyProperty GazeProperty = DependencyProperty.Register("Gaze", typeof(Point), typeof(AppProperties));
+        public Point Gaze
+        {
+            get { return (Point)GetValue(GazeProperty); }
+            set { SetValue(GazeProperty, value); }
+        }
+    }*/
+
+    public class TrackingChangedEventArgs
+    {
+        public bool Tracking { get; set; }
     }
 
     /// <summary>
-    /// Interaction logic for App.xaml.
+    /// Eye tracking logic
     /// </summary>
     public partial class App : Application
     {
+        //TODO public AppProperties AppProperties { get; set; }
         IEyeTracker iet;
-        int width, height;
+        Size resolution;
         List<Point> gazes;
-#if DEBUG
-        public Dictionary<Point, Vector> offsets;
-#else
         Dictionary<Point, Vector> offsets;
-#endif
         TimeSpan? time;
-        public event EventHandler<TrackingStatusChangedEventArgs> TrackingStatusChanged;
+        public event EventHandler<TrackingChangedEventArgs> TrackingChanged;
+        public bool Tracking;
         int notTracking;
 
         [DllImport("User32.dll")]
@@ -45,6 +66,7 @@ namespace EyePaint
         {
             gazes = new List<Point>();
             offsets = new Dictionary<Point, Vector>();
+            //AppProperties = new AppProperties();
 
             try
             {
@@ -69,10 +91,8 @@ namespace EyePaint
             }
             finally
             {
-                MainWindow = new MainWindow();
-                MainWindow.Show();
-                width = (int)MainWindow.ActualWidth;
-                height = (int)MainWindow.ActualHeight;
+                (MainWindow = new MainWindow()).Show();
+                resolution = new Size(MainWindow.ActualWidth, MainWindow.ActualHeight);
             }
         }
 
@@ -107,16 +127,29 @@ namespace EyePaint
         {
             if (e.GazeData.TrackingStatus == TrackingStatus.NoEyesTracked)
             {
-                // Determine if the user is inactive.
-                if (++notTracking > 20 && TrackingStatusChanged != null) TrackingStatusChanged(this, new TrackingStatusChangedEventArgs { Tracking = false });
+                // Determine if the user is inactive or just blinking.
+                if (++notTracking > EyePaint.Properties.Settings.Default.Blink)
+                {
+                    //TODO Dispatcher.Invoke(() => { if (AppProperties.Tracking) AppProperties.Tracking = false; });
+                    if (Tracking)
+                    {
+                        Tracking = false;
+                        if (TrackingChanged != null) TrackingChanged(this, new TrackingChangedEventArgs { Tracking = Tracking });
+                    }
+                }
             }
             else
             {
                 // Determine if the user reactived the session.
                 if (notTracking > 0)
                 {
-                    if (TrackingStatusChanged != null) TrackingStatusChanged(this, new TrackingStatusChangedEventArgs { Tracking = true });
                     notTracking = 0;
+                    if (!Tracking)
+                    {
+                        //TODO Dispatcher.Invoke(() => { if (AppProperties.Tracking) AppProperties.Tracking = true; });
+                        Tracking = true;
+                        if (TrackingChanged != null) TrackingChanged(this, new TrackingChangedEventArgs { Tracking = Tracking });
+                    }
                 }
 
                 // Retrieve available gaze information from the eye tracker.
@@ -124,7 +157,7 @@ namespace EyePaint
                 var right = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyRight || e.GazeData.TrackingStatus == TrackingStatus.OnlyRightEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Right.GazePointOnDisplayNormalized : new Point2D(0, 0);
 
                 // Determine new gaze point position on the screen.
-                var newGazePoint = new Point(width * (left.X + right.X) / 2, height * (left.Y + right.Y) / 2);
+                var newGazePoint = new Point(resolution.Width * (left.X + right.X) / 2, resolution.Height * (left.Y + right.Y) / 2);
                 gazes.Add(newGazePoint);
 
                 // Calculate average gaze point (i.e. naive noise reduction).
@@ -132,20 +165,20 @@ namespace EyePaint
                 var gazePoint = new Point(gazes.Average(p => p.X), gazes.Average(p => p.Y));
 
                 // Calibrate average gaze point with known offsets.
-#if !DEBUG
-                //TODO Fix offset interpolation bug.
                 if (offsets.Count == 1) gazePoint += offsets.Values.First();
                 var distances = offsets.Select(kvp => (gazePoint - kvp.Key).Length);
                 var distancesRatios = distances.Select(d => d / distances.Sum());
-                foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1 - d) * o)) gazePoint += v;
-#endif
-                // Place the mouse cursor at the gaze point.
+                foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1.0 - d) * o)) gazePoint += v;
+                // Place the mouse cursor at the gaze point so mouse events can be used throughout the app.
                 SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
+
+                // Store the gaze point.
+                //TODO Dispatcher.Invoke(() => AppProperties.Gaze = gazePoint);
             }
         }
 
         /// <summary>
-        /// Gaze click event for the GazeButton control template.
+        /// Gaze click event handler for gaze enabled buttons.
         /// </summary>
         void onGazeClick(object s, EventArgs e)
         {
@@ -153,6 +186,9 @@ namespace EyePaint
 
             if (time.HasValue && c.CurrentTime.HasValue && c.CurrentTime.Value < time.Value)
             {
+                // Claim click.
+                time = null;
+
                 // Find button.
                 var activeWindow = Application.Current.Windows.OfType<Window>().Single(x => x.IsActive);
                 var focusedButton = FocusManager.GetFocusedElement(activeWindow) as Button;
@@ -164,7 +200,6 @@ namespace EyePaint
                     var actualPoint = Mouse.GetPosition(activeWindow);
                     offsets[actualPoint] = expectedPoint - actualPoint;
                 }
-
                 // Raise click event.
                 focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             }
@@ -173,25 +208,11 @@ namespace EyePaint
         }
 
         /// <summary>
-        /// Clear previous gaze data.
+        /// Gaze inactivity event handler for gaze enabled windows.
         /// </summary>
-        public void Clear()
+        void onInactivity(object s, EventArgs e)
         {
-            TrackingStatusChanged = null;
-            gazes.Clear();
-            offsets.Clear();
-            time = null;
-            notTracking = 0;
-        }
-
-        /// <summary>
-        /// Restart main window.
-        /// </summary>
-        public void Restart()
-        {
-            var mw = new MainWindow();
-            mw.ContentRendered += (s, e) => { MainWindow.Close(); MainWindow = mw; };
-            mw.Show();
+            Reset();
         }
 
         /// <summary>
@@ -199,8 +220,15 @@ namespace EyePaint
         /// </summary>
         public void Reset()
         {
-            Clear();
-            Restart();
+            gazes.Clear();
+            offsets.Clear();
+            time = null;
+            TrackingChanged = null;
+            Tracking = false;
+            notTracking = 0;
+            var mw = new MainWindow();
+            mw.ContentRendered += (s, e) => { MainWindow.Close(); MainWindow = mw; };
+            mw.Show();
         }
     }
 }

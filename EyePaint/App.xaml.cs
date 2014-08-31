@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,110 +17,112 @@ namespace EyePaint
     /// <summary>
     /// Globally XAML bindable properties
     /// </summary>
-    /* TODO
-    public class AppProperties : DependencyObject
+    public class GlobalProperties : DependencyObject
     {
-        public static DependencyProperty TrackingProperty = DependencyProperty.Register("Tracking", typeof(bool), typeof(AppProperties));
+        public static DependencyProperty TrackingProperty = DependencyProperty.Register("Tracking", typeof(bool), typeof(GlobalProperties));
         public bool Tracking
         {
             get { return (bool)GetValue(TrackingProperty); }
             set { SetValue(TrackingProperty, value); }
         }
-
-        public static DependencyProperty GazeProperty = DependencyProperty.Register("Gaze", typeof(Point), typeof(AppProperties));
-        public Point Gaze
-        {
-            get { return (Point)GetValue(GazeProperty); }
-            set { SetValue(GazeProperty, value); }
-        }
-    }*/
-
-    public class TrackingChangedEventArgs
-    {
-        public bool Tracking { get; set; }
     }
 
     /// <summary>
-    /// Eye tracking logic
+    /// Eye tracking logic and gaze enabled UI elements.
     /// </summary>
     public partial class App : Application
     {
-        //TODO public AppProperties AppProperties { get; set; }
         IEyeTracker iet;
         Size resolution;
         List<Point> gazes;
         Dictionary<Point, Vector> offsets;
         TimeSpan? time;
-        public event EventHandler<TrackingChangedEventArgs> TrackingChanged;
-        public bool Tracking;
+        PaintWindow paintWindow;
+        ResultWindow resultWindow;
+        public GlobalProperties Globals { get; set; }
+        bool tracking;
+        public bool Resettable;
         int notTracking;
 
         [DllImport("User32.dll")]
         static public extern bool SetCursorPos(int X, int Y);
 
         /// <summary>
-        /// Connects to the eye tracker on application startup.
+        /// Connect to the eye tracker on application startup.
         /// </summary>
         void onStartup(object s, StartupEventArgs e)
         {
-            gazes = new List<Point>();
-            offsets = new Dictionary<Point, Vector>();
-            //AppProperties = new AppProperties();
+            new SettingsWindow();
 
-            try
+            Globals = new GlobalProperties();
+            var connected = connect();
+            if (!connected)
             {
-                Uri url = new EyeTrackerCoreLibrary().GetConnectedEyeTracker();
-                iet = new EyeTracker(url);
-                iet.EyeTrackerError += onEyeTrackerError;
-                iet.GazeData += onGazeData;
-                Task.Factory.StartNew(() => iet.RunEventLoop());
-                iet.Connect();
-                iet.StartTracking();
-                Mouse.OverrideCursor = Cursors.None;
-            }
-            catch (EyeTrackerException)
-            {
-                MessageBox.Show("Kameran verkar ha gått sönder. Prova att starta om datorn.");
-                Application.Current.Shutdown();
-            }
-            catch (NullReferenceException)
-            {
-                MessageBox.Show("Kameran verkar saknas. Säkerställ att den är inkopplad och prova att starta om datorn.");
-                Application.Current.Shutdown();
-            }
-            finally
-            {
-                (MainWindow = new MainWindow()).Show();
-                resolution = new Size(MainWindow.ActualWidth, MainWindow.ActualHeight);
+                SendErrorReport("(EyePaint) Startup Error", "The eye tracker could not be found. Ensure that the cable is connected, restart the computer, and try launching the application again.");
+                new ErrorWindow().ShowDialog();
             }
         }
 
         /// <summary>
-        /// Handles error data from the eye tracker. The application will be halted, the user will see an error on the screen, and a notification email is sent to the museum's technical staff.
+        /// Connect to the eye tracker and start gaze tracking. Return true iff a successful connection has been established.
+        /// </summary>
+        bool connect()
+        {
+            int retry = 0;
+            while (++retry < EyePaint.Properties.Settings.Default.ConnectionAttempts) try
+                {
+                    // Connect to eye tracker.
+                    gazes = new List<Point>();
+                    offsets = new Dictionary<Point, Vector>();
+                    Uri url = new EyeTrackerCoreLibrary().GetConnectedEyeTracker();
+                    iet = new EyeTracker(url);
+                    iet.EyeTrackerError += onEyeTrackerError;
+                    iet.GazeData += onGazeData;
+                    Task.Factory.StartNew(() => iet.RunEventLoop());
+                    iet.Connect();
+                    iet.StartTracking();
+                    Mouse.OverrideCursor = Cursors.None;
+
+                    // Display image result on a secondary screen.
+                    resultWindow = new ResultWindow();
+                    if (System.Windows.Forms.SystemInformation.MonitorCount > 1)
+                    {
+                        var wa = System.Windows.Forms.Screen.AllScreens[1].WorkingArea;
+                        resultWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                        resultWindow.Left = wa.Left;
+                        resultWindow.Top = wa.Top;
+                        resultWindow.Topmost = true;
+                        resultWindow.Show();
+                    }
+
+                    // Open paint window.
+                    paintWindow = new PaintWindow();
+                    paintWindow.Loaded += (_, __) => resolution = new Size(paintWindow.ActualWidth, paintWindow.ActualHeight);
+                    paintWindow.ContentRendered += (_, __) => resultWindow.SetImageSource(paintWindow.Raster.Source);
+                    paintWindow.Show();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(1000);
+                }
+            return false;
+        }
+
+        /// <summary>
+        /// Handles error data from the eye tracker. The application will be halted and the user will see an error on the screen while the application attempts to reestablish a connection to the eye tracker. If a connection cannot be reestablished a notification email is sent to the admin email.
         /// </summary>
         void onEyeTrackerError(object s, EyeTrackerErrorEventArgs e)
         {
-            new ErrorWindow();
-            try
-            {
-                var message = new MailMessage(
-                    EyePaint.Properties.Settings.Default.AdminEmail,
-                    EyePaint.Properties.Settings.Default.AdminEmail,
-                    "Tekniskt problem med stationen Måla med ögonen",
-                    "Kameran verkar ha gått sönder. Prova att starta om datorn."
-                );
-                var client = new SmtpClient(EyePaint.Properties.Settings.Default.SmtpServer);
-                client.Credentials = CredentialCache.DefaultNetworkCredentials;
-                client.Send(message);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Felmeddelande kunde ej skickas via epost. Kameran verkar ha gått sönder. Prova att starta om datorn.");
-            }
+            var ew = new ErrorWindow();
+            ew.Show();
+            var reconnected = connect();
+            if (reconnected) ew.Close();
+            else SendErrorReport("(EyePaint) Error " + e.ErrorCode, "The eye tracker encountered an error. Error: " + e.Message + ". Try rebooting the system.");
         }
 
         /// <summary>
-        /// Handles data from the eye tracker.
+        /// Handles data from the eye tracker. Places the mouse cursor at the average gaze point so that WPF mouse events can be used throughout the application.
         /// </summary>
         void onGazeData(object s, GazeDataEventArgs e)
         {
@@ -130,11 +131,10 @@ namespace EyePaint
                 // Determine if the user is inactive or just blinking.
                 if (++notTracking > EyePaint.Properties.Settings.Default.Blink)
                 {
-                    //TODO Dispatcher.Invoke(() => { if (AppProperties.Tracking) AppProperties.Tracking = false; });
-                    if (Tracking)
+                    if (tracking)
                     {
-                        Tracking = false;
-                        if (TrackingChanged != null) TrackingChanged(this, new TrackingChangedEventArgs { Tracking = Tracking });
+                        tracking = false;
+                        Dispatcher.Invoke(() => Globals.Tracking = tracking);
                     }
                 }
             }
@@ -144,11 +144,10 @@ namespace EyePaint
                 if (notTracking > 0)
                 {
                     notTracking = 0;
-                    if (!Tracking)
+                    if (!tracking)
                     {
-                        //TODO Dispatcher.Invoke(() => { if (AppProperties.Tracking) AppProperties.Tracking = true; });
-                        Tracking = true;
-                        if (TrackingChanged != null) TrackingChanged(this, new TrackingChangedEventArgs { Tracking = Tracking });
+                        tracking = true;
+                        Dispatcher.Invoke(() => Globals.Tracking = tracking);
                     }
                 }
 
@@ -169,18 +168,16 @@ namespace EyePaint
                 var distances = offsets.Select(kvp => (gazePoint - kvp.Key).Length);
                 var distancesRatios = distances.Select(d => d / distances.Sum());
                 foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1.0 - d) * o)) gazePoint += v;
-                // Place the mouse cursor at the gaze point so mouse events can be used throughout the app.
-                SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
 
-                // Store the gaze point.
-                //TODO Dispatcher.Invoke(() => AppProperties.Gaze = gazePoint);
+                // Place the mouse cursor at the gaze point so mouse events can be used throughout the application.
+                SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
             }
         }
 
         /// <summary>
-        /// Gaze click event handler for gaze enabled buttons.
+        /// When a gaze button is stared at for long enough a click event is raised on each animation completion.
         /// </summary>
-        void onGazeClick(object s, EventArgs e)
+        void onGazeButtonFocused(object s, EventArgs e)
         {
             var c = s as Clock;
 
@@ -190,7 +187,7 @@ namespace EyePaint
                 time = null;
 
                 // Find button.
-                var activeWindow = Application.Current.Windows.OfType<Window>().Single(x => x.IsActive);
+                var activeWindow = Application.Current.Windows.OfType<Window>().Single(w => w.IsActive);
                 var focusedButton = FocusManager.GetFocusedElement(activeWindow) as Button;
 
                 // Store calibration offset.
@@ -208,27 +205,49 @@ namespace EyePaint
         }
 
         /// <summary>
-        /// Gaze inactivity event handler for gaze enabled windows.
+        /// When a gaze button is touched a button click event is raised.
         /// </summary>
-        void onInactivity(object s, EventArgs e)
+        void onGazeButtonTouched(object s, EventArgs e)
         {
-            Reset();
+            (s as Button).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); //TODO Verify this works with an actual touch screen.
         }
 
         /// <summary>
-        /// Clear previous gaze data and restart the main window.
+        /// Attempt to send an error report via email to an application defined admin email. If email could not be sent the error message will be displayed in a message box instead.
+        /// </summary>
+        public void SendErrorReport(string subject, string body)
+        {
+            try
+            {
+                var m = new MailMessage(EyePaint.Properties.Settings.Default.AdminEmail, EyePaint.Properties.Settings.Default.AdminEmail, subject, body);
+                var c = new SmtpClient(EyePaint.Properties.Settings.Default.SmtpServer);
+                c.Credentials = CredentialCache.DefaultNetworkCredentials;
+                c.Send(m);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Email could not be sent. Make sure the application is configured correctly. Email: " + subject + " - " + body);
+            }
+        }
+
+        /// <summary>
+        /// Clear previous gaze data if neccessary.
         /// </summary>
         public void Reset()
         {
-            gazes.Clear();
-            offsets.Clear();
-            time = null;
-            TrackingChanged = null;
-            Tracking = false;
-            notTracking = 0;
-            var mw = new MainWindow();
-            mw.ContentRendered += (s, e) => { MainWindow.Close(); MainWindow = mw; };
-            mw.Show();
+            if (Resettable)
+            {
+                offsets.Clear();
+                time = null;
+                var oldPaintWindow = paintWindow;
+                paintWindow = new PaintWindow();
+                paintWindow.ContentRendered += (s, e) =>
+                {
+                    oldPaintWindow.Close();
+                    resultWindow.SetImageSource(paintWindow.Raster.Source);
+                };
+                paintWindow.Show();
+            }
         }
     }
 }

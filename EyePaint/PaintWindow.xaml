@@ -1,0 +1,118 @@
+﻿<Window x:Class="EyePaint.PaintWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource GazeWindow}"
+        Name="Window"
+        Loaded="onLoaded"
+        Unloaded="onUnloaded"
+        ContentRendered="onContentRendered"
+        Background="Black">
+    <Window.Resources>
+        <Storyboard x:Key="SaveDrawingStoryboard" Completed="onSaveDrawing">
+            <DoubleAnimation Storyboard.TargetName="RasterScaleTransform" Storyboard.TargetProperty="ScaleX" To="0.9">
+                <DoubleAnimation.EasingFunction>
+                    <QuinticEase/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="RasterScaleTransform" Storyboard.TargetProperty="ScaleY" To="0.9">
+                <DoubleAnimation.EasingFunction>
+                    <QuinticEase/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="PaintControls" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:1" Duration="0:0:0.5">
+                <DoubleAnimation.EasingFunction>
+                    <QuinticEase/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Key="InactivityStoryboard" Completed="onInactivity">
+            <DoubleAnimation Storyboard.TargetName="Window" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:1">
+                <DoubleAnimation.EasingFunction>
+                    <QuinticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+    <Grid>
+        <ProgressBar Name="ProgessBar" Height="10" MaxWidth="300" BorderBrush="Black" Background="Black" Foreground="White"/>
+        <Grid Name="PaintControls" Background="Black">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding Path=ActualHeight, ElementName=ColumnWidth}"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="{Binding Path=ActualHeight, ElementName=ColumnWidth}"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Name="ColumnWidth"/>
+            <Canvas Grid.ColumnSpan="3" Grid.RowSpan="3" MouseMove="onCanvasMouseMove" MouseDown="onCanvasMouseDown" MouseEnter="onCanvasMouseEnter" MouseLeave="onCanvasMouseLeave" MouseUp="onCanvasMouseUp" RenderTransformOrigin="0.5,0.5">
+                <Image Name="Raster" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <ScaleTransform x:Name="RasterScaleTransform"/>
+                    </Image.RenderTransform>
+                </Image>
+                <Ellipse Name="PaintMarker" Height="300" Width="300" Stroke="White" StrokeThickness="10" RenderTransformOrigin="0.5,0.5" Opacity="0.1">
+                    <Ellipse.Effect>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="5"/>
+                    </Ellipse.Effect>
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform x:Name="PaintMarkerScaleTransform"/>
+                    </Ellipse.RenderTransform>
+                    <Ellipse.Resources>
+                        <Storyboard x:Key="GazePaintStoryboard" Completed="onGazePaint">
+                            <DoubleAnimation Storyboard.TargetName="PaintMarker" Storyboard.TargetProperty="Opacity" From="0.1" To="1"/>
+                            <DoubleAnimation Storyboard.TargetName="PaintMarkerScaleTransform" Storyboard.TargetProperty="ScaleX" From="1" To="0.8">
+                                <DoubleAnimation.EasingFunction>
+                                    <QuadraticEase EasingMode="EaseIn"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="PaintMarkerScaleTransform" Storyboard.TargetProperty="ScaleY" From="1" To="0.8">
+                                <DoubleAnimation.EasingFunction>
+                                    <QuadraticEase EasingMode="EaseIn"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </Ellipse.Resources>
+                </Ellipse>
+            </Canvas>
+            <Button Name="PublishButton" Grid.Row="0" Grid.Column="0" Template="{StaticResource GazeButton}" Click="onPublishButtonClick" Background="Black" Foreground="White" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
+                <Button.Content>
+                    <Viewbox>
+                        <Canvas Height="512" Width="512" Margin="40">
+                            <Polygon Fill="White" Points="193.3,260.4 181.7,248.8 256.2,174.5 330.7,248.8 319,260.4 264.4,205.8 264.4,447.6 247.9,447.6 247.9,205.8"/>
+                            <Path Fill="White">
+                                <Path.Data>
+                                    <PathGeometry Figures="M399.3 183.6c0-1.2 0.2-2.4 0.2-3.6c0-64.3-52.8-116.4-116.8-116.4c-46.1 0-85.8 27.1-104.4 66.3 c-8.1-4.1-17.1-6.4-26.8-6.4c-29.6 0-54.1 23.6-58.9 52C57.4 187.6 32 222.2 32 261.8c0 49.7 40.1 90.2 89.6 90.2H213v-16h-90.6    c-40.9 0-74.2-33.5-74.2-74.6c0-31.8 20.2-61.2 50.2-71.6l8.4-2.9l1.5-8.8c3.6-21.6 22.1-39.3 43.9-39.3c6.9 0 13.7 1.6 19.9 4.8    l13.5 6.8l6.5-13.7c16.6-34.9 52.1-57.4 90.4-57.4c55.3 0 100.9 43.3 100.9 98.9c0 13.3-0.2 20.3-0.2 20.3l15.2 0.1    C435 199.1 464 232 464 268.9c0 36.8-29.8 66.9-66.5 67.1l-3.2 0H297v16h101h0c45 0 82-37.3 82-82.8 C480 223.7 444.5 183.7 399.3 183.6z"/>
+                                </Path.Data>
+                            </Path>
+                        </Canvas>
+                    </Viewbox>
+                </Button.Content>
+            </Button>
+            <Button Name="ResetButton" Grid.Row="0" Grid.Column="2" Template="{StaticResource GazeButton}" Click="onResetButtonClick" Background="Black" Foreground="White" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
+                <Button.Content>
+                    <Viewbox>
+                        <Canvas Width="19" Height="23" Margin="10">
+                            <Path Fill="White">
+                                <Path.Data>
+                                    <PathGeometry Figures="M0.501203573 1.96015511 C0.501203573 1.96015511 7.17230047e-07 1.96015511 0 2.96015511 C-4.1525821e-07 3.96015511 0.501203573 3.96015511 0.501203573 3.96015511 L18.4987964 3.96015511 C18.4987964 3.96015511 19 3.96015511 19 2.96015511 C18.9999995 1.96015511 18.4987964 1.96015511 18.4987964 1.96015511 L0.501203573 1.96015511 L0.501203573 1.96015511 Z M0.973754885 4.96015511 L1.97273588 4.96015511 L3.97375489 21.9601551 L14.9737549 21.9601551 L16.9737549 4.96015511 L17.9737549 4.96015511 L15.9737549 22.9601551 L2.97375489 22.9601551 L0.973754885 4.96015511 Z M7.9737549 0.960155108 C6.9737549 0.960155108 6.9737549 1.96015511 6.9737549 1.96015511 L11.9737549 1.96015511 C11.9737549 1.96015511 11.9737549 0.960155108 10.9737549 0.960155108 L7.9737549 0.960155108 L7.9737549 0.960155108 Z M5.9737549 20.9601551 L6.9737549 20.9601551 L5.9737549 4.92304573 L4.97375489 4.92304573 L5.9737549 20.9601551 Z M12.9737549 4.92304573 L11.9737549 20.9601551 L12.9737549 20.9601551 L13.9737549 4.92304573 L12.9737549 4.92304573 L12.9737549 4.92304573 Z M8.9737549 4.92304573 L8.9737549 20.9601551 L9.9737549 20.9601551 L9.9737549 4.92304573 L8.9737549 4.92304573 L8.9737549 4.92304573 Z"/>
+                                </Path.Data>
+                            </Path>
+                        </Canvas>
+                    </Viewbox>
+                </Button.Content>
+            </Button>
+            <Button Name="ShapeButton" Grid.Row="2" Grid.Column="0" Template="{StaticResource GazeButton}" Click="onShapeButtonClick" Background="Black" Foreground="White" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}"/>
+            <Button Name="ColorButton" Grid.Row="2" Grid.Column="2" Template="{StaticResource GazeButton}" Click="onColorButtonClick" Foreground="White" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
+                <Button.Background>
+                    <LinearGradientBrush>
+                        <GradientStop x:Name="ColorButtonBackgroundBaseColor" Color="Transparent"/>
+                        <GradientStop x:Name="ColorButtonBackgroundColorVariety" Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

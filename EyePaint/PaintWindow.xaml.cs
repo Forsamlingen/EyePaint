@@ -1,6 +1,7 @@
 ﻿using FlickrNet;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,13 +9,14 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace EyePaint
 {
     /// <summary>
-    /// Model representing a paint stroke in the application.
+    /// Model representing a paint blob in the application.
     /// </summary>
     struct Tree
     {
@@ -37,14 +39,13 @@ namespace EyePaint
     /// </summary>
     struct Shape
     {
-        //TODO Add getters/setters with validation instead of using the public access modifier.
         public double MaxBranches, BranchStepLength, BranchStraightness, GenerationRotation, ColorVariety, VerticesSize, VerticesSquashVariety, CenterSize, CenterOpacity, EdgesOpacity, VerticesOpacity, HullOpacity;
     }
 
     /// <summary>
-    /// Lets the user draw different shapes and colors.
+    /// Lets the user select different shapes and colors and paint them onto a canvas.
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PaintWindow : Window
     {
         Random rng = new Random();
         DispatcherTimer paintTimer;
@@ -53,99 +54,93 @@ namespace EyePaint
         List<Point> gazes = new List<Point>();
         Shape shape;
         Color color;
-        DateTime time;
         HashSet<Shape> shapes = new HashSet<Shape>();
         HashSet<Color> colors = new HashSet<Color>();
+        DateTime usage;
         Dictionary<Shape, TimeSpan> shapeUsage = new Dictionary<Shape, TimeSpan>();
         Dictionary<Color, TimeSpan> colorUsage = new Dictionary<Color, TimeSpan>();
 
-        public MainWindow()
+        public PaintWindow()
         {
             InitializeComponent();
-
-            // Render clock. Note: single-threaded. Approximately 20 FPS.
-            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(50), DispatcherPriority.Render, (_, __) => paint(ref this.model, Raster.Source as RenderTargetBitmap), Dispatcher)).Stop();
         }
 
         void onLoaded(object s, RoutedEventArgs e)
         {
-            // Choose initial shape and color by simulating a button click.
-            ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-            ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            // Render clock. Note: single-threaded. Approximately 20 FPS.
+            (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(50), DispatcherPriority.Render, (_, __) => paint(ref this.model, Raster.Source as RenderTargetBitmap), Dispatcher)).Stop();
+
+            // Initialize drawing.
+            Raster.Source = createDrawing((int)ActualWidth, (int)ActualHeight);
         }
 
         void onContentRendered(object s, EventArgs e)
         {
-            // Initialize drawing.
-            Raster.Source = createDrawing((int)ActualWidth, (int)ActualHeight);
+            // Choose initial shape and color by simulating a button click.
+            ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 
             // Perform initial offset calibration.
-            new CalibrationWindow();
+            while (!new CalibrationWindow(this).DialogResult.Value) ;
 
-            IsEnabled = ((App)Application.Current).Tracking;
-            ((App)Application.Current).TrackingChanged += (_s, _e) => Dispatcher.Invoke(() => { IsEnabled = _e.Tracking; Focus(); });
+            // Reset window on user inactivity. Note: IsEnabled is used with the eye tracker to determine user status.
+            IsEnabledChanged += (_s, _e) =>
+            {
+                var sb = (FindResource("InactivityStoryboard") as Storyboard);
+                if (!(bool)_e.NewValue) sb.Begin();
+                else sb.Stop();
+            };
+
+            (App.Current as App).Resettable = true;
         }
 
-        void onKeyDown(object s, KeyEventArgs e)
+        void onUnloaded(object s, RoutedEventArgs e)
         {
-            if (e.IsRepeat) return;
-            switch (e.Key)
-            {
-                case Key.Escape: // Show admin settings
-                    (new SettingsWindow()).ShowDialog();
-                    break;
-                case Key.C: // Change color
-                    ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-                    break;
-                case Key.S: // Change shape
-                    ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-                    break;
-                case Key.P: // Publish drawing
-                    if (new CountdownWindow().DialogResult.Value) { IsEnabled = false; ((Storyboard)FindResource("SaveDrawingAnimation")).Begin(); }
-                    break;
-                case Key.R: // Reset session
-                    if (new CountdownWindow().DialogResult.Value) { IsEnabled = false; ((App)Application.Current).Reset(); }
-                    break;
-            }
+            foreach (var w in OwnedWindows) (w as Window).Close();
+        }
+
+        void onInactivity(object s, EventArgs e)
+        {
+            if (IsVisible) (App.Current as App).Reset();
         }
 
         void onCanvasMouseDown(object s, MouseButtonEventArgs e)
         {
             gaze = calculateGaze(e.GetPosition(s as Canvas));
             startPainting();
-            GazeMarker.Visibility = Visibility.Hidden;
-            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Stop();
+            PaintMarker.Visibility = Visibility.Hidden;
+            (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
         }
 
         void onCanvasMouseUp(object s, MouseButtonEventArgs e)
         {
             stopPainting();
-            GazeMarker.Visibility = Visibility.Visible;
-            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Begin();
+            PaintMarker.Visibility = Visibility.Visible;
+            (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Begin();
         }
 
         void onCanvasMouseEnter(object s, MouseEventArgs e)
         {
-            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Begin();
+            (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Begin();
         }
 
         void onCanvasMouseLeave(object s, MouseEventArgs e)
         {
             stopPainting();
-            ((Storyboard)GazeMarker.FindResource("GazePaintAnimation")).Stop();
+            (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
         }
 
         void onCanvasMouseMove(object s, MouseEventArgs e)
         {
             var p = calculateGaze(e.GetPosition(s as Canvas));
 
-            Canvas.SetLeft(GazeMarker, p.X - GazeMarker.ActualWidth / 2);
-            Canvas.SetTop(GazeMarker, p.Y - GazeMarker.ActualHeight / 2);
+            Canvas.SetLeft(PaintMarker, p.X - PaintMarker.ActualWidth / 2);
+            Canvas.SetTop(PaintMarker, p.Y - PaintMarker.ActualHeight / 2);
 
-            if (paintTimer.IsEnabled && (model.Root - p).Length > Properties.Settings.Default.Spacing) model = new Tree(p, (int)shape.MaxBranches, ref rng);
-            if ((gaze - p).Length > Properties.Settings.Default.Spacing / 2)
+            if (paintTimer.IsEnabled && (model.Root - p).Length > Properties.Settings.Default.Spacing / 2) model = new Tree(p, (int)shape.MaxBranches, ref rng);
+            if ((gaze - p).Length > Properties.Settings.Default.Spacing)
             {
-                var sb = (Storyboard)GazeMarker.FindResource("GazePaintAnimation");
+                var sb = PaintMarker.FindResource("GazePaintStoryboard") as Storyboard;
                 switch (sb.GetCurrentState())
                 {
                     case ClockState.Active: sb.Seek(TimeSpan.Zero); break;
@@ -155,14 +150,19 @@ namespace EyePaint
             gaze = p;
         }
 
+        void onGazePaint(object s, EventArgs e)
+        {
+            startPainting();
+        }
+
         void onPublishButtonClick(object s, EventArgs e)
         {
-            if (new DialogWindow().DialogResult.Value) { IsEnabled = false; ((Storyboard)FindResource("SaveDrawingAnimation")).Begin(); }
+            if (new DialogWindow(this).DialogResult.Value) { (App.Current as App).Resettable = false; PaintControls.IsEnabled = false; (FindResource("SaveDrawingStoryboard") as Storyboard).Begin(); }
         }
 
         void onResetButtonClick(object s, EventArgs e)
         {
-            if (new DialogWindow().DialogResult.Value) { IsEnabled = false; ((App)Application.Current).Reset(); }
+            if (new DialogWindow(this).DialogResult.Value) (App.Current as App).Reset();
         }
 
         void onShapeButtonClick(object s, EventArgs e)
@@ -240,25 +240,52 @@ namespace EyePaint
             updateIcons();
         }
 
-        void onGazePaint(object s, EventArgs e)
-        {
-            startPainting();
-        }
-
         void onSaveDrawing(object s, EventArgs e)
         {
+            // Save image to file system.
             var pbe = new PngBitmapEncoder();
             pbe.Frames.Add(BitmapFrame.Create(Raster.Source as RenderTargetBitmap));
-            using (var fs = System.IO.File.OpenWrite("image.png")) pbe.Save(fs);
-            //TODO Backend upload.
-            //var f = new Flickr(Properties.Settings.Default.FlickrKey, Properties.Settings.Default.FlickrSecret);
-            //var requestToken = f.OAuthGetRequestToken("oob");
-            //System.Diagnostics.Process.Start(f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write));
-            //var accessToken = f.OAuthGetAccessToken(requestToken, VerifierTextBox.Text);
-            //f.OAuthAccessToken = "";
-            //f.OAuthAccessTokenSecret = "";
-            //f.UploadPicture("image.png");
-            ((App)Application.Current).Reset();
+            using (var fs = System.IO.File.OpenWrite("drawing.png")) pbe.Save(fs);
+
+            // Upload image to Flickr.
+            try
+            {
+                var bw = new BackgroundWorker();
+                bw.WorkerReportsProgress = true;
+                bw.ProgressChanged += (_s, _e) => ProgessBar.Value = _e.ProgressPercentage;
+                bw.DoWork += (_s, _e) =>
+                {
+                    // Login
+                    bw.ReportProgress(0);
+                    var f = new Flickr(Properties.Settings.Default.FlickrKey, Properties.Settings.Default.FlickrSecret);
+                    f.OAuthAccessToken = Properties.Settings.Default.FlickrAccessToken.Token;
+                    f.OAuthAccessTokenSecret = Properties.Settings.Default.FlickrAccessToken.TokenSecret;
+                    f.OnUploadProgress += (__s, __e) => bw.ReportProgress(__e.ProcessPercentage);
+                    bw.ReportProgress(100);
+
+                    // Upload photo.
+                    var photoId = f.UploadPicture("drawing.png", Properties.Settings.Default.FlickrTitle, Properties.Settings.Default.FlickrDescription, Properties.Settings.Default.FlickrTags, true, true, true);
+
+                    // Add photo to set. If set doesn't exist, create it first.
+                    bw.ReportProgress(0);
+                    var photosets = f.PhotosetsGetList().Where(set => set.Title == Properties.Settings.Default.FlickrPhotoset).ToList();
+                    if (photosets.Count == 0) f.PhotosetsCreate(Properties.Settings.Default.FlickrPhotoset, photoId);
+                    else f.PhotosetsAddPhoto(photosets[0].PhotosetId, photoId);
+                    bw.ReportProgress(100);
+                };
+                bw.RunWorkerCompleted += (_s, _e) =>
+                {
+                    // Restart session.
+                    (App.Current as App).Resettable = true;
+                    (App.Current as App).Reset();
+                };
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                (App.Current as App).SendErrorReport("(EyePaint) Image Upload Error", "The application encountered an error when uploading an image. Error: " + ex.Message + ". The image is only available on the file system until the application is used again.");
+                new ErrorWindow().ShowDialog();
+            }
         }
 
         Point calculateGaze(Point p)
@@ -273,7 +300,7 @@ namespace EyePaint
             if (!paintTimer.IsEnabled)
             {
                 model = new Tree(gaze, (int)shape.MaxBranches, ref rng);
-                time = DateTime.Now;
+                usage = DateTime.Now;
                 paintTimer.Start();
             }
         }
@@ -283,7 +310,7 @@ namespace EyePaint
             if (paintTimer.IsEnabled)
             {
                 paintTimer.Stop();
-                var t = DateTime.Now - time;
+                var t = DateTime.Now - usage;
                 shapeUsage[shape] += t;
                 colorUsage[color] += t;
             }
@@ -356,6 +383,13 @@ namespace EyePaint
                 }
                 dc.DrawGeometry(hullBrush, hullPen, hull);
             }
+            //dv.Opacity = rng.NextDouble();
+            var dse = new DropShadowEffect();
+            dse.BlurRadius = 20;
+            dse.ShadowDepth = 0;
+            dse.Opacity = 0.9;// rng.NextDouble();
+            dse.Color = createColor(color, shape.ColorVariety);
+            dv.Effect = dse;
 
             // Persist update.
             model.Leaves = newLeaves;

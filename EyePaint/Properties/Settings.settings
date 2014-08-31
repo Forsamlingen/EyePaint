@@ -18,13 +18,34 @@
       <Value Profile="(Default)">10</Value>
     </Setting>
     <Setting Name="Stability" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">30</Value>
+      <Value Profile="(Default)">10</Value>
     </Setting>
     <Setting Name="Blink" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">30</Value>
     </Setting>
     <Setting Name="Inertia" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="ConnectionAttempts" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="FlickrAccessToken" Type="FlickrNet.OAuthAccessToken" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FlickrVerificationCode" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FlickrPhotoset" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Måla med ögonen</Value>
+    </Setting>
+    <Setting Name="FlickrTitle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Målning med ögonen</Value>
+    </Setting>
+    <Setting Name="FlickrDescription" Type="System.String" Scope="User">
+      <Value Profile="(Default)">En målning gjord med ögonen.</Value>
+    </Setting>
+    <Setting Name="FlickrTags" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

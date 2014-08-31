@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 
 namespace EyePaint
@@ -8,16 +9,11 @@ namespace EyePaint
     /// </summary>
     public partial class DialogWindow : Window
     {
-        public DialogWindow()
+        public DialogWindow(Window owner)
         {
             InitializeComponent();
+            Owner = owner;
             ShowDialog();
-        }
-
-        void onContentVisible(object s, EventArgs e)
-        {
-            IsEnabled = ((App)Application.Current).Tracking;
-            ((App)Application.Current).TrackingChanged += (_s, _e) => Dispatcher.Invoke(() => IsEnabled = _e.Tracking);
         }
 
         void onConfirm(object s, EventArgs e)

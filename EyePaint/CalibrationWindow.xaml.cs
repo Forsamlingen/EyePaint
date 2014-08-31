@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Media.Animation;
 
 namespace EyePaint
 {
@@ -9,22 +8,16 @@ namespace EyePaint
     /// </summary>
     public partial class CalibrationWindow : Window
     {
-        public CalibrationWindow()
+        public CalibrationWindow(Window owner)
         {
             InitializeComponent();
+            Owner = owner;
             ShowDialog();
         }
 
         void onClick(object s, RoutedEventArgs e)
         {
-            Close();
-        }
-
-        void onContentVisible(object s, EventArgs e)
-        {
-            //TODO
-            IsEnabled = ((App)Application.Current).Tracking;
-            ((App)Application.Current).TrackingChanged += (_s, _e) => Dispatcher.Invoke(() => IsEnabled = _e.Tracking);
+            DialogResult = true;
         }
     }
 }

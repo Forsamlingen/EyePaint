@@ -11,15 +11,6 @@ namespace EyePaint
         public ErrorWindow()
         {
             InitializeComponent();
-            ShowDialog();
-        }
-
-        void onKeyDown(object s, KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case Key.Escape: Close(); break;
-            }
         }
     }
 }

@@ -2,6 +2,8 @@
 ## Om programmet
 EyePaint (sv: Måla med ögonen) är ett Windows program skrivet i .NET som tillåter användaren att måla på skärmen med ögonen, genom att använda en Tobii EyeX (eller REX) eye tracker kamera.
 
+Ladda ned senaste versionen här: https://github.com/Forsamlingen/EyePaint/releases
+
 ## Installationsinstruktioner
 1. Programmet kräver en Tobii EyeX eller REX eye tracker och dess tillhörande drivrutiner (http://developer.tobii.com/downloads/).
   1. Installera EyeX ramverket och följ instruktionerna.

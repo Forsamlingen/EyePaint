@@ -18,7 +18,7 @@ Den senaste versionen finns [här](https://github.com/Forsamlingen/EyePaint/rele
 **Ovanstående krav bör tas hänsyn till för en optimal användarupplevelse. Förslagsvis används en allt-i-ett PC med pekskärm: [exempel](https://www.dustin.se/product/5010751515/eliteone-800-g1).**
 
 ## Installationsinstruktioner
-1. Installera [Tobii EyeX](http://developer.tobii.com/eyex-setup)/ och följ instruktionerna.
+1. Installera [Tobii EyeX](http://developer.tobii.com/eyex-setup) och följ instruktionerna.
 1. Genomför en grundkalibrering med en typisk användare (ej glasögon eller linser). Kalibreringen bör göras om utifall eye trackern flyttas på.
 1. Stäng av den grafiska ögonindikatorn i Tobii EyeX kontrollpanelen.
 1. Installera [den senste versionen av programmet](https://github.com/Forsamlingen/EyePaint/releases/latest).

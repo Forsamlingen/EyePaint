@@ -97,9 +97,6 @@
           <Grid.RenderTransform>
             <ScaleTransform x:Name="ScaleTransform" ScaleY="1" ScaleX="1"/>
           </Grid.RenderTransform>
-          <Grid.Effect>
-            <DropShadowEffect ShadowDepth="1" BlurRadius="0"/>
-          </Grid.Effect>
           <Ellipse Name="Mask" Fill="{TemplateBinding Foreground}"/>
           <Border Background="{TemplateBinding Background}" ClipToBounds="True">
             <Border.OpacityMask>

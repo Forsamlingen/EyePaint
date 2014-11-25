@@ -41,7 +41,7 @@
         <EventTrigger RoutedEvent="Loaded">
           <BeginStoryboard>
             <Storyboard>
-              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:5" />
+              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:3" />
             </Storyboard>
           </BeginStoryboard>
         </EventTrigger>
@@ -64,9 +64,6 @@
           </Image.RenderTransform>
         </Image>
         <Ellipse Visibility="Hidden" Name="PaintMarker" Height="300" Width="300" Stroke="White" StrokeThickness="10" RenderTransformOrigin="0.5,0.5" Opacity="0.1">
-          <Ellipse.Effect>
-            <DropShadowEffect ShadowDepth="0" BlurRadius="5"/>
-          </Ellipse.Effect>
           <Ellipse.RenderTransform>
             <ScaleTransform x:Name="PaintMarkerScaleTransform"/>
           </Ellipse.RenderTransform>

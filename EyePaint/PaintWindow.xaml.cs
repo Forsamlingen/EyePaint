@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -333,7 +334,11 @@ namespace EyePaint
 
     RenderTargetBitmap createDrawing(int width, int height)
     {
-      return new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+      var d = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+      DrawingVisual dv = new DrawingVisual();
+      using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, width, height));
+      d.Render(dv);
+      return d;
     }
 
     void paint(ref Tree model, RenderTargetBitmap drawing)

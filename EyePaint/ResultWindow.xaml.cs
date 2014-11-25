@@ -3,18 +3,19 @@ using System.Windows.Media;
 
 namespace EyePaint
 {
-    /// <summary>
-    /// Used to display the resulting drawing in its own window.
-    /// </summary>
-    public partial class ResultWindow : Window
+  /// <summary>
+  /// Used to display the resulting drawing in its own window.
+  /// </summary>
+  public partial class ResultWindow : Window
+  {
+    public ResultWindow()
     {
-        public ResultWindow()
-        {
-            InitializeComponent();
-        }
-
-        public void SetImageSource(ImageSource imageSource) {
-            Result.Source = imageSource;
-        }
+      InitializeComponent();
     }
+
+    public void SetImageSource(ImageSource imageSource)
+    {
+      Result.Source = imageSource;
+    }
+  }
 }

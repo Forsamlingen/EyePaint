@@ -8,9 +8,9 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("EyePaint")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Paint with your eyes by using a Tobii EyeX controller.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Tekniska museet")]
 [assembly: AssemblyProduct("EyePaint")]
 [assembly: AssemblyCopyright("Copyright © 2014")]
 [assembly: AssemblyTrademark("")]

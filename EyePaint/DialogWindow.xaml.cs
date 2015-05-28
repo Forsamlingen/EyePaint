@@ -13,6 +13,19 @@ namespace EyePaint
     {
       InitializeComponent();
       Owner = owner;
+      ShowDialog();
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+      base.OnContentRendered(e);
+      (App.Current as App).MainWindow = this;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+      base.OnClosed(e);
+      (App.Current as App).MainWindow = Owner;
     }
 
     void onConfirm(object s, EventArgs e)

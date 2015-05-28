@@ -1,9 +1,7 @@
-﻿using FlickrNet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -30,7 +28,8 @@ namespace EyePaint
       Root = p;
       Leaves = new PointCollection();
       Parents = new Dictionary<Point, Point>();
-      for (int i = 0; i < rng.Next((maxBranches + 1) / 2, maxBranches + 1); ++i) Leaves.Add(Root);
+      for (int i = 0; i < rng.Next((maxBranches + 1) / 2, maxBranches + 1); ++i)
+        Leaves.Add(Root);
       Parents[Root] = Root;
     }
   }
@@ -64,27 +63,32 @@ namespace EyePaint
     public PaintWindow()
     {
       InitializeComponent();
-    }
+      Show();
+   }
 
-    void onLoaded(object s, RoutedEventArgs e)
+    protected override void OnContentRendered(EventArgs e)
     {
-      // Render clock. Note: single-threaded. Approximately 20 FPS.
-      (paintTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(50), DispatcherPriority.Render, (_, __) => paint(ref this.model, Raster.Source as RenderTargetBitmap), Dispatcher)).Stop();
+      // Initialize drawing. Update model and draw resulting painting around 30 times per second.
+      Drawing.Source = createCanvas((int)ActualWidth, (int)ActualHeight);
+      (paintTimer = new DispatcherTimer(
+        TimeSpan.FromMilliseconds(1000 / 30),
+        DispatcherPriority.Render,
+        (_, __) => paint(ref model, Drawing.Source as RenderTargetBitmap),
+        Dispatcher)
+      ).Stop();
 
-      // Initialize drawing.
-      Raster.Source = createDrawing((int)ActualWidth, (int)ActualHeight);
-    }
-
-    void onContentRendered(object s, EventArgs e)
-    {
       // Choose initial shape and color by simulating a button click.
       ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
       ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+      PaintControls.Visibility = Visibility.Visible;
+
+      base.OnContentRendered(e);
 
       // Perform initial offset calibration.
       while (!new CalibrationWindow(this).DialogResult.Value) ;
 
-      // Display paint marker.
+      // Activate paint session controls.
+      (App.Current as App).ResetButtonEnabled = true;
       PaintMarker.Visibility = Visibility.Visible;
 
       // Reset window on user inactivity. Note: IsEnabled is used with the eye tracker to determine user status.
@@ -94,12 +98,11 @@ namespace EyePaint
         if (!(bool)_e.NewValue) sb.Begin();
         else sb.Stop();
       };
-
-      (App.Current as App).Resettable = true;
     }
 
-    void onUnloaded(object s, RoutedEventArgs e)
+    protected override void OnClosing(CancelEventArgs e)
     {
+      base.OnClosing(e);
       foreach (var w in OwnedWindows) (w as Window).Close();
     }
 
@@ -131,6 +134,9 @@ namespace EyePaint
     void onCanvasMouseLeave(object s, MouseEventArgs e)
     {
       stopPainting();
+      //var p = calculateGaze(e.GetPosition(s as Canvas));
+      //gazes.Clear();
+      //gazes.Add(p);
       (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
     }
 
@@ -148,8 +154,13 @@ namespace EyePaint
         var sb = PaintMarker.FindResource("GazePaintStoryboard") as Storyboard;
         switch (sb.GetCurrentState())
         {
-          case ClockState.Active: sb.Seek(TimeSpan.Zero); break;
-          case ClockState.Filling: sb.Seek(TimeSpan.Zero); stopPainting(); break;
+          case ClockState.Active:
+            sb.Seek(TimeSpan.Zero);
+            break;
+          case ClockState.Filling:
+            sb.Seek(TimeSpan.Zero);
+            stopPainting();
+            break;
         }
       }
       gaze = p;
@@ -162,24 +173,18 @@ namespace EyePaint
 
     void onPublishButtonClick(object s, EventArgs e)
     {
-      var dw = new DialogWindow(this);
-      dw.Closing += (_, __) =>
+      if (new DialogWindow(this).DialogResult.Value)
       {
-        if (dw.DialogResult.Value)
-        {
-          (App.Current as App).Resettable = false;
-          PaintControls.IsEnabled = false;
-          (FindResource("SaveDrawingStoryboard") as Storyboard).Begin();
-        }
-      };
-      dw.ShowDialog();
+        new PublishWindow(this, Drawing.Source as RenderTargetBitmap);
+      }
     }
 
     void onResetButtonClick(object s, EventArgs e)
     {
-      var dw = new DialogWindow(this);
-      dw.Closing += (_, __) => { if (dw.DialogResult.Value) (App.Current as App).Reset(); };
-      dw.ShowDialog();
+      if (new DialogWindow(this).DialogResult.Value)
+      {
+        clearCanvas(Drawing.Source as RenderTargetBitmap);
+      }
     }
 
     void onShapeButtonClick(object s, EventArgs e)
@@ -260,54 +265,10 @@ namespace EyePaint
       updateIcons();
     }
 
-    void onSaveDrawing(object s, EventArgs e)
-    {
-      // Save image to file system.
-      var pbe = new PngBitmapEncoder();
-      pbe.Frames.Add(BitmapFrame.Create(Raster.Source as RenderTargetBitmap));
-      using (var fs = System.IO.File.OpenWrite("drawing.png")) pbe.Save(fs);
-
-      // Upload image to Flickr.
-      try
-      {
-        var bw = new BackgroundWorker();
-        bw.WorkerReportsProgress = true;
-        bw.ProgressChanged += (_s, _e) => ProgessBar.Value = _e.ProgressPercentage;
-        bw.DoWork += (_s, _e) =>
-        {
-          // Login
-          var f = new Flickr(Properties.Settings.Default.FlickrKey, Properties.Settings.Default.FlickrSecret);
-          f.OAuthAccessToken = Properties.Settings.Default.FlickrAccessToken.Token;
-          f.OAuthAccessTokenSecret = Properties.Settings.Default.FlickrAccessToken.TokenSecret;
-
-          // Upload photo.
-          f.OnUploadProgress += (__s, __e) => bw.ReportProgress(__e.ProcessPercentage);
-          var photoId = f.UploadPicture("drawing.png", Properties.Settings.Default.FlickrTitle, Properties.Settings.Default.FlickrDescription, Properties.Settings.Default.FlickrTags, true, true, true);
-
-          // Add photo to set. If set doesn't exist, create it first.
-          var photosets = f.PhotosetsGetList().Where(set => set.Title == Properties.Settings.Default.FlickrPhotoset).ToList();
-          if (photosets.Count == 0) f.PhotosetsCreate(Properties.Settings.Default.FlickrPhotoset, photoId);
-          else f.PhotosetsAddPhoto(photosets[0].PhotosetId, photoId);
-        };
-        bw.RunWorkerCompleted += (_s, _e) =>
-        {
-          // Restart session.
-          (App.Current as App).Resettable = true;
-          (App.Current as App).Reset();
-        };
-        bw.RunWorkerAsync();
-      }
-      catch (Exception ex)
-      {
-        (App.Current as App).SendErrorReport("(EyePaint) Image Upload Error", "The application encountered an error when uploading an image. Error: " + ex.Message + ". The image is only available on the file system until the application is used again.");
-        new ErrorWindow().ShowDialog();
-      }
-    }
-
     Point calculateGaze(Point p)
     {
       gazes.Add(p);
-      while (gazes.Count > Properties.Settings.Default.Inertia) gazes.RemoveAt(0);
+      while (gazes.Count > Properties.Settings.Default.Inertia + 1) gazes.RemoveAt(0);
       return new Point(gazes.Average(_p => _p.X), gazes.Average(_p => _p.Y));
     }
 
@@ -332,37 +293,50 @@ namespace EyePaint
       }
     }
 
-    RenderTargetBitmap createDrawing(int width, int height)
+    RenderTargetBitmap createCanvas(int width, int height)
     {
-      var d = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
-      DrawingVisual dv = new DrawingVisual();
-      using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, width, height));
-      d.Render(dv);
-      return d;
+      var drawing = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+      clearCanvas(drawing);
+      return drawing;
     }
 
-    void paint(ref Tree model, RenderTargetBitmap drawing)
+    void clearCanvas(RenderTargetBitmap drawing)
     {
-      // Grow model.
+      if (drawing != null)
+      {
+        DrawingVisual dv = new DrawingVisual();
+        using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, drawing.Width, drawing.Height));
+        drawing.Render(dv);
+      }
+    }
+
+    void paint(ref Tree tree, RenderTargetBitmap drawing)
+    {
+      // Grow tree.
       var newLeaves = new PointCollection();
       var newParents = new Dictionary<Point, Point>();
       var rotation = shape.GenerationRotation * rng.NextDouble() * 2 * Math.PI;
-      for (int i = 0; i < model.Leaves.Count; ++i)
+      for (int i = 0; i < tree.Leaves.Count; ++i)
       {
-        var q = (model.Leaves.Count == 0) ? model.Root : model.Leaves[i];
+        var q = (tree.Leaves.Count == 0) ? tree.Root : tree.Leaves[i];
         var angle =
-            i * (2 * Math.PI / model.Leaves.Count)
+            i * (2 * Math.PI / tree.Leaves.Count)
             + rotation
             + (1 - shape.BranchStraightness) * rng.NextDouble() * 2 * Math.PI;
         var p = new Point(
             q.X + shape.BranchStepLength * Math.Cos(angle),
             q.Y + shape.BranchStepLength * Math.Sin(angle)
         );
+
+        //var padding = 0.1;
+        //if (padding * drawing.Width < p.X && p.X < (1 - padding) * drawing.Width && padding * drawing.Height < p.Y && p.Y < (1 - padding) * drawing.Height)
+        //{
         newParents[p] = q;
         newLeaves.Add(p);
+        //}
       }
 
-      // Render model.
+      // Create drawing from tree model.
       var dv = new DrawingVisual();
       using (var dc = dv.RenderOpen())
       {
@@ -370,21 +344,21 @@ namespace EyePaint
         var centerBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
         centerBrush.Opacity = rng.NextDouble() * shape.CenterOpacity;
         var centerPen = new Pen(centerBrush, 1);
-        dc.DrawEllipse(centerBrush, centerPen, model.Root, centerSize, centerSize);
+        dc.DrawEllipse(centerBrush, centerPen, tree.Root, centerSize, centerSize);
 
         var edges = new GeometryGroup();
         var edgesPen = new Pen(new SolidColorBrush(createColor(color, shape.ColorVariety)), 1);
         edgesPen.StartLineCap = edgesPen.EndLineCap = PenLineCap.Round;
         edgesPen.LineJoin = PenLineJoin.Round;
         edgesPen.Brush.Opacity = shape.EdgesOpacity;
-        foreach (var p in model.Leaves) edges.Children.Add(new LineGeometry(p, model.Parents[p]));
+        foreach (var p in tree.Leaves) edges.Children.Add(new LineGeometry(p, tree.Parents[p]));
         dc.DrawGeometry(null, edgesPen, edges);
 
         var vertices = new GeometryGroup();
         var verticesBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
         verticesBrush.Opacity = rng.NextDouble() * shape.VerticesOpacity;
         var verticesPen = new Pen(verticesBrush, 1);
-        foreach (var p in model.Leaves)
+        foreach (var p in tree.Leaves)
         {
           var r = rng.NextDouble();
           var eg = new EllipseGeometry(p, shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()), shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()));
@@ -396,14 +370,13 @@ namespace EyePaint
         var hullBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
         hullBrush.Opacity = rng.NextDouble() * shape.HullOpacity;
         var hullPen = new Pen(hullBrush, 1);
-        using (var sgc = hull.Open())
-        {
-          sgc.BeginFigure(model.Leaves[0], true, true);
-          sgc.PolyLineTo(model.Leaves, true, true);
-        }
+        if (tree.Leaves.Count > 3) using (var sgc = hull.Open())
+          {
+            sgc.BeginFigure(tree.Leaves[0], true, true);
+            sgc.PolyLineTo(tree.Leaves, true, true);
+          }
         dc.DrawGeometry(hullBrush, hullPen, hull);
       }
-      //dv.Opacity = rng.NextDouble();
       var dse = new DropShadowEffect();
       dse.BlurRadius = 20;
       dse.ShadowDepth = 0;
@@ -411,9 +384,9 @@ namespace EyePaint
       dse.Color = createColor(color, shape.ColorVariety);
       dv.Effect = dse;
 
-      // Persist update.
-      model.Leaves = newLeaves;
-      model.Parents = newParents;
+      // Render and keep new tree.
+      tree.Leaves = newLeaves;
+      tree.Parents = newParents;
       if (drawing != null) drawing.Render(dv);
     }
 
@@ -462,8 +435,7 @@ namespace EyePaint
         var brightness = System.Drawing.Color.FromArgb(baseColor.Value.A, baseColor.Value.R, baseColor.Value.G, baseColor.Value.B).GetBrightness();
         return (brightness >= 0.5) ? c1 + c2 : c1 - c2;
       }
-      else
-        return Color.FromRgb(R, G, B);
+      else return Color.FromRgb(R, G, B);
     }
 
     void updateIcons()
@@ -471,16 +443,11 @@ namespace EyePaint
       ColorButtonBackgroundBaseColor.Color = color;
       ColorButtonBackgroundColorVariety.Color = createColor(color, shape.ColorVariety);
       var toolIcon = new Image();
-      toolIcon.Source = createDrawing((int)(ShapeButton.ActualWidth), (int)(ShapeButton.ActualHeight));
+      toolIcon.Source = createCanvas((int)(ShapeButton.ActualWidth), (int)(ShapeButton.ActualHeight));
       var model = new Tree(new Point(ShapeButton.ActualWidth / 2, ShapeButton.ActualHeight / 2), (int)shape.MaxBranches, ref rng);
       for (int i = 0; i < 10; ++i) paint(ref model, toolIcon.Source as RenderTargetBitmap);
       ShapeButton.Content = toolIcon;
     }
-
-    void onPreviewKeyDown(object s, KeyEventArgs e)
-    {
-      if (e.Key == Key.Escape) new SettingsWindow();
-      else Application.Current.Shutdown();
-    }
   }
 }
+

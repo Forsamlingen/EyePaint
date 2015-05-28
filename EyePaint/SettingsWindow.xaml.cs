@@ -13,6 +13,7 @@ namespace EyePaint
   public partial class SettingsWindow : Window
   {
     OAuthRequestToken request;
+    bool hardwareButtonsState;
 
     public SettingsWindow()
     {
@@ -25,16 +26,17 @@ namespace EyePaint
     {
       Mouse.OverrideCursor = Cursors.Arrow;
       var i = (App.Current as App).iet;
-      if (i != null)
-        i.StopTracking();
+      if (i != null) i.StopTracking();
+      hardwareButtonsState = (App.Current as App).ResetButtonEnabled;
+      (App.Current as App).ResetButtonEnabled = false;
     }
 
     void onUnloaded(object s, RoutedEventArgs e)
     {
       Mouse.OverrideCursor = Cursors.None;
       var i = (App.Current as App).iet;
-      if (i != null)
-        i.StartTracking();
+      if (i != null) i.StartTracking();
+      (App.Current as App).ResetButtonEnabled = hardwareButtonsState;
     }
 
     void onSaveButtonClick(object s, RoutedEventArgs e)

@@ -15,7 +15,7 @@
     <WarningLevel>4</WarningLevel>
     <TargetFrameworkProfile />
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\Users\Carl\Dropbox\Public\EyePaint\</PublishUrl>
+    <PublishUrl>C:\Users\Carl\Dropbox\Public\EyePaint\Client\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -28,9 +28,11 @@
     <SupportUrl>https://github.com/Forsamlingen/EyePaint</SupportUrl>
     <ProductName>EyePaint</ProductName>
     <PublisherName>Tekniska museet</PublisherName>
+    <WebPage>publish.htm</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>10</ApplicationRevision>
-    <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
+    <AutorunEnabled>true</AutorunEnabled>
+    <ApplicationRevision>34</ApplicationRevision>
+    <ApplicationVersion>3.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -80,9 +82,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\FlickrNet.3.15.0\lib\net20\FlickrNet.dll</HintPath>
     </Reference>
+    <Reference Include="Gma.QrCodeNet.Encoding">
+      <HintPath>..\packages\QrCodeNet.0.3\lib\Gma.QrCodeNet.Encoding.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
@@ -107,6 +113,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Base58Encoder.cs" />
     <Compile Include="CalibrationWindow.xaml.cs">
       <DependentUpon>CalibrationWindow.xaml</DependentUpon>
     </Compile>
@@ -116,8 +123,8 @@
     <Compile Include="ErrorWindow.xaml.cs">
       <DependentUpon>ErrorWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="StartupWindow.xaml.cs">
-      <DependentUpon>StartupWindow.xaml</DependentUpon>
+    <Compile Include="PublishWindow.xaml.cs">
+      <DependentUpon>PublishWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ResultWindow.xaml.cs">
       <DependentUpon>ResultWindow.xaml</DependentUpon>
@@ -137,7 +144,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="StartupWindow.xaml">
+    <Page Include="Icons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -153,6 +160,10 @@
       <DependentUpon>PaintWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="PublishWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ResultWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -190,6 +201,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <None Include="Scripts\jquery-2.1.1.min.map" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -212,6 +224,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Scripts\jquery-2.1.1.intellisense.js" />
+    <Content Include="Scripts\jquery-2.1.1.js" />
+    <Content Include="Scripts\jquery-2.1.1.min.js" />
+    <Content Include="Scripts\nugetexample.js" />
     <Content Include="TobiiGazeCore32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

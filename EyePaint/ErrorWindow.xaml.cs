@@ -12,5 +12,11 @@ namespace EyePaint
     {
       InitializeComponent();
     }
+
+    public ErrorWindow(Window owner)
+    {
+      InitializeComponent();
+      Owner = owner;
+    }
   }
 }

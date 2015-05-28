@@ -33,38 +33,50 @@ namespace EyePaint
   public partial class App : Application
   {
     public IEyeTracker iet;
-    Size resolution;
-    List<Point> gazes;
-    Dictionary<Point, Vector> offsets;
+    List<Point> gazes = new List<Point>();
+    Dictionary<Point, Vector> offsets = new Dictionary<Point, Vector>();
     TimeSpan? time;
     PaintWindow paintWindow;
     ResultWindow resultWindow;
+    Size resolution;
     public GlobalProperties Globals { get; set; }
     bool tracking;
-    public bool Resettable;
+    public bool ResetButtonEnabled;
     int notTracking;
 
     [DllImport("User32.dll")]
     static public extern bool SetCursorPos(int X, int Y);
+
+    public App()
+    {
+      // Register global hardware reset button to any key but Escape.
+      EventManager.RegisterClassHandler(typeof(Window), Window.KeyUpEvent, new RoutedEventHandler((s, e) =>
+      {
+        if ((e as KeyEventArgs).Key == Key.Escape) new SettingsWindow();
+        else if (ResetButtonEnabled)
+        {
+          ResetButtonEnabled = false;
+          Reset();
+        }
+      }));
+
+      // Clear gaze click data if hardware button was used to click buttons.
+      EventManager.RegisterClassHandler(typeof(Button), Mouse.MouseDownEvent, new MouseButtonEventHandler((s, e) =>
+      {
+        time = null;
+      }));
+    }
 
     /// <summary>
     /// Connect to the eye tracker on application startup.
     /// </summary>
     void onStartup(object s, StartupEventArgs e)
     {
-      new StartupWindow();
       Globals = new GlobalProperties();
       var ew = new ErrorWindow();
-      ew.ContentRendered += (_s, _e) =>
-      {
-        var connected = connect();
-        if (!connected) SendErrorReport("(EyePaint) Startup Error", "The eye tracker could not be found. Ensure that the cable is connected, restart the computer, and try launching the application again.");
-        else
-        {
-          ew.Close();
-        }
-      };
       ew.Show();
+      if (connect()) ew.Close();
+      else SendErrorReport("(EyePaint) Startup Error", "The eye tracker could not be found. Ensure that the USB cable is connected and that both the Tobii EyeX and the Tobii USB service drivers are installed. Then restart the computer and try launching the application again.");
     }
 
     /// <summary>
@@ -77,34 +89,27 @@ namespace EyePaint
         try
         {
           // Connect to eye tracker.
-          gazes = new List<Point>();
-          offsets = new Dictionary<Point, Vector>();
           Uri url = new EyeTrackerCoreLibrary().GetConnectedEyeTracker();
           iet = new EyeTracker(url);
           iet.EyeTrackerError += onEyeTrackerError;
           iet.GazeData += onGazeData;
           Task.Factory.StartNew(() => iet.RunEventLoop());
           iet.Connect();
-          iet.StartTracking();
+
+          // Open paint controls.
           Mouse.OverrideCursor = Cursors.None;
-
-          // Display image result on a secondary screen.
           resultWindow = new ResultWindow();
-          if (System.Windows.Forms.SystemInformation.MonitorCount > 1)
-          {
-            var wa = System.Windows.Forms.Screen.AllScreens[1].WorkingArea;
-            resultWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            resultWindow.Left = wa.Left;
-            resultWindow.Top = wa.Top;
-            resultWindow.Topmost = true;
-            resultWindow.Show();
-          }
-
-          // Open paint window.
           paintWindow = new PaintWindow();
-          paintWindow.Loaded += (_, __) => resolution = new Size(paintWindow.ActualWidth, paintWindow.ActualHeight);
-          paintWindow.ContentRendered += (_, __) => resultWindow.SetImageSource(paintWindow.Raster.Source);
-          paintWindow.Show();
+          paintWindow.ContentRendered += (_, __) =>
+          {
+            paintWindow.Focus();
+            paintWindow.Activate();
+            resolution = paintWindow.RenderSize;
+            MainWindow = paintWindow;
+            resultWindow.SetPaintWindow(paintWindow);
+            iet.StartTracking();
+          };
+
           return true;
         }
         catch (Exception)
@@ -121,9 +126,8 @@ namespace EyePaint
     {
       var ew = new ErrorWindow();
       ew.Show();
-      var reconnected = connect();
-      if (reconnected) ew.Close();
-      else SendErrorReport("(EyePaint) Error " + e.ErrorCode, "The eye tracker encountered an error. Error: " + e.Message + ". Try rebooting the system.");
+      if (connect()) ew.Close();
+      else SendErrorReport("(EyePaint) Eye Tracker Error " + e.ErrorCode, "The eye tracker encountered an error. Error: " + e.Message + ". Try rebooting the system.");
     }
 
     /// <summary>
@@ -131,9 +135,9 @@ namespace EyePaint
     /// </summary>
     void onGazeData(object s, GazeDataEventArgs e)
     {
+      // Determine if the user is present.
       if (e.GazeData.TrackingStatus == TrackingStatus.NoEyesTracked)
       {
-        // Determine if the user is inactive or just blinking.
         if (++notTracking > EyePaint.Properties.Settings.Default.Blink)
         {
           if (tracking)
@@ -145,7 +149,6 @@ namespace EyePaint
       }
       else
       {
-        // Determine if the user reactived the session.
         if (notTracking > 0)
         {
           notTracking = 0;
@@ -155,24 +158,29 @@ namespace EyePaint
             Dispatcher.Invoke(() => Globals.Tracking = tracking);
           }
         }
+      }
 
-        // Retrieve available gaze information from the eye tracker.
-        var left = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyLeft || e.GazeData.TrackingStatus == TrackingStatus.OnlyLeftEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Left.GazePointOnDisplayNormalized : new Point2D(0, 0);
-        var right = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyRight || e.GazeData.TrackingStatus == TrackingStatus.OnlyRightEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Right.GazePointOnDisplayNormalized : new Point2D(0, 0);
+      // Retrieve available gaze information from the eye tracker and place the mouse cursor at the position. 
+      if (e.GazeData.TrackingStatus != TrackingStatus.NoEyesTracked)
+      {
+        //TODO Add support for one eye operation.
+        var l = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyLeft || e.GazeData.TrackingStatus == TrackingStatus.OnlyLeftEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Left.GazePointOnDisplayNormalized : new Point2D(0, 0);
+        var r = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyRight || e.GazeData.TrackingStatus == TrackingStatus.OnlyRightEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Right.GazePointOnDisplayNormalized : new Point2D(0, 0);
 
         // Determine new gaze point position on the screen.
-        var newGazePoint = new Point(resolution.Width * (left.X + right.X) / 2, resolution.Height * (left.Y + right.Y) / 2);
+        var newGazePoint = new Point(resolution.Width * (l.X + r.X) / 2, resolution.Height * (l.Y + r.Y) / 2);
         gazes.Add(newGazePoint);
 
         // Calculate average gaze point (i.e. naive noise reduction).
-        while (gazes.Count > EyePaint.Properties.Settings.Default.Stability) gazes.RemoveAt(0);
+        while (gazes.Count > EyePaint.Properties.Settings.Default.Stability + 1) gazes.RemoveAt(0);
         var gazePoint = new Point(gazes.Average(p => p.X), gazes.Average(p => p.Y));
 
         // Calibrate average gaze point with known offsets.
         if (offsets.Count == 1) gazePoint += offsets.Values.First();
         var distances = offsets.Select(kvp => (gazePoint - kvp.Key).Length);
         var distancesRatios = distances.Select(d => d / distances.Sum());
-        foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1.0 - d) * o)) gazePoint += v;
+        foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1.0 - d) * o))
+          gazePoint += v;
 
         // Place the mouse cursor at the gaze point so mouse events can be used throughout the application.
         SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
@@ -184,30 +192,35 @@ namespace EyePaint
     /// </summary>
     void onGazeButtonFocused(object s, EventArgs e)
     {
-      var c = s as Clock;
-
-      if (time.HasValue && c.CurrentTime.HasValue && c.CurrentTime.Value < time.Value)
+      try
       {
-        // Claim click.
-        time = null;
+        var c = s as Clock;
 
-        // Find button.
-        var activeWindow = Application.Current.Windows.OfType<Window>().Single(w => w.IsActive);
-        var focusedButton = FocusManager.GetFocusedElement(activeWindow) as Button;
-
-        // Store calibration offset.
-        if (gazes.Count > 0)
+        if (time.HasValue && c.CurrentTime.HasValue && c.CurrentTime.Value < time.Value)
         {
-          var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
-          var actualPoint = Mouse.GetPosition(activeWindow);
-          storeCalibrationPoint(expectedPoint, actualPoint);
+          // Claim click for focused button.
+          // TODO Fix time bug.
+          time = null;
+          Button focusedButton = FocusManager.GetFocusedElement(MainWindow) as Button;
+
+          // Store calibration offset.
+          if (gazes.Count > 0)
+          {
+            var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
+            var actualPoint = Mouse.GetPosition(MainWindow);
+            storeCalibrationPoint(expectedPoint, actualPoint);
+          }
+
+          // Raise click event.
+          focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
 
-        // Raise click event.
-        focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        time = (c.CurrentState == ClockState.Active) ? c.CurrentTime : null;
       }
-
-      time = (c.CurrentState == ClockState.Active) ? c.CurrentTime : null;
+      catch (Exception ex)
+      {
+        MessageBox.Show("No button found upon gaze click. " + ex.Message);
+      }
     }
 
     /// <summary>
@@ -232,35 +245,27 @@ namespace EyePaint
       }
       catch (Exception)
       {
-        MessageBox.Show("Email could not be sent. Make sure the application is configured correctly. Email: " + subject + " - " + body);
+        MessageBox.Show("Email could not be sent. Make sure the application is configured correctly.");
+        MessageBox.Show(subject + " - " + body);
       }
     }
 
     /// <summary>
-    /// Clear previous gaze data if neccessary.
+    /// Clear previous gaze data.
     /// </summary>
     public void Reset()
     {
-      if (Resettable)
+      var w = new PaintWindow();
+      w.ContentRendered += (s, e) =>
       {
+        gazes.Clear();
         offsets.Clear();
         time = null;
-        var oldPaintWindow = paintWindow;
-        paintWindow = new PaintWindow();
-        paintWindow.ContentRendered += (s, e) =>
-        {
-          oldPaintWindow.Close();
-          resultWindow.SetImageSource(paintWindow.Raster.Source);
-        };
-        paintWindow.Show();
-      }
-    }
-
-    void onPreviewTouchDownIndicator(object s, EventArgs e)
-    {
-      //TODO Determine gaze point.
-      //TODO Determine touch point.
-      //storeCalibrationPoint(touchPoint, gazePoint);
+        resultWindow.SetPaintWindow(w);
+        paintWindow.Close();
+        paintWindow = w;
+      };
+      w.Show();
     }
   }
 }

@@ -4,109 +4,96 @@
              Startup="onStartup"
              ShutdownMode="OnExplicitShutdown">
   <Application.Resources>
-    <Storyboard x:Key="PreviewTouchDownIndicator" Completed="onPreviewTouchDownIndicator">
-      <!-- TODO Flash indicator. -->
-    </Storyboard>
-    <Storyboard x:Key="GazeWindowVisibleStoryboard">
-      <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.1" To="1" Duration="0:0:0.5">
-        <DoubleAnimation.EasingFunction>
-          <QuadraticEase EasingMode="EaseIn"/>
-        </DoubleAnimation.EasingFunction>
-      </DoubleAnimation>
-    </Storyboard>
-    <Style x:Key="GazeWindow" TargetType="Window">
-      <Setter Property="Cursor" Value="None"/>
-      <Setter Property="ResizeMode" Value="NoResize"/>
-      <Setter Property="WindowStyle" Value="None"/>
-      <Setter Property="WindowState" Value="Maximized"/>
-      <Setter Property="IsEnabled" Value="{Binding Path=Globals.Tracking, Mode=OneWay, Source={x:Static Application.Current}}"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="Window">
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Icons.xaml" />
+        <ResourceDictionary>
+          <Style x:Key="GazeWindow" TargetType="Window">
+            <Setter Property="Cursor" Value="None"/>
+            <Setter Property="ResizeMode" Value="NoResize"/>
+            <Setter Property="WindowStyle" Value="None"/>
+            <Setter Property="WindowState" Value="Maximized"/>
+            <Setter Property="IsEnabled" Value="{Binding Path=Globals.Tracking, Mode=OneWay, Source={x:Static Application.Current}}"/>
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="Window">
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                      <Setter Property="Effect">
+                        <Setter.Value>
+                          <BlurEffect Radius="5" KernelType="Box"/>
+                        </Setter.Value>
+                      </Setter>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                  <Grid Background="{TemplateBinding Background}">
+                    <ContentPresenter/>
+                  </Grid>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+          <Storyboard x:Key="GazeButtonFocusedStoryboard" CurrentTimeInvalidated="onGazeButtonFocused" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:2">
+              <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseIn"/>
+              </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:2">
+              <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseIn"/>
+              </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+          </Storyboard>
+          <Storyboard x:Key="GazeButtonBlurredStoryboard">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1"/>
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1"/>
+          </Storyboard>
+          <ControlTemplate x:Key="GazeButton" TargetType="Button">
             <ControlTemplate.Triggers>
-              <EventTrigger RoutedEvent="PreviewTouchDown">
-                <BeginStoryboard>
-                  <StaticResource ResourceKey="PreviewTouchDownIndicator"/>
-                </BeginStoryboard>
-              </EventTrigger>
-              <EventTrigger RoutedEvent="Loaded">
-                <BeginStoryboard>
-                  <StaticResource ResourceKey="GazeWindowVisibleStoryboard"/>
-                </BeginStoryboard>
-              </EventTrigger>
-              <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Effect">
-                  <Setter.Value>
-                    <BlurEffect Radius="5" KernelType="Box"/>
-                  </Setter.Value>
-                </Setter>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="0.9"/>
+                <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
               </Trigger>
+              <Trigger Property="IsMouseOver" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+              </Trigger>
+              <EventTrigger RoutedEvent="MouseEnter">
+                <BeginStoryboard Name="GazeButtonFocusedBeginStoryboard">
+                  <StaticResource ResourceKey="GazeButtonFocusedStoryboard"/>
+                </BeginStoryboard>
+              </EventTrigger>
+              <EventTrigger RoutedEvent="MouseLeave">
+                <BeginStoryboard>
+                  <StaticResource ResourceKey="GazeButtonBlurredStoryboard"/>
+                </BeginStoryboard>
+                <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
+              </EventTrigger>
+              <EventTrigger RoutedEvent="PreviewMouseDown">
+                <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
+              </EventTrigger>
+              <EventTrigger RoutedEvent="PreviewTouchDown">
+                <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
+              </EventTrigger>
             </ControlTemplate.Triggers>
-            <Grid Background="{TemplateBinding Background}">
-              <ContentPresenter/>
+            <Grid Background="Transparent">
+              <Grid RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                  <ScaleTransform x:Name="ScaleTransform" ScaleY="1" ScaleX="1"/>
+                </Grid.RenderTransform>
+                <Ellipse Name="Mask" Fill="{TemplateBinding Foreground}"/>
+                <Border Background="{TemplateBinding Background}" ClipToBounds="True">
+                  <Border.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=Mask}"/>
+                  </Border.OpacityMask>
+                  <ContentPresenter Content="{TemplateBinding Content}"/>
+                </Border>
+                <Ellipse Stroke="{TemplateBinding Foreground}" StrokeThickness="10"/>
+              </Grid>
             </Grid>
           </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-    <Storyboard x:Key="GazeButtonFocusedStoryboard" CurrentTimeInvalidated="onGazeButtonFocused" RepeatBehavior="Forever">
-      <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:2">
-        <DoubleAnimation.EasingFunction>
-          <CubicEase EasingMode="EaseIn"/>
-        </DoubleAnimation.EasingFunction>
-      </DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:2">
-        <DoubleAnimation.EasingFunction>
-          <CubicEase EasingMode="EaseIn"/>
-        </DoubleAnimation.EasingFunction>
-      </DoubleAnimation>
-    </Storyboard>
-    <Storyboard x:Key="GazeButtonBlurredStoryboard">
-      <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1"/>
-      <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1"/>
-    </Storyboard>
-    <ControlTemplate x:Key="GazeButton" TargetType="Button">
-      <ControlTemplate.Triggers>
-        <Trigger Property="IsMouseOver" Value="True">
-          <Setter Property="Opacity" Value="0.9"/>
-          <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
-        </Trigger>
-        <Trigger Property="IsMouseOver" Value="False">
-          <Setter Property="Opacity" Value="0.5"/>
-        </Trigger>
-        <EventTrigger RoutedEvent="MouseEnter">
-          <BeginStoryboard Name="GazeButtonFocusedBeginStoryboard">
-            <StaticResource ResourceKey="GazeButtonFocusedStoryboard"/>
-          </BeginStoryboard>
-        </EventTrigger>
-        <EventTrigger RoutedEvent="MouseLeave">
-          <BeginStoryboard>
-            <StaticResource ResourceKey="GazeButtonBlurredStoryboard"/>
-          </BeginStoryboard>
-          <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
-        </EventTrigger>
-        <EventTrigger RoutedEvent="PreviewMouseDown">
-          <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
-        </EventTrigger>
-        <EventTrigger RoutedEvent="PreviewTouchDown">
-          <StopStoryboard BeginStoryboardName="GazeButtonFocusedBeginStoryboard"/>
-        </EventTrigger>
-      </ControlTemplate.Triggers>
-      <Grid Background="Transparent">
-        <Grid RenderTransformOrigin="0.5,0.5">
-          <Grid.RenderTransform>
-            <ScaleTransform x:Name="ScaleTransform" ScaleY="1" ScaleX="1"/>
-          </Grid.RenderTransform>
-          <Ellipse Name="Mask" Fill="{TemplateBinding Foreground}"/>
-          <Border Background="{TemplateBinding Background}" ClipToBounds="True">
-            <Border.OpacityMask>
-              <VisualBrush Visual="{Binding ElementName=Mask}"/>
-            </Border.OpacityMask>
-            <ContentPresenter Content="{TemplateBinding Content}"/>
-          </Border>
-          <Ellipse Stroke="{TemplateBinding Foreground}" StrokeThickness="10"/>
-        </Grid>
-      </Grid>
-    </ControlTemplate>
+        </ResourceDictionary>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
   </Application.Resources>
 </Application>

@@ -34,20 +34,20 @@
             </Setter>
           </Style>
           <Storyboard x:Key="GazeButtonFocusedStoryboard" CurrentTimeInvalidated="onGazeButtonFocused" RepeatBehavior="Forever">
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:2">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:1.5">
               <DoubleAnimation.EasingFunction>
                 <CubicEase EasingMode="EaseIn"/>
               </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:2">
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:1.5">
               <DoubleAnimation.EasingFunction>
                 <CubicEase EasingMode="EaseIn"/>
               </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
           </Storyboard>
           <Storyboard x:Key="GazeButtonBlurredStoryboard">
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1"/>
-            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1"/>
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.5"/>
+            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.5"/>
           </Storyboard>
           <ControlTemplate x:Key="GazeButton" TargetType="Button">
             <ControlTemplate.Triggers>

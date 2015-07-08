@@ -15,13 +15,13 @@
       <Value Profile="(Default)">05e84b538d7d4cf5</Value>
     </Setting>
     <Setting Name="Spacing" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="Stability" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="Blink" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">60</Value>
+      <Value Profile="(Default)">15</Value>
     </Setting>
     <Setting Name="Inertia" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">120</Value>
@@ -45,7 +45,7 @@
       <Value Profile="(Default)">En målning gjord med ögonen.</Value>
     </Setting>
     <Setting Name="FlickrTags" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">MegaMindSTHLM, Tekniska museet, Måla med ögonen, Paint with your eyes</Value>
     </Setting>
   </Settings>
 </SettingsFile>

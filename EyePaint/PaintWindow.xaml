@@ -40,7 +40,7 @@
           <ScaleTransform x:Name="PaintMarkerScaleTransform"/>
         </Ellipse.RenderTransform>
         <Ellipse.Resources>
-          <Storyboard x:Key="GazePaintStoryboard" Completed="onGazePaint">
+          <Storyboard x:Key="GazePaintStoryboard" Completed="onGazePaint" Duration="0:0:1">
             <DoubleAnimation Storyboard.TargetName="PaintMarker" Storyboard.TargetProperty="Opacity" From="0.1" To="1"/>
             <DoubleAnimation Storyboard.TargetName="PaintMarkerScaleTransform" Storyboard.TargetProperty="ScaleX" From="1" To="0.8">
               <DoubleAnimation.EasingFunction>

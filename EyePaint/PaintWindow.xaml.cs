@@ -64,14 +64,14 @@ namespace EyePaint
     {
       InitializeComponent();
       Show();
-   }
+    }
 
     protected override void OnContentRendered(EventArgs e)
     {
-      // Initialize drawing. Update model and draw resulting painting around 30 times per second.
+      // Initialize drawing. Update model and draw resulting painting around 24 times per second.
       Drawing.Source = createCanvas((int)ActualWidth, (int)ActualHeight);
       (paintTimer = new DispatcherTimer(
-        TimeSpan.FromMilliseconds(1000 / 30),
+        TimeSpan.FromMilliseconds(1000 / 24),
         DispatcherPriority.Render,
         (_, __) => paint(ref model, Drawing.Source as RenderTargetBitmap),
         Dispatcher)
@@ -134,9 +134,6 @@ namespace EyePaint
     void onCanvasMouseLeave(object s, MouseEventArgs e)
     {
       stopPainting();
-      //var p = calculateGaze(e.GetPosition(s as Canvas));
-      //gazes.Clear();
-      //gazes.Add(p);
       (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
     }
 
@@ -202,7 +199,7 @@ namespace EyePaint
         }
       }
 
-      // Determine whether to pick a previous shape or generate a new.
+      // Determine whether to pick a average shape or generate a new.
       if (shapes.Count > 0 && rng.NextDouble() <= 0.01 * shapes.Count - 0.1)
       {
         // Pick a previously used shape.
@@ -224,6 +221,7 @@ namespace EyePaint
         var verticesOpacity = (verticesSize == 0) ? 0 : rng.NextDouble();
         var hullOpacity = (branchStraightness < 0.75 || generationRotation > 0.75) ? 0.1 * branchStraightness * (1 - generationRotation) : rng.NextDouble();
         var sumOpacity = centerOpacity + edgesOpacity + verticesOpacity + hullOpacity;
+        branchStepLength *= 1 - hullOpacity;
         centerOpacity /= sumOpacity;
         edgesOpacity /= sumOpacity;
         verticesOpacity /= sumOpacity;
@@ -267,9 +265,28 @@ namespace EyePaint
 
     Point calculateGaze(Point p)
     {
+      // Move window
       gazes.Add(p);
       while (gazes.Count > Properties.Settings.Default.Inertia + 1) gazes.RemoveAt(0);
-      return new Point(gazes.Average(_p => _p.X), gazes.Average(_p => _p.Y));
+      //return new Point(gazes.Average(_p => _p.X), gazes.Average(_p => _p.Y));
+
+      // Calculate weighted moving average
+      //TODO Rewrite with LINQ.
+      var avgX = 0.0;
+      var avgY = 0.0;
+      var sum = 0.0;
+      for (var i = 1; i <= gazes.Count; ++i)
+      {
+        var w = Math.Pow(i, 2);
+        sum += w;
+        var q = gazes.ElementAt(i - 1);
+        avgX += w * q.X;
+        avgY += w * q.Y;
+      }
+      avgX /= sum;
+      avgY /= sum;
+
+      return new Point(avgX, avgY);
     }
 
     void startPainting()

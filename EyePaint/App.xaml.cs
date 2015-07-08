@@ -96,8 +96,9 @@ namespace EyePaint
           Task.Factory.StartNew(() => iet.RunEventLoop());
           iet.Connect();
 
-          // Open paint controls.
           Mouse.OverrideCursor = Cursors.None;
+
+          // Open paint controls.
           resultWindow = new ResultWindow();
           paintWindow = new PaintWindow();
           paintWindow.ContentRendered += (_, __) =>
@@ -163,13 +164,32 @@ namespace EyePaint
       // Retrieve available gaze information from the eye tracker and place the mouse cursor at the position. 
       if (e.GazeData.TrackingStatus != TrackingStatus.NoEyesTracked)
       {
-        //TODO Add support for one eye operation.
-        var l = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyLeft || e.GazeData.TrackingStatus == TrackingStatus.OnlyLeftEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Left.GazePointOnDisplayNormalized : new Point2D(0, 0);
-        var r = (e.GazeData.TrackingStatus == TrackingStatus.BothEyesTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedProbablyRight || e.GazeData.TrackingStatus == TrackingStatus.OnlyRightEyeTracked || e.GazeData.TrackingStatus == TrackingStatus.OneEyeTrackedUnknownWhich) ? e.GazeData.Right.GazePointOnDisplayNormalized : new Point2D(0, 0);
 
         // Determine new gaze point position on the screen.
-        var newGazePoint = new Point(resolution.Width * (l.X + r.X) / 2, resolution.Height * (l.Y + r.Y) / 2);
-        gazes.Add(newGazePoint);
+        var l = e.GazeData.Left.GazePointOnDisplayNormalized;
+        var r = e.GazeData.Right.GazePointOnDisplayNormalized;
+        switch (e.GazeData.TrackingStatus)
+        {
+          case TrackingStatus.BothEyesTracked:
+            gazes.Add(
+              new Point(resolution.Width * (l.X + r.X) / 2, resolution.Height * (l.Y + r.Y) / 2)
+            );
+            break;
+          case TrackingStatus.OneEyeTrackedProbablyLeft:
+          case TrackingStatus.OnlyLeftEyeTracked:
+            gazes.Add(
+              new Point(resolution.Width * l.X, resolution.Height * l.Y)
+            );
+            break;
+          case TrackingStatus.OneEyeTrackedProbablyRight:
+          case TrackingStatus.OnlyRightEyeTracked:
+            gazes.Add(
+              new Point(resolution.Width * r.X, resolution.Height * r.Y)
+            );
+            break;
+          case TrackingStatus.OneEyeTrackedUnknownWhich: //TODO Add?
+            break;
+        }
 
         // Calculate average gaze point (i.e. naive noise reduction).
         while (gazes.Count > EyePaint.Properties.Settings.Default.Stability + 1) gazes.RemoveAt(0);
@@ -251,7 +271,7 @@ namespace EyePaint
     }
 
     /// <summary>
-    /// Clear previous gaze data.
+    /// Clear average gaze data.
     /// </summary>
     public void Reset()
     {

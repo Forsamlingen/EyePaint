@@ -1,7 +1,9 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -14,405 +16,165 @@ using System.Windows.Threading;
 
 namespace EyePaint
 {
-  /// <summary>
-  /// Model representing a paint blob in the application.
-  /// </summary>
-  struct Tree
-  {
-    public Point Root;
-    public PointCollection Leaves;
-    public Dictionary<Point, Point> Parents;
 
-    public Tree(Point p, int maxBranches, ref Random rng)
+  /// <summary>
+  /// Model representing a paint stroke in the application. A stroke consists of several paint blobs that drip color.
+  /// </summary>
+  class PaintStroke
+  {
+    Point brushPosition;
+
+    public List<PaintBlob> Blobs = new List<PaintBlob>();
+
+    public PaintStroke(Point center, PaintTool tool)
     {
-      Root = p;
-      Leaves = new PointCollection();
-      Parents = new Dictionary<Point, Point>();
-      for (int i = 0; i < rng.Next((maxBranches + 1) / 2, maxBranches + 1); ++i)
-        Leaves.Add(Root);
-      Parents[Root] = Root;
+      Blobs.Add(new PaintBlob(center, tool));
+    }
+
+    public void Paint(Point brushPosition, PaintTool tool)
+    {
+      // Create new paint blob if brush has moved.
+      if ((brushPosition - this.brushPosition).Length > tool.Spacing)
+      {
+        Blobs.Add(new PaintBlob(brushPosition, tool));
+        this.brushPosition = brushPosition;
+      }
+
+      // Remove old paint blobs (like they would be dried up).
+      while (Blobs.Count > 5) Blobs.RemoveAt(0);
+
+      // Let paint drip by growing each remaining paint blob.
+      for (var i = 0; i < Blobs.Count; ++i)
+      {
+        var dripAmount = Math.Pow((i + 1) / (double)Blobs.Count, 2);
+        Blobs[i].Drip(tool, dripAmount);
+      }
     }
   }
 
   /// <summary>
-  /// Graphical interpretation parameters of paint strokes in the application.
+  /// Model representing a dripping paint blob in the application.
   /// </summary>
-  struct Shape
+  class PaintBlob
   {
-    public double MaxBranches, BranchStepLength, BranchStraightness, GenerationRotation, ColorVariety, VerticesSize, VerticesSquashVariety, CenterSize, CenterOpacity, EdgesOpacity, VerticesOpacity, HullOpacity;
-  }
+    long generation;
+    public Point Center;
+    public PointCollection Children = new PointCollection();
+    public Dictionary<Point, Point> Parents = new Dictionary<Point, Point>();
 
-  /// <summary>
-  /// Lets the user select different shapes and colors and paint them onto a canvas.
-  /// </summary>
-  public partial class PaintWindow : Window
-  {
-    Random rng = new Random();
-    DispatcherTimer paintTimer;
-    Tree model;
-    Point gaze;
-    List<Point> gazes = new List<Point>();
-    Shape shape;
-    Color color;
-    HashSet<Shape> shapes = new HashSet<Shape>();
-    HashSet<Color> colors = new HashSet<Color>();
-    DateTime usage;
-    Dictionary<Shape, TimeSpan> shapeUsage = new Dictionary<Shape, TimeSpan>();
-    Dictionary<Color, TimeSpan> colorUsage = new Dictionary<Color, TimeSpan>();
-
-    public PaintWindow()
+    public PaintBlob(Point center, PaintTool tool)
     {
-      InitializeComponent();
-      Show();
+      Center = center;
+      var branches = Random.Next((int)((1 - tool.BranchesVariety) * tool.BranchesMaximum), (int)tool.BranchesMaximum);
+      for (int i = 0; i < branches; ++i) Children.Add(Center);
+      Parents[Center] = Center;
     }
 
-    protected override void OnContentRendered(EventArgs e)
+    public void Drip(PaintTool tool, double amount)
     {
-      // Initialize drawing. Update model and draw resulting painting around 24 times per second.
-      Drawing.Source = createCanvas((int)ActualWidth, (int)ActualHeight);
-      (paintTimer = new DispatcherTimer(
-        TimeSpan.FromMilliseconds(1000 / 24),
-        DispatcherPriority.Render,
-        (_, __) => paint(ref model, Drawing.Source as RenderTargetBitmap),
-        Dispatcher)
-      ).Stop();
-
-      // Choose initial shape and color by simulating a button click.
-      ShapeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-      ColorButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-      PaintControls.Visibility = Visibility.Visible;
-
-      base.OnContentRendered(e);
-
-      // Perform initial offset calibration.
-      while (!new CalibrationWindow(this).DialogResult.Value) ;
-
-      // Activate paint session controls.
-      (App.Current as App).ResetButtonEnabled = true;
-      PaintMarker.Visibility = Visibility.Visible;
-
-      // Reset window on user inactivity. Note: IsEnabled is used with the eye tracker to determine user status.
-      IsEnabledChanged += (_s, _e) =>
+      long maxGenerations = 20; //TODO Set in seconds painted instead.
+      if (generation > maxGenerations)
       {
-        var sb = (FindResource("InactivityStoryboard") as Storyboard);
-        if (!(bool)_e.NewValue) sb.Begin();
-        else sb.Stop();
-      };
-    }
-
-    protected override void OnClosing(CancelEventArgs e)
-    {
-      base.OnClosing(e);
-      foreach (var w in OwnedWindows) (w as Window).Close();
-    }
-
-    void onInactivity(object s, EventArgs e)
-    {
-      if (IsVisible) (App.Current as App).Reset();
-    }
-
-    void onCanvasMouseDown(object s, MouseButtonEventArgs e)
-    {
-      gaze = calculateGaze(e.GetPosition(s as Canvas));
-      startPainting();
-      PaintMarker.Visibility = Visibility.Hidden;
-      (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
-    }
-
-    void onCanvasMouseUp(object s, MouseButtonEventArgs e)
-    {
-      stopPainting();
-      PaintMarker.Visibility = Visibility.Visible;
-      (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Begin();
-    }
-
-    void onCanvasMouseEnter(object s, MouseEventArgs e)
-    {
-      (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Begin();
-    }
-
-    void onCanvasMouseLeave(object s, MouseEventArgs e)
-    {
-      stopPainting();
-      (PaintMarker.FindResource("GazePaintStoryboard") as Storyboard).Stop();
-    }
-
-    void onCanvasMouseMove(object s, MouseEventArgs e)
-    {
-      var p = calculateGaze(e.GetPosition(s as Canvas));
-
-      Canvas.SetLeft(PaintMarker, p.X - PaintMarker.ActualWidth / 2);
-      Canvas.SetTop(PaintMarker, p.Y - PaintMarker.ActualHeight / 2);
-
-      if (paintTimer.IsEnabled && (model.Root - p).Length > Properties.Settings.Default.Spacing / 2)
-        model = new Tree(p, (int)shape.MaxBranches, ref rng);
-      if ((gaze - p).Length > Properties.Settings.Default.Spacing)
-      {
-        var sb = PaintMarker.FindResource("GazePaintStoryboard") as Storyboard;
-        switch (sb.GetCurrentState())
-        {
-          case ClockState.Active:
-            sb.Seek(TimeSpan.Zero);
-            break;
-          case ClockState.Filling:
-            sb.Seek(TimeSpan.Zero);
-            stopPainting();
-            break;
-        }
-      }
-      gaze = p;
-    }
-
-    void onGazePaint(object s, EventArgs e)
-    {
-      startPainting();
-    }
-
-    void onPublishButtonClick(object s, EventArgs e)
-    {
-      if (new DialogWindow(this).DialogResult.Value)
-      {
-        new PublishWindow(this, Drawing.Source as RenderTargetBitmap);
-      }
-    }
-
-    void onResetButtonClick(object s, EventArgs e)
-    {
-      if (new DialogWindow(this).DialogResult.Value)
-      {
-        clearCanvas(Drawing.Source as RenderTargetBitmap);
-      }
-    }
-
-    void onShapeButtonClick(object s, EventArgs e)
-    {
-      // Sort shapes by usage.
-      shapes.OrderBy(sh => shapeUsage[sh]);
-
-      // Remove underused shapes.
-      foreach (var sh in shapes.ToList())
-      {
-        if (shapeUsage[sh].Seconds < 0.1 * shapeUsage.Max(kvp => kvp.Value).Seconds || shapeUsage[sh] == TimeSpan.Zero)
-        {
-          shapes.Remove(sh);
-          shapeUsage.Remove(sh);
-        }
+        Children.Clear();
+        return;
       }
 
-      // Determine whether to pick a average shape or generate a new.
-      if (shapes.Count > 0 && rng.NextDouble() <= 0.01 * shapes.Count - 0.1)
+      ++generation;
+      var stepLength = tool.BranchLength * amount * (1 - (Math.Sqrt(generation) / Math.Sqrt(maxGenerations)));
+      var rotation = tool.Rotation * Random.NextDouble() * 2 * Math.PI;
+      for (int i = 0; i < Children.Count; ++i)
       {
-        // Pick a previously used shape.
-        shape = shapes.ElementAt((shapes.ToList().IndexOf(shape) + 1) % shapes.Count); //TODO Verify that the index applies to the HashSet.
-      }
-      else
-      {
-        // Generate a new shape.
-        var maxBranches = rng.Next(1, 100);
-        var branchStepLength = Math.Sqrt(rng.Next(1, 1001));
-        var branchStraightness = Math.Sqrt(rng.NextDouble());
-        var generationRotation = rng.NextDouble();
-        var colorVariety = rng.NextDouble();
-        var verticesSize = Math.Sqrt(rng.Next(0, 101));
-        var verticesSquashVariety = rng.NextDouble() * rng.NextDouble();
-        var centerSize = (branchStepLength < 10) ? rng.Next(10, 101) : Math.Sqrt(rng.Next(1, 101));
-        var centerOpacity = Math.Max(0, rng.NextDouble() * (rng.NextDouble() - centerSize / 100d));
-        var edgesOpacity = (branchStraightness > 0.75) ? rng.NextDouble() : 0.1 * rng.NextDouble();
-        var verticesOpacity = (verticesSize == 0) ? 0 : rng.NextDouble();
-        var hullOpacity = (branchStraightness < 0.75 || generationRotation > 0.75) ? 0.1 * branchStraightness * (1 - generationRotation) : rng.NextDouble();
-        var sumOpacity = centerOpacity + edgesOpacity + verticesOpacity + hullOpacity;
-        branchStepLength *= 1 - hullOpacity;
-        centerOpacity /= sumOpacity;
-        edgesOpacity /= sumOpacity;
-        verticesOpacity /= sumOpacity;
-        hullOpacity /= sumOpacity;
-        shape = new Shape { MaxBranches = maxBranches, BranchStepLength = branchStepLength, BranchStraightness = branchStraightness, GenerationRotation = generationRotation, ColorVariety = colorVariety, VerticesSize = verticesSize, VerticesSquashVariety = verticesSquashVariety, CenterSize = centerSize, CenterOpacity = centerOpacity, EdgesOpacity = edgesOpacity, VerticesOpacity = verticesOpacity, HullOpacity = hullOpacity };
-      }
-
-      // Add shape.
-      shapes.Add(shape);
-      shapeUsage[shape] = TimeSpan.Zero;
-
-      // Update GUI.
-      updateIcons();
-    }
-
-    void onColorButtonClick(object s, EventArgs e)
-    {
-      // Sort colors by usage.
-      colors.OrderBy(c => colorUsage[c]);
-
-      // Remove underused colors.
-      foreach (var c in colors.ToList())
-      {
-        if (colorUsage[c].Seconds < 0.1 * colorUsage.Max(kvp => kvp.Value).Seconds || colorUsage[c] == TimeSpan.Zero)
-        {
-          colors.Remove(c);
-          colorUsage.Remove(c);
-        }
-      }
-
-      // Either pick a previously used color or generate a new, based on how many previously used colors there are.
-      color = (colors.Count > 0 && rng.NextDouble() <= 0.01 * colors.Count - 0.1) ? colors.ElementAt((colors.ToList().IndexOf(color) + 1) % colors.Count) : createColor(); //TODO Verify that the index applies to the HashSet.
-
-      // Add color.
-      colors.Add(color);
-      colorUsage[color] = TimeSpan.Zero;
-
-      // Update GUI.
-      updateIcons();
-    }
-
-    Point calculateGaze(Point p)
-    {
-      // Move window
-      gazes.Add(p);
-      while (gazes.Count > Properties.Settings.Default.Inertia + 1) gazes.RemoveAt(0);
-      //return new Point(gazes.Average(_p => _p.X), gazes.Average(_p => _p.Y));
-
-      // Calculate weighted moving average
-      //TODO Rewrite with LINQ.
-      var avgX = 0.0;
-      var avgY = 0.0;
-      var sum = 0.0;
-      for (var i = 1; i <= gazes.Count; ++i)
-      {
-        var w = Math.Pow(i, 2);
-        sum += w;
-        var q = gazes.ElementAt(i - 1);
-        avgX += w * q.X;
-        avgY += w * q.Y;
-      }
-      avgX /= sum;
-      avgY /= sum;
-
-      return new Point(avgX, avgY);
-    }
-
-    void startPainting()
-    {
-      if (!paintTimer.IsEnabled)
-      {
-        model = new Tree(gaze, (int)shape.MaxBranches, ref rng);
-        usage = DateTime.Now;
-        paintTimer.Start();
-      }
-    }
-
-    void stopPainting()
-    {
-      if (paintTimer.IsEnabled)
-      {
-        paintTimer.Stop();
-        var t = DateTime.Now - usage;
-        shapeUsage[shape] += t;
-        colorUsage[color] += t;
-      }
-    }
-
-    RenderTargetBitmap createCanvas(int width, int height)
-    {
-      var drawing = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
-      clearCanvas(drawing);
-      return drawing;
-    }
-
-    void clearCanvas(RenderTargetBitmap drawing)
-    {
-      if (drawing != null)
-      {
-        DrawingVisual dv = new DrawingVisual();
-        using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, drawing.Width, drawing.Height));
-        drawing.Render(dv);
-      }
-    }
-
-    void paint(ref Tree tree, RenderTargetBitmap drawing)
-    {
-      // Grow tree.
-      var newLeaves = new PointCollection();
-      var newParents = new Dictionary<Point, Point>();
-      var rotation = shape.GenerationRotation * rng.NextDouble() * 2 * Math.PI;
-      for (int i = 0; i < tree.Leaves.Count; ++i)
-      {
-        var q = (tree.Leaves.Count == 0) ? tree.Root : tree.Leaves[i];
         var angle =
-            i * (2 * Math.PI / tree.Leaves.Count)
+            i * 2 * Math.PI / Children.Count
             + rotation
-            + (1 - shape.BranchStraightness) * rng.NextDouble() * 2 * Math.PI;
+            + (1 - tool.BranchStraightness) * Random.NextDouble() * 2 * Math.PI;
         var p = new Point(
-            q.X + shape.BranchStepLength * Math.Cos(angle),
-            q.Y + shape.BranchStepLength * Math.Sin(angle)
+            Children[i].X + stepLength * Math.Cos(angle),
+            Children[i].Y + stepLength * Math.Sin(angle)
         );
-
-        //var padding = 0.1;
-        //if (padding * drawing.Width < p.X && p.X < (1 - padding) * drawing.Width && padding * drawing.Height < p.Y && p.Y < (1 - padding) * drawing.Height)
-        //{
-        newParents[p] = q;
-        newLeaves.Add(p);
-        //}
+        Parents[p] = Children[i];
+        Children[i] = p;
       }
+    }
+  }
 
-      // Create drawing from tree model.
-      var dv = new DrawingVisual();
-      using (var dc = dv.RenderOpen())
-      {
-        var centerSize = rng.NextDouble() * shape.CenterSize;
-        var centerBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
-        centerBrush.Opacity = rng.NextDouble() * shape.CenterOpacity;
-        var centerPen = new Pen(centerBrush, 1);
-        dc.DrawEllipse(centerBrush, centerPen, tree.Root, centerSize, centerSize);
+  /// <summary>
+  /// Interprets paint stroke into drawings.
+  /// </summary>
+  class PaintTool
+  {
+    public Color Color;
+    public double
+      Spacing,
+      Rotation,
+      ColorVariation,
 
-        var edges = new GeometryGroup();
-        var edgesPen = new Pen(new SolidColorBrush(createColor(color, shape.ColorVariety)), 1);
-        edgesPen.StartLineCap = edgesPen.EndLineCap = PenLineCap.Round;
-        edgesPen.LineJoin = PenLineJoin.Round;
-        edgesPen.Brush.Opacity = shape.EdgesOpacity;
-        foreach (var p in tree.Leaves) edges.Children.Add(new LineGeometry(p, tree.Parents[p]));
-        dc.DrawGeometry(null, edgesPen, edges);
+      BranchesMaximum,
+      BranchesVariety,
+      BranchLength,
+      BranchStraightness,
 
-        var vertices = new GeometryGroup();
-        var verticesBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
-        verticesBrush.Opacity = rng.NextDouble() * shape.VerticesOpacity;
-        var verticesPen = new Pen(verticesBrush, 1);
-        foreach (var p in tree.Leaves)
-        {
-          var r = rng.NextDouble();
-          var eg = new EllipseGeometry(p, shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()), shape.VerticesSize * (r + shape.VerticesSquashVariety * rng.NextDouble()));
-          vertices.Children.Add(eg);
-        }
-        dc.DrawGeometry(verticesBrush, verticesPen, vertices);
+      CenterSize,
+      CenterSquashVariety,
 
-        var hull = new StreamGeometry();
-        var hullBrush = new SolidColorBrush(createColor(color, shape.ColorVariety));
-        hullBrush.Opacity = rng.NextDouble() * shape.HullOpacity;
-        var hullPen = new Pen(hullBrush, 1);
-        if (tree.Leaves.Count > 3) using (var sgc = hull.Open())
-          {
-            sgc.BeginFigure(tree.Leaves[0], true, true);
-            sgc.PolyLineTo(tree.Leaves, true, true);
-          }
-        dc.DrawGeometry(hullBrush, hullPen, hull);
-      }
-      var dse = new DropShadowEffect();
-      dse.BlurRadius = 20;
-      dse.ShadowDepth = 0;
-      dse.Opacity = 0.9;
-      dse.Color = createColor(color, shape.ColorVariety);
-      dv.Effect = dse;
+      VerticesSize,
+      VerticesSquashVariety,
 
-      // Render and keep new tree.
-      tree.Leaves = newLeaves;
-      tree.Parents = newParents;
-      if (drawing != null) drawing.Render(dv);
+      CenterFillOpacity,
+      CenterStrokeOpacity,
+      EdgesStrokeOpacity,
+      VerticesFillOpacity,
+      VerticesStrokeOpacity,
+      HullStrokeOpacity,
+      HullFillOpacity;
+
+    public PaintTool()
+    {
+      Color = generateRandomColor(null, 0.0, new double[] { 0.0, 0.33, 0.66 });
+      ColorVariation = Random.NextDouble();
+
+      BranchesMaximum = Random.Next(1, 100);
+      BranchesVariety = Random.NextDouble();
+      BranchLength = Math.Sqrt(Random.Next(1, 900));
+      BranchStraightness = Random.NextDouble() > 0.5 ? 1 : Math.Sqrt(Random.NextDouble());
+      Rotation = Random.NextDouble() * 2 - 1;
+
+      VerticesSize = Random.NextDouble() > 0.5 ? 1 : Math.Sqrt(Random.Next(0, 100));
+      VerticesSquashVariety = Math.Pow(Random.NextDouble(), 2);
+
+      Spacing = BranchLength;
+
+      CenterSize = BranchLength < 10 ? Random.Next(10, 200) : Math.Sqrt(Random.Next(1, 100));
+      CenterSquashVariety = Math.Pow(Random.NextDouble(), 2);
+
+      CenterFillOpacity = Math.Max(0, Random.NextDouble() * (Random.NextDouble() - CenterSize / 100.0));
+      CenterStrokeOpacity = Math.Max(0, Random.NextDouble() * (Random.NextDouble() - CenterSize / 100.0));
+      EdgesStrokeOpacity = BranchStraightness > 0.9 ? Random.NextDouble() : 0.1 * Random.NextDouble();
+      VerticesFillOpacity = VerticesSize == 0 ? 0 : Random.NextDouble();
+      VerticesStrokeOpacity = VerticesFillOpacity;
+      HullFillOpacity = BranchStraightness < 0.75 || Rotation > 0.75 ? 0.01 * BranchStraightness * (1 - Rotation) : 0.1 * Random.NextDouble();
+      HullStrokeOpacity = BranchStraightness < 0.75 || Rotation > 0.75 ? 0.1 * BranchStraightness * (1 - Rotation) : Random.NextDouble();
+
+      var sumOpacity = CenterFillOpacity + CenterStrokeOpacity + EdgesStrokeOpacity + VerticesFillOpacity + VerticesStrokeOpacity + HullFillOpacity + HullStrokeOpacity;
+      CenterFillOpacity /= sumOpacity;
+      CenterStrokeOpacity /= sumOpacity;
+      EdgesStrokeOpacity /= sumOpacity;
+      VerticesFillOpacity /= sumOpacity;
+      VerticesStrokeOpacity /= sumOpacity;
+      HullStrokeOpacity /= sumOpacity;
+      HullFillOpacity /= sumOpacity;
     }
 
-    Color createColor(Color? baseColor = null, double randomness = 1)
+    Color generateRandomColor(Color? baseColor = null, double randomness = 1.0, double[] preferedColors = null)
     {
-      // Generate a random color.
-      var H = rng.NextDouble();
-      var S = rng.NextDouble() > 0 || baseColor.HasValue ? 1.0 : 0;
-      var V = rng.NextDouble() > 0 || baseColor.HasValue ? 1.0 : 0;
+      var H = Random.NextDouble();
+      
+      if (preferedColors != null) {
+        H = Random.NextDouble() > 0.5 ? H : preferedColors[Random.Next(0, preferedColors.Length)];
+      }
+
+      var S = 1.0;
+      var V = 1.0;
       byte R, G, B;
       if (S == 0)
       {
@@ -444,26 +206,273 @@ namespace EyePaint
         B = (byte)(b * 255);
       }
 
-      // Mix colors if neccessary.
+      // Mix colors
       if (baseColor.HasValue)
       {
         var c1 = baseColor.Value;
         var c2 = Color.Multiply(Color.FromRgb(R, G, B), (float)randomness);
         var brightness = System.Drawing.Color.FromArgb(baseColor.Value.A, baseColor.Value.R, baseColor.Value.G, baseColor.Value.B).GetBrightness();
-        return (brightness >= 0.5) ? c1 + c2 : c1 - c2;
+        var c3 = (brightness >= 0.5) ? c1 + c2 : c1 - c2;
+        return c3;
       }
-      else return Color.FromRgb(R, G, B);
+      else
+      {
+        return Color.FromRgb(R, G, B);
+      }
     }
 
-    void updateIcons()
+    public DrawingVisual Draw(PaintStroke stroke)
     {
-      ColorButtonBackgroundBaseColor.Color = color;
-      ColorButtonBackgroundColorVariety.Color = createColor(color, shape.ColorVariety);
-      var toolIcon = new Image();
-      toolIcon.Source = createCanvas((int)(ShapeButton.ActualWidth), (int)(ShapeButton.ActualHeight));
-      var model = new Tree(new Point(ShapeButton.ActualWidth / 2, ShapeButton.ActualHeight / 2), (int)shape.MaxBranches, ref rng);
-      for (int i = 0; i < 10; ++i) paint(ref model, toolIcon.Source as RenderTargetBitmap);
-      ShapeButton.Content = toolIcon;
+      var dv = new DrawingVisual();
+      using (var dc = dv.RenderOpen())
+      {
+        foreach (var blob in stroke.Blobs)
+        {
+          if (blob.Children.Count == 0) continue;
+          var hull = new StreamGeometry();
+          var hullBrush = new SolidColorBrush(generateRandomColor(Color, ColorVariation));
+          hullBrush.Opacity = HullFillOpacity;
+          var hullPen = new Pen(new SolidColorBrush(generateRandomColor(Color, ColorVariation)), 1);
+          hullPen.Brush.Opacity = HullStrokeOpacity;
+          if (blob.Children.Count > 4) using (var sgc = hull.Open())
+            {
+              sgc.BeginFigure(blob.Children[0], true, true);
+              sgc.PolyBezierTo(blob.Children, true, false);
+            }
+          dc.DrawGeometry(hullBrush, hullPen, hull);
+
+          var edges = new GeometryGroup();
+          var edgesPen = new Pen(new SolidColorBrush(generateRandomColor(Color, ColorVariation)), 0.1);
+          edgesPen.Brush.Opacity = EdgesStrokeOpacity;
+          foreach (var p in blob.Children) edges.Children.Add(new LineGeometry(p, blob.Parents[p]));
+          dc.DrawGeometry(null, edgesPen, edges);
+
+          var vertices = new GeometryGroup();
+          var verticesBrush = new SolidColorBrush(generateRandomColor(Color, ColorVariation));
+          verticesBrush.Opacity = VerticesFillOpacity;
+          var verticesPen = new Pen(verticesBrush, 1);
+          foreach (var p in blob.Children)
+          {
+            var r = Random.NextDouble();
+            var sizeX = VerticesSize * r;
+            var sizeY = VerticesSize * r;
+            var eg = new EllipseGeometry(p, sizeX, sizeY);
+            vertices.Children.Add(eg);
+          }
+          dc.DrawGeometry(verticesBrush, verticesPen, vertices);
+
+          var centerBrush = new SolidColorBrush(generateRandomColor(Color, ColorVariation));
+          centerBrush.Opacity = CenterFillOpacity;
+          var centerPen = new Pen(new SolidColorBrush(generateRandomColor(Color, ColorVariation)), 1);
+          centerPen.Brush.Opacity = CenterStrokeOpacity;
+          var centerSizeX = CenterSize * CenterSquashVariety * Random.NextDouble();
+          var centerSizeY = CenterSize * CenterSquashVariety * Random.NextDouble();
+          dc.DrawEllipse(centerBrush, centerPen, blob.Center, centerSizeX, centerSizeY);
+        }
+      }
+
+      var e = new DropShadowEffect();
+      e.Color = generateRandomColor(Color, ColorVariation);
+      e.RenderingBias = RenderingBias.Performance;
+      e.BlurRadius = Math.Max(5, 20 / BranchesMaximum); // TODO 
+      e.Opacity = 0.9;
+      e.ShadowDepth = Random.NextDouble();
+      e.Direction = Random.Next(0, 360);
+      dv.Effect = e;
+
+      return dv;
+    }
+  }
+
+  /// <summary>
+  /// Lets the user select different paintToolHistory and colorHistory and paint them onto a canvas.
+  /// </summary>
+  public partial class PaintWindow : Window
+  {
+    static Random rng = new Random();
+    DispatcherTimer paintTimer;
+    TimeSpan activePaintDuration;
+    DateTime timeStrokeStart;
+    Point brushPosition;
+    List<Point> brushPositionHistory = new List<Point>();
+    PaintStroke stroke;
+    DrawingVisual layer;
+    PaintTool tool;
+    List<PaintTool> paintToolHistory = new List<PaintTool>();
+    Dictionary<PaintTool, TimeSpan> paintToolUsage = new Dictionary<PaintTool, TimeSpan>();
+
+    public PaintWindow()
+    {
+      InitializeComponent();
+
+      // Update drawing as many times per second as possible.
+      (paintTimer = new DispatcherTimer(
+        TimeSpan.FromMilliseconds(1),
+        DispatcherPriority.Render,
+        (_, __) =>
+        {
+          // Render drawing.
+          var drawing = Drawing.Source as RenderTargetBitmap;
+          layer = paint(ref brushPosition, ref tool, ref stroke, ref drawing);
+
+          // Require a couple of seconds of actively painting before allowing the user to publish the drawing.
+          if (activePaintDuration.Seconds > Properties.Settings.Default.MinimumActivePaintTimeBeforeAllowingPublish) PublishButton.IsEnabled = true;
+        },
+        Dispatcher
+      )).Stop();
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+      // Initialize drawing.
+      Drawing.Source = createCanvas((int)ActualWidth, (int)ActualHeight);
+
+      // Choose initial tool and color by simulating a button click.
+      PaintToolButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+
+      base.OnContentRendered(e);
+
+      // Perform initial offset calibration.
+      while (!new CalibrationWindow(this).DialogResult.Value) ;
+
+      // Allow user to reset the program and allow painting.
+      PaintControls.IsEnabled = true;
+      (App.Current as App).Globals.IsResettable = true;
+
+      // Reset window on user inactivity. Note: IsHitTestVisible is used with the eye tracker to determine user presence.
+      IsHitTestVisibleChanged += (_s, _e) =>
+      {
+        var sb = (FindResource("InactivityStoryboard") as Storyboard);
+        if (!(bool)_e.NewValue) sb.Begin();
+        else sb.Stop();
+      };
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+      base.OnClosing(e);
+      foreach (var w in OwnedWindows) (w as Window).Close();
+    }
+
+    void onInactivity(object s, EventArgs e)
+    {
+      if (IsVisible) (App.Current as App).Reset();
+    }
+
+    void onCanvasMouseEnter(object s, MouseEventArgs e)
+    {
+      var gaze = e.GetPosition(s as Canvas);
+      startPainting(gaze);
+    }
+
+    void onCanvasMouseLeave(object s, MouseEventArgs e)
+    {
+      stopPainting();
+    }
+
+    void onCanvasMouseMove(object s, MouseEventArgs e)
+    {
+      var gaze = e.GetPosition(s as Canvas);
+
+      // Determine brush position with a moving average window.
+      brushPositionHistory.Add(gaze);
+      while (brushPositionHistory.Count > EyePaint.Properties.Settings.Default.Inertia) brushPositionHistory.RemoveAt(0);
+      brushPosition = new Point(brushPositionHistory.Average(p => p.X), brushPositionHistory.Average(p => p.Y));
+
+      // Begin new paint stroke if brush left paint.
+      if (layer != null && !layer.ContentBounds.Contains(brushPosition))
+      {
+        stopPainting();
+        Task.Delay(25).ContinueWith(_ => Dispatcher.Invoke(() => startPainting(brushPosition))); //TODO How long delay? Maybe create ADSR envelopes for paint strokes instead.
+      }
+    }
+
+    void onPublishButtonClick(object s, EventArgs e)
+    {
+      if (new DialogWindow(this).DialogResult.Value)
+      {
+        new PublishWindow(this, Drawing.Source as RenderTargetBitmap);
+      }
+    }
+
+    void onToolButtonClick(object s, EventArgs e)
+    {
+      // Sort history by usage and remove underused tools.
+      paintToolHistory.OrderBy(c => paintToolUsage[c]);
+      foreach (var c in paintToolHistory.ToList())
+      {
+        if (paintToolUsage[c].Seconds <= 0.1 * paintToolUsage.Max(kvp => kvp.Value).Seconds)
+        {
+          paintToolHistory.Remove(c);
+          paintToolUsage.Remove(c);
+        }
+      }
+
+      // Let a coin toss decide whether to pick a previous tool or a random one.
+      if (paintToolHistory.Count > 10 && Random.NextDouble() < 0.5)
+      {
+        // Select next tool in paintToolHistory.
+        tool = paintToolHistory.ElementAt((paintToolHistory.IndexOf(tool) + 1) % paintToolHistory.Count);
+      }
+      else
+      {
+        // Generate a new tool and remember it.
+        tool = new PaintTool();
+        paintToolHistory.Add(tool);
+        paintToolUsage[tool] = TimeSpan.Zero;
+      }
+
+      // Update GUI button icon by sample drawing with the new tool.
+      var b = s as Button;
+      var drawing = createCanvas((int)(b.ActualWidth), (int)(b.ActualHeight));
+      var center = new Point(b.ActualWidth / 2, b.ActualHeight / 2);
+      var stroke = new PaintStroke(center, tool);
+      for (int i = 0; i < 20; ++i) paint(ref center, ref this.tool, ref stroke, ref drawing);
+      var icon = new Image();
+      icon.Source = drawing;
+      b.Content = icon;
+    }
+
+    // Begin new paint stroke at center and start rendering drawing.
+    void startPainting(Point center)
+    {
+      if (paintTimer.IsEnabled) return;
+      stroke = new PaintStroke(center, tool);
+      timeStrokeStart = DateTime.Now;
+      brushPositionHistory.Add(center);
+      paintTimer.Start();
+    }
+
+    // Stop rendering drawing, clear brush position and calculate paint tool usage.
+    void stopPainting()
+    {
+      paintTimer.Stop();
+      brushPositionHistory.Clear();
+      layer = null; //TODO Why?
+      var strokeDuration = DateTime.Now - timeStrokeStart;
+      paintToolUsage[tool] += strokeDuration; //TODO Combine similar tools and find trends.
+      activePaintDuration += strokeDuration;
+    }
+
+    RenderTargetBitmap createCanvas(int width, int height)
+    {
+      var drawing = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+      DrawingVisual dv = new DrawingVisual();
+      using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, drawing.Width, drawing.Height));
+      drawing.Render(dv);
+      return drawing;
+    }
+
+    DrawingVisual paint(ref Point brushPosition, ref PaintTool tool, ref PaintStroke stroke, ref RenderTargetBitmap drawing)
+    {
+      stroke.Paint(brushPosition, tool);
+      var dv = tool.Draw(stroke);
+
+      if (drawing != null) drawing.Render(dv);
+
+      if (dv.ContentBounds.IsEmpty) return layer; //TODO Structure code better.
+
+      return dv;
     }
   }
 }

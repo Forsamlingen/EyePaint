@@ -14,6 +14,7 @@ namespace EyePaint
     {
       InitializeComponent();
       Owner = owner;
+      Activate(); //TODO
       ShowDialog();
     }
 

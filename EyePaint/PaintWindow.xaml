@@ -3,6 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Style="{StaticResource GazeWindow}"
         Name="Window"
+        Height="1080"
+        Width="1920"
         Background="Black">
   <Window.Resources>
     <Storyboard x:Key="InactivityStoryboard" Completed="onInactivity">
@@ -13,67 +15,31 @@
       </DoubleAnimation>
     </Storyboard>
   </Window.Resources>
-  <Grid Name="PaintControls" Background="Black" Visibility="Hidden">
+  <Grid Name="PaintControls" IsEnabled="False">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="0.05*"/>
-      <ColumnDefinition Width="{Binding Path=ActualHeight, ElementName=ColumnWidth}"/>
+      <ColumnDefinition Width="0.15*"/>
       <ColumnDefinition />
-      <ColumnDefinition Width="{Binding Path=ActualHeight, ElementName=ColumnWidth}"/>
-      <ColumnDefinition Width="0.05*"/>
+      <ColumnDefinition Width="3*"/>
+      <ColumnDefinition />
+      <ColumnDefinition Width="0.15*"/>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
-      <RowDefinition Height="0.4*"/>
-      <RowDefinition Height="2*"/>
       <RowDefinition />
-      <RowDefinition Height="2*"/>
-      <RowDefinition Height="0.15*"/>
+      <RowDefinition Height="0.55*"/>
+      <RowDefinition Height="0.05*"/>
     </Grid.RowDefinitions>
-    <Grid Name="ColumnWidth" Grid.Row="1" Grid.Column="1"/>
-    <Canvas Grid.ColumnSpan="5" Grid.RowSpan="5" MouseMove="onCanvasMouseMove" MouseDown="onCanvasMouseDown" MouseEnter="onCanvasMouseEnter" MouseLeave="onCanvasMouseLeave" MouseUp="onCanvasMouseUp" RenderTransformOrigin="0.5,0.5">
+    <Canvas Grid.RowSpan="3" Grid.ColumnSpan="5" MouseMove="onCanvasMouseMove" MouseEnter="onCanvasMouseEnter" MouseLeave="onCanvasMouseLeave">
       <Image Name="Drawing" RenderTransformOrigin="0.5,0.5">
         <Image.RenderTransform>
           <ScaleTransform x:Name="RasterScaleTransform"/>
         </Image.RenderTransform>
       </Image>
-      <Ellipse Visibility="Hidden" Name="PaintMarker" Height="300" Width="300" Stroke="#fff5dc0b" StrokeThickness="10" RenderTransformOrigin="0.5,0.5" Opacity="0.1">
-        <Ellipse.RenderTransform>
-          <ScaleTransform x:Name="PaintMarkerScaleTransform"/>
-        </Ellipse.RenderTransform>
-        <Ellipse.Resources>
-          <Storyboard x:Key="GazePaintStoryboard" Completed="onGazePaint" Duration="0:0:1">
-            <DoubleAnimation Storyboard.TargetName="PaintMarker" Storyboard.TargetProperty="Opacity" From="0.1" To="1"/>
-            <DoubleAnimation Storyboard.TargetName="PaintMarkerScaleTransform" Storyboard.TargetProperty="ScaleX" From="1" To="0.8">
-              <DoubleAnimation.EasingFunction>
-                <QuadraticEase EasingMode="EaseIn"/>
-              </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="PaintMarkerScaleTransform" Storyboard.TargetProperty="ScaleY" From="1" To="0.8">
-              <DoubleAnimation.EasingFunction>
-                <QuadraticEase EasingMode="EaseIn"/>
-              </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-          </Storyboard>
-        </Ellipse.Resources>
-      </Ellipse>
     </Canvas>
-    <Button Name="PublishButton" Grid.Row="1" Grid.Column="1" Template="{StaticResource GazeButton}" Click="onPublishButtonClick" Background="Black" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
+    <Button Grid.Row="1" Grid.Column="1" Name="PaintToolButton" Template="{StaticResource GazeButton}" Click="onToolButtonClick" Background="Black" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}"/>
+    <Button Grid.Row="1" Grid.Column="3" IsEnabled="False" Name="PublishButton" Template="{StaticResource GazeButton}" Click="onPublishButtonClick" Background="Black" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
       <Button.Content>
-        <StaticResource ResourceKey="cloudIcon" />
+        <StaticResource ResourceKey="saveIcon" />
       </Button.Content>
-    </Button>
-    <Button Name="ResetButton" Grid.Row="1" Grid.Column="3" Template="{StaticResource GazeButton}" Click="onResetButtonClick" Background="Black" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
-      <Button.Content>
-        <StaticResource ResourceKey="newIcon" />
-      </Button.Content>
-    </Button>
-    <Button Name="ShapeButton" Grid.Row="3" Grid.Column="1" Template="{StaticResource GazeButton}" Click="onShapeButtonClick" Background="Black" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}"/>
-    <Button Name="ColorButton" Grid.Row="3" Grid.Column="3" Template="{StaticResource GazeButton}" Click="onColorButtonClick" Foreground="#fff5dc0b" IsHitTestVisible="{Binding IsVisible, ElementName=PaintMarker}">
-      <Button.Background>
-        <LinearGradientBrush>
-          <GradientStop x:Name="ColorButtonBackgroundBaseColor" Color="Transparent"/>
-          <GradientStop x:Name="ColorButtonBackgroundColorVariety" Color="Transparent" Offset="1"/>
-        </LinearGradientBrush>
-      </Button.Background>
     </Button>
   </Grid>
 </Window>

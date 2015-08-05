@@ -19,20 +19,63 @@ namespace EyePaint
   /// </summary>
   public class GlobalProperties : DependencyObject
   {
-    public static DependencyProperty TrackingProperty = DependencyProperty.Register("Tracking", typeof(bool), typeof(GlobalProperties));
-    public bool Tracking
+    public static DependencyProperty IsUserPresentProperty = DependencyProperty.Register("IsUserPresent", typeof(bool), typeof(GlobalProperties));
+    public bool IsUserPresent
     {
-      get { return (bool)GetValue(TrackingProperty); }
-      set { SetValue(TrackingProperty, value); }
+      get { return (bool)GetValue(IsUserPresentProperty); }
+      set { SetValue(IsUserPresentProperty, value); }
+    }
+
+    public static DependencyProperty IsResettableProperty = DependencyProperty.Register("IsResettable", typeof(bool), typeof(GlobalProperties));
+    public bool IsResettable
+    {
+      get { return (bool)GetValue(IsResettableProperty); }
+      set { SetValue(IsResettableProperty, value); }
+    }
+
+    public static DependencyProperty GazeXProperty = DependencyProperty.Register("GazeX", typeof(double), typeof(GlobalProperties));
+    public double GazeX
+    {
+      get { return (double)GetValue(GazeXProperty); }
+      set { SetValue(GazeXProperty, value); }
+    }
+
+    public static DependencyProperty GazeYProperty = DependencyProperty.Register("GazeY", typeof(double), typeof(GlobalProperties));
+    public double GazeY
+    {
+      get { return (double)GetValue(GazeYProperty); }
+      set { SetValue(GazeYProperty, value); }
+    }
+
+    public static DependencyProperty ChaseXProperty = DependencyProperty.Register("ChaseX", typeof(double), typeof(GlobalProperties));
+    public double ChaseX
+    {
+      get { return (double)GetValue(ChaseXProperty); }
+      set { SetValue(ChaseXProperty, value); }
+    }
+
+    public static DependencyProperty ChaseYProperty = DependencyProperty.Register("ChaseY", typeof(double), typeof(GlobalProperties));
+    public double ChaseY
+    {
+      get { return (double)GetValue(ChaseYProperty); }
+      set { SetValue(ChaseYProperty, value); }
+    }
+
+    public static DependencyProperty IsChasingProperty = DependencyProperty.Register("IsChasing", typeof(bool), typeof(GlobalProperties));
+    public bool IsChasing
+    {
+      get { return (bool)GetValue(IsChasingProperty); }
+      set { SetValue(IsChasingProperty, value); }
     }
   }
 
   /// <summary>
-  /// Eye tracking logic and gaze enabled UI elements.
+  /// Eye tracking logic and center enabled UI elements.
   /// </summary>
   public partial class App : Application
   {
-    public IEyeTracker iet;
+    IEyeTracker iet;
+    List<Point> samples = new List<Point>();
     List<Point> gazes = new List<Point>();
     Dictionary<Point, Vector> offsets = new Dictionary<Point, Vector>();
     TimeSpan? time;
@@ -40,9 +83,8 @@ namespace EyePaint
     ResultWindow resultWindow;
     Size resolution;
     public GlobalProperties Globals { get; set; }
+    int timesNoEyesTracked;
     bool tracking;
-    public bool ResetButtonEnabled;
-    int notTracking;
 
     [DllImport("User32.dll")]
     static public extern bool SetCursorPos(int X, int Y);
@@ -53,18 +95,14 @@ namespace EyePaint
       EventManager.RegisterClassHandler(typeof(Window), Window.KeyUpEvent, new RoutedEventHandler((s, e) =>
       {
         if ((e as KeyEventArgs).Key == Key.Escape) new SettingsWindow();
-        else if (ResetButtonEnabled)
+        else if (Globals.IsResettable)
         {
-          ResetButtonEnabled = false;
+          Globals.IsResettable = false;
           Reset();
         }
       }));
 
-      // Clear gaze click data if hardware button was used to click buttons.
-      EventManager.RegisterClassHandler(typeof(Button), Mouse.MouseDownEvent, new MouseButtonEventHandler((s, e) =>
-      {
-        time = null;
-      }));
+      Mouse.OverrideCursor = Cursors.None;
     }
 
     /// <summary>
@@ -80,7 +118,7 @@ namespace EyePaint
     }
 
     /// <summary>
-    /// Connect to the eye tracker and start gaze tracking. Return true iff a successful connection has been established.
+    /// Connect to the eye tracker and start center tracking. Return true iff a successful connection has been established.
     /// </summary>
     bool connect()
     {
@@ -95,21 +133,13 @@ namespace EyePaint
           iet.GazeData += onGazeData;
           Task.Factory.StartNew(() => iet.RunEventLoop());
           iet.Connect();
+          iet.StartTracking();
 
-          Mouse.OverrideCursor = Cursors.None;
+          //Mouse.OverrideCursor = Cursors.None; //TODO Remove?
 
-          // Open paint controls.
+          // Initialize paint controls.
           resultWindow = new ResultWindow();
-          paintWindow = new PaintWindow();
-          paintWindow.ContentRendered += (_, __) =>
-          {
-            paintWindow.Focus();
-            paintWindow.Activate();
-            resolution = paintWindow.RenderSize;
-            MainWindow = paintWindow;
-            resultWindow.SetPaintWindow(paintWindow);
-            iet.StartTracking();
-          };
+          startPaintSession();
 
           return true;
         }
@@ -118,6 +148,31 @@ namespace EyePaint
           Thread.Sleep(1000);
         }
       return false;
+    }
+
+    /// <summary>
+    /// Starts a paint session in a new window, destroying the previous gazePoint data and paint window if neccessary.
+    /// </summary>
+    void startPaintSession()
+    {
+      var w = new PaintWindow();
+      w.ContentRendered += (s, e) =>
+      {
+        // Clear gaze data
+        samples.Clear();
+        gazes.Clear();
+        offsets.Clear();
+        time = null;
+
+        // Close previous paint window
+        if (paintWindow != null) paintWindow.Close();
+
+        // Use new paint window
+        resolution = w.RenderSize;
+        resultWindow.SetPaintWindow(w);
+        paintWindow = w;
+      };
+      w.Show();
     }
 
     /// <summary>
@@ -132,83 +187,96 @@ namespace EyePaint
     }
 
     /// <summary>
-    /// Handles data from the eye tracker. Places the mouse cursor at the average gaze point so that WPF mouse events can be used throughout the application.
+    /// Handles data from the eye tracker. Places the mouse cursor at the average center point so that WPF mouse events can be used throughout the application.
     /// </summary>
     void onGazeData(object s, GazeDataEventArgs e)
     {
       // Determine if the user is present.
       if (e.GazeData.TrackingStatus == TrackingStatus.NoEyesTracked)
       {
-        if (++notTracking > EyePaint.Properties.Settings.Default.Blink)
+        if (++timesNoEyesTracked > EyePaint.Properties.Settings.Default.Blink)
         {
           if (tracking)
           {
             tracking = false;
-            Dispatcher.Invoke(() => Globals.Tracking = tracking);
+            Dispatcher.Invoke(() => Globals.IsUserPresent = tracking);
           }
         }
       }
       else
       {
-        if (notTracking > 0)
+        if (timesNoEyesTracked > 0)
         {
-          notTracking = 0;
+          timesNoEyesTracked = 0;
           if (!tracking)
           {
             tracking = true;
-            Dispatcher.Invoke(() => Globals.Tracking = tracking);
+            Dispatcher.Invoke(() => Globals.IsUserPresent = tracking);
           }
         }
       }
 
-      // Retrieve available gaze information from the eye tracker and place the mouse cursor at the position. 
+      // Retrieve available center information from the eye tracker and place the mouse cursor at the position. 
       if (e.GazeData.TrackingStatus != TrackingStatus.NoEyesTracked)
       {
 
-        // Determine new gaze point position on the screen.
+        // Determine new center point position on the screen.
         var l = e.GazeData.Left.GazePointOnDisplayNormalized;
         var r = e.GazeData.Right.GazePointOnDisplayNormalized;
         switch (e.GazeData.TrackingStatus)
         {
           case TrackingStatus.BothEyesTracked:
-            gazes.Add(
-              new Point(resolution.Width * (l.X + r.X) / 2, resolution.Height * (l.Y + r.Y) / 2)
-            );
+            samples.Add(new Point(resolution.Width * (l.X + r.X) / 2, resolution.Height * (l.Y + r.Y) / 2));
             break;
+          case TrackingStatus.OneEyeTrackedUnknownWhich:
           case TrackingStatus.OneEyeTrackedProbablyLeft:
           case TrackingStatus.OnlyLeftEyeTracked:
-            gazes.Add(
-              new Point(resolution.Width * l.X, resolution.Height * l.Y)
-            );
+            samples.Add(new Point(resolution.Width * l.X, resolution.Height * l.Y));
             break;
           case TrackingStatus.OneEyeTrackedProbablyRight:
           case TrackingStatus.OnlyRightEyeTracked:
-            gazes.Add(
-              new Point(resolution.Width * r.X, resolution.Height * r.Y)
-            );
-            break;
-          case TrackingStatus.OneEyeTrackedUnknownWhich: //TODO Add?
+            samples.Add(new Point(resolution.Width * r.X, resolution.Height * r.Y));
             break;
         }
 
-        // Calculate average gaze point (i.e. naive noise reduction).
-        while (gazes.Count > EyePaint.Properties.Settings.Default.Stability + 1) gazes.RemoveAt(0);
-        var gazePoint = new Point(gazes.Average(p => p.X), gazes.Average(p => p.Y));
+        // Perform noise reduction with a short moving average window.
+        while (samples.Count > EyePaint.Properties.Settings.Default.Stability + 1) samples.RemoveAt(0);
+        var gaze = new Point(samples.Average(p => p.X), samples.Average(p => p.Y));
 
         // Calibrate average gaze point with known offsets.
-        if (offsets.Count == 1) gazePoint += offsets.Values.First();
-        var distances = offsets.Select(kvp => (gazePoint - kvp.Key).Length);
+        if (offsets.Count == 1) gaze += offsets.Values.First();
+        var distances = offsets.Select(kvp => (gaze - kvp.Key).Length);
         var distancesRatios = distances.Select(d => d / distances.Sum());
         foreach (var v in offsets.Values.Zip(distancesRatios, (o, d) => (1.0 - d) * o))
-          gazePoint += v;
+          gaze += v;
 
-        // Place the mouse cursor at the gaze point so mouse events can be used throughout the application.
-        SetCursorPos((int)gazePoint.X, (int)gazePoint.Y);
+        // Keep gaze point within primary screen.
+        if (gaze.X < 0) gaze.X = 0;
+        if (gaze.X > resolution.Width) gaze.X = resolution.Width;
+        if (gaze.Y < 0) gaze.Y = 0;
+        if (gaze.Y > resolution.Height) gaze.Y = resolution.Height;
+
+        // Place the mouse cursor at the gaze point so mouse events can be used throughout the application.         
+        SetCursorPos((int)gaze.X, (int)gaze.Y);
+
+        // Perform gaze point inertia with a long moving average window.
+        /*TODO REmove
+        Dispatcher.Invoke(() =>
+        {
+          if (Globals.IsChasing)
+          {
+            gazes.Add(gaze);
+            while (gazes.Count > EyePaint.Properties.Settings.Default.Inertia) gazes.RemoveAt(0);
+            var chase = new Point(gazes.Average(gazePoint => gazePoint.X), gazes.Average(gazePoint => gazePoint.Y));
+            Dispatcher.Invoke(() => Globals.ChaseX = chase.X);
+            Dispatcher.Invoke(() => Globals.ChaseY = chase.Y);
+          }
+        });*/
       }
     }
 
     /// <summary>
-    /// When a gaze button is stared at for long enough a click event is raised on each animation completion.
+    /// When a center button is stared at for long enough a click event is raised on each animation completion.
     /// </summary>
     void onGazeButtonFocused(object s, EventArgs e)
     {
@@ -219,12 +287,11 @@ namespace EyePaint
         if (time.HasValue && c.CurrentTime.HasValue && c.CurrentTime.Value < time.Value)
         {
           // Claim click for focused button.
-          // TODO Fix time bug.
           time = null;
           Button focusedButton = FocusManager.GetFocusedElement(MainWindow) as Button;
 
           // Store calibration offset.
-          if (gazes.Count > 0)
+          if (samples.Count > 0)
           {
             var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
             var actualPoint = Mouse.GetPosition(MainWindow);
@@ -239,12 +306,15 @@ namespace EyePaint
       }
       catch (Exception ex)
       {
-        MessageBox.Show("No button found upon gaze click. " + ex.Message);
+        //TODO Improve error handling.
+        var error = "No button found upon gaze click. " + ex.Message;
+        MessageBox.Show(error);
+        SendErrorReport("(EyePaint) Interaction Error", error);
       }
     }
 
     /// <summary>
-    /// Store the offset between the expected gaze point where the user is assumed to be looking and the actual gaze point registered by the eye tracker.
+    /// Store the offset between the expected center point where the user is assumed to be looking and the actual center point registered by the eye tracker.
     /// </summary>
     void storeCalibrationPoint(Point expectedPoint, Point actualPoint)
     {
@@ -271,21 +341,19 @@ namespace EyePaint
     }
 
     /// <summary>
-    /// Clear average gaze data.
+    /// Clear average center data.
     /// </summary>
     public void Reset()
     {
-      var w = new PaintWindow();
-      w.ContentRendered += (s, e) =>
-      {
-        gazes.Clear();
-        offsets.Clear();
-        time = null;
-        resultWindow.SetPaintWindow(w);
-        paintWindow.Close();
-        paintWindow = w;
-      };
-      w.Show();
+      startPaintSession();
+    }
+
+    /// <summary>
+    /// Clear the chase point queue.
+    /// </summary>
+    public void ClearChaseQueue()
+    {
+      gazes.Clear();
     }
   }
 }

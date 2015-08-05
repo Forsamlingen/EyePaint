@@ -74,6 +74,8 @@
             <TextBox Text="{Binding Inertia}"/>
             <Label Content="Blink:"/>
             <TextBox Text="{Binding Blink}"/>
+            <Label Content="Required active paint time before allowing publish:"/>
+            <TextBox Text="{Binding MinimumActivePaintTimeBeforeAllowingPublish}"/>
           </StackPanel>
         </GroupBox>
         <Button Click="onSaveButtonClick" Content="Save settings"/>

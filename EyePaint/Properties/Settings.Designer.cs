@@ -73,7 +73,7 @@ namespace EyePaint.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
         public int Spacing {
             get {
                 return ((int)(this["Spacing"]));
@@ -85,19 +85,7 @@ namespace EyePaint.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
-        public int Stability {
-            get {
-                return ((int)(this["Stability"]));
-            }
-            set {
-                this["Stability"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int Blink {
             get {
                 return ((int)(this["Blink"]));
@@ -109,7 +97,7 @@ namespace EyePaint.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("120")]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
         public int Inertia {
             get {
                 return ((int)(this["Inertia"]));
@@ -199,6 +187,30 @@ namespace EyePaint.Properties {
             }
             set {
                 this["FlickrTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int Stability {
+            get {
+                return ((int)(this["Stability"]));
+            }
+            set {
+                this["Stability"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public double MinimumActivePaintTimeBeforeAllowingPublish {
+            get {
+                return ((double)(this["MinimumActivePaintTimeBeforeAllowingPublish"]));
+            }
+            set {
+                this["MinimumActivePaintTimeBeforeAllowingPublish"] = value;
             }
         }
     }

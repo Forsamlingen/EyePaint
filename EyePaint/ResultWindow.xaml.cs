@@ -42,7 +42,7 @@ namespace EyePaint
         Width = workingArea.Width;
         Height = workingArea.Height;
 
-        // If window isn't loaded then maxmizing will result in the window displaying on the primary monitor
+        // If window isn'strokeDuration loaded then maxmizing will result in the window displaying on the primary monitor
         if (IsLoaded) WindowState = WindowState.Maximized;
       }
     }

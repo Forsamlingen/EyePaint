@@ -23,14 +23,16 @@ namespace EyePaint
   /// </summary>
   public partial class PublishWindow : Window
   {
+    BackgroundWorker bw;
+
     public PublishWindow(Window owner, RenderTargetBitmap drawing)
     {
       InitializeComponent();
       Owner = owner;
-      (App.Current as App).ResetButtonEnabled = false; // This window blocks the hardware reset button until publish is complete.
       Show();
       saveImage(drawing, "drawing.png");
       flickrUploadImage("drawing.png");
+      //(App.Current as App).Globals.IsResettable = false;
     }
 
     /// <summary>
@@ -38,9 +40,17 @@ namespace EyePaint
     /// </summary>
     void saveImage(RenderTargetBitmap drawing, String imageDestinationPath)
     {
-      var pbe = new PngBitmapEncoder();
-      pbe.Frames.Add(BitmapFrame.Create(drawing));
-      using (var fs = System.IO.File.OpenWrite(imageDestinationPath)) pbe.Save(fs);
+      try
+      {
+        var pbe = new PngBitmapEncoder();
+        pbe.Frames.Add(BitmapFrame.Create(drawing));
+        using (var fs = System.IO.File.OpenWrite(imageDestinationPath)) pbe.Save(fs);
+      }
+      catch (Exception ex)
+      {
+        (App.Current as App).SendErrorReport("(EyePaint) Image Saving Error", "An image could not be saved. Check if another program on the computer is using the image. Error: " + ex.Message);
+        new ErrorWindow();
+      }
     }
 
     /// <summary>
@@ -50,7 +60,7 @@ namespace EyePaint
     {
       try
       {
-        var bw = new BackgroundWorker();
+        bw = new BackgroundWorker();
         var photoId = "";
         bw.WorkerReportsProgress = true;
         bw.ProgressChanged += (_s, _e) => UploadProgress.Value = _e.ProgressPercentage;
@@ -65,7 +75,8 @@ namespace EyePaint
           f.OnUploadProgress += (__s, __e) => bw.ReportProgress(__e.ProcessPercentage);
           photoId = f.UploadPicture("drawing.png", Properties.Settings.Default.FlickrTitle, Properties.Settings.Default.FlickrDescription, Properties.Settings.Default.FlickrTags, true, true, true);
 
-          // Add photo to set. If set doesn't exist, create it first.
+          //TODO Handle exceptions
+          // Add photo to set. If set doesn'strokeDuration exist, create it first.
           var photosets = f.PhotosetsGetList().Where(set => set.Title == Properties.Settings.Default.FlickrPhotoset).ToList();
           if (photosets.Count == 0) f.PhotosetsCreate(Properties.Settings.Default.FlickrPhotoset, photoId);
           else f.PhotosetsAddPhoto(photosets[0].PhotosetId, photoId);
@@ -77,7 +88,7 @@ namespace EyePaint
 
           // Shortened URL to drawing on Flickr.
           var shortPhotoId = Base58Encoder.Encode(ulong.Parse(photoId));
-          var url = "http://flic.kr/p/" + shortPhotoId;
+          var url = "http://flic.kr/center/" + shortPhotoId;
 
           // Create and display URL as text and QR code.
           QrEncoder qrEncoder = new QrEncoder(ErrorCorrectionLevel.H);
@@ -90,16 +101,14 @@ namespace EyePaint
           rtb.Render(dv);
           UploadQR.Source = rtb;
           UploadURL.Text = shortPhotoId;
-
-          // Allow hardware reset button again,
-          (App.Current as App).ResetButtonEnabled = true;
+          (App.Current as App).Globals.IsResettable = true;
         };
         bw.RunWorkerAsync();
       }
       catch (Exception ex)
       {
         (App.Current as App).SendErrorReport("(EyePaint) Image Upload Error", "An image could not be uploaded. Check if Flickr is authenticated in the program settings. To see the program settings press escape at the calibration screen. The drawing is stored in the program folder and could be manually recovered before a new drawing is made. Error: " + ex.Message);
-        new ErrorWindow(this);
+        new ErrorWindow();
       }
     }
   }

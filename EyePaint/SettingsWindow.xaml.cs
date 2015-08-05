@@ -13,7 +13,7 @@ namespace EyePaint
   public partial class SettingsWindow : Window
   {
     OAuthRequestToken request;
-    bool hardwareButtonsState;
+    bool isResettable;
 
     public SettingsWindow()
     {
@@ -24,19 +24,15 @@ namespace EyePaint
 
     void onLoaded(object s, RoutedEventArgs e)
     {
+      isResettable = (App.Current as App).Globals.IsResettable;
+      (App.Current as App).Globals.IsResettable = false;
       Mouse.OverrideCursor = Cursors.Arrow;
-      var i = (App.Current as App).iet;
-      if (i != null) i.StopTracking();
-      hardwareButtonsState = (App.Current as App).ResetButtonEnabled;
-      (App.Current as App).ResetButtonEnabled = false;
     }
 
     void onUnloaded(object s, RoutedEventArgs e)
     {
+      (App.Current as App).Globals.IsResettable = isResettable;
       Mouse.OverrideCursor = Cursors.None;
-      var i = (App.Current as App).iet;
-      if (i != null) i.StartTracking();
-      (App.Current as App).ResetButtonEnabled = hardwareButtonsState;
     }
 
     void onSaveButtonClick(object s, RoutedEventArgs e)

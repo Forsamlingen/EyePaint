@@ -31,15 +31,10 @@ namespace EyePaint
 
     void onUnloaded(object s, RoutedEventArgs e)
     {
-      (App.Current as App).IsResettable = isResettable;
-      Mouse.OverrideCursor = Cursors.None;
-    }
-
-    void onSaveButtonClick(object s, RoutedEventArgs e)
-    {
       Properties.Settings.Default.Save();
       MessageBox.Show("Settings saved.");
-      Close();
+      (App.Current as App).IsResettable = isResettable;
+      Mouse.OverrideCursor = Cursors.None;
     }
 
     void onGetVerificationCodeButtonClick(object s, RoutedEventArgs e)
@@ -68,28 +63,6 @@ namespace EyePaint
           MessageBox.Show("Login failed.");
         }
       }
-    }
-
-    void onSendEmailButtonClick(object s, RoutedEventArgs e)
-    {
-      try
-      {
-        var m = new MailMessage(
-            EyePaint.Properties.Settings.Default.AdminEmail,
-            EyePaint.Properties.Settings.Default.AdminEmail,
-            "(EyePaint) Test Email",
-            ""
-        );
-        var c = new SmtpClient(EyePaint.Properties.Settings.Default.SmtpServer);
-        c.Credentials = CredentialCache.DefaultNetworkCredentials;
-        c.Send(m);
-      }
-      catch (Exception)
-      {
-        MessageBox.Show("Email not sent.");
-        return;
-      }
-      MessageBox.Show("Email sent.");
     }
   }
 }

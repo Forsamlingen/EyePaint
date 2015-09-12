@@ -2,12 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="EyePaint.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="AdminEmail" Type="System.String" Scope="User">
-      <Value Profile="(Default)">default@default.default</Value>
-    </Setting>
-    <Setting Name="SmtpServer" Type="System.String" Scope="User">
-      <Value Profile="(Default)">default.default.default</Value>
-    </Setting>
     <Setting Name="FlickrKey" Type="System.String" Scope="User">
       <Value Profile="(Default)">a81591b96318cd9799982c11663df750</Value>
     </Setting>

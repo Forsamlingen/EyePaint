@@ -25,30 +25,6 @@ namespace EyePaint.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("default@default.default")]
-        public string AdminEmail {
-            get {
-                return ((string)(this["AdminEmail"]));
-            }
-            set {
-                this["AdminEmail"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("default.default.default")]
-        public string SmtpServer {
-            get {
-                return ((string)(this["SmtpServer"]));
-            }
-            set {
-                this["SmtpServer"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("a81591b96318cd9799982c11663df750")]
         public string FlickrKey {
             get {

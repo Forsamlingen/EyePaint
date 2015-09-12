@@ -21,17 +21,6 @@
     </Grid.Resources>
     <ScrollViewer Name="Settings">
       <StackPanel Margin="20">
-        <Button Click="onSaveButtonClick" Content="Save settings"/>
-        <TextBlock Text="Error Reporting"/>
-        <GroupBox Header="Email">
-          <StackPanel>
-            <Label Content="Admin email:"/>
-            <TextBox Text="{Binding AdminEmail}"/>
-            <Label Content="SMTP server:"/>
-            <TextBox Text="{Binding SmtpServer}"/>
-            <Button Click="onSendEmailButtonClick" Content="Send test email"/>
-          </StackPanel>
-        </GroupBox>
         <TextBlock Text="Image Upload Service"/>
         <GroupBox Header="Flickr upload data">
           <StackPanel>
@@ -77,7 +66,6 @@
             <TextBox Text="{Binding FPS}"/>
           </StackPanel>
         </GroupBox>
-        <Button Click="onSaveButtonClick" Content="Save settings"/>
       </StackPanel>
     </ScrollViewer>
   </Grid>

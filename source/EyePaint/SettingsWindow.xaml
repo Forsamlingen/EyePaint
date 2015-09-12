@@ -1,0 +1,84 @@
+﻿<Window x:Class="EyePaint.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Loaded="onLoaded"
+        Unloaded="onUnloaded">
+  <Grid>
+    <Grid.Resources>
+      <Style TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="Margin" Value="0,20,0,0"/>
+      </Style>
+      <Style TargetType="Button">
+        <Setter Property="Margin" Value="10"/>
+        <Setter Property="MaxWidth" Value="300"/>
+      </Style>
+      <Style TargetType="GroupBox">
+        <Setter Property="Margin" Value="10"/>
+        <Setter Property="Padding" Value="10"/>
+      </Style>
+    </Grid.Resources>
+    <ScrollViewer Name="Settings">
+      <StackPanel Margin="20">
+        <Button Click="onSaveButtonClick" Content="Save settings"/>
+        <TextBlock Text="Error Reporting"/>
+        <GroupBox Header="Email">
+          <StackPanel>
+            <Label Content="Admin email:"/>
+            <TextBox Text="{Binding AdminEmail}"/>
+            <Label Content="SMTP server:"/>
+            <TextBox Text="{Binding SmtpServer}"/>
+            <Button Click="onSendEmailButtonClick" Content="Send test email"/>
+          </StackPanel>
+        </GroupBox>
+        <TextBlock Text="Image Upload Service"/>
+        <GroupBox Header="Flickr upload data">
+          <StackPanel>
+            <Label Content="Title:"/>
+            <TextBox Text="{Binding FlickrTitle}"/>
+            <Label Content="Description:"/>
+            <TextBox Text="{Binding FlickrDescription}"/>
+            <Label Content="Tags:"/>
+            <TextBox Text="{Binding FlickrTags}"/>
+            <Label Content="Gallery:"/>
+            <TextBox Text="{Binding FlickrPhotoset}"/>
+          </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Flickr authentication">
+          <StackPanel>
+            <Label Content="Flickr API key:"/>
+            <TextBox Text="{Binding FlickrKey}"/>
+            <Label Content="Flickr API secret:"/>
+            <TextBox Text="{Binding FlickrSecret}"/>
+            <Label Content="Flickr API verification code:"/>
+            <TextBox Text="{Binding FlickrVerificationCode}" Name="FlickrCode"/>
+            <Button Click="onGetVerificationCodeButtonClick" Content="Get verification code"/>
+            <Button Click="onStoreVerificationCodeButtonClick" Content="Store verification code"/>
+          </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Paint control">
+          <StackPanel>
+            <Label Content="Inertia:"/>
+            <TextBox Text="{Binding Inertia}"/>
+            <Label Content="Minimum paint time before allowing user to publish image:"/>
+            <TextBox Text="{Binding MinimumActivePaintTimeBeforeAllowingPublish}"/>
+            <Label Content="Paint stroke length (number of active paint blobs):"/>
+            <TextBox Text="{Binding StrokeSize}"/>
+            <Label Content="Paint blob lifespan:"/>
+            <TextBox Text="{Binding PaintBlobLifespan}"/>
+            <Label Content="Detail level (branches count):"/>
+            <TextBox Text="{Binding MaximumDetail}"/>
+            <Label Content="Paint tool memory size:"/>
+            <TextBox Text="{Binding PaintToolMemory}"/>
+            <Label Content="Paint blob blur radius:"/>
+            <TextBox Text="{Binding BlurRadius}"/>
+            <Label Content="FPS:"/>
+            <TextBox Text="{Binding FPS}"/>
+          </StackPanel>
+        </GroupBox>
+        <Button Click="onSaveButtonClick" Content="Save settings"/>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>

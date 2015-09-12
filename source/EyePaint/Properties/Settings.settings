@@ -1,0 +1,60 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="EyePaint.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AdminEmail" Type="System.String" Scope="User">
+      <Value Profile="(Default)">default@default.default</Value>
+    </Setting>
+    <Setting Name="SmtpServer" Type="System.String" Scope="User">
+      <Value Profile="(Default)">default.default.default</Value>
+    </Setting>
+    <Setting Name="FlickrKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">a81591b96318cd9799982c11663df750</Value>
+    </Setting>
+    <Setting Name="FlickrSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">05e84b538d7d4cf5</Value>
+    </Setting>
+    <Setting Name="FlickrAccessToken" Type="FlickrNet.OAuthAccessToken" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FlickrVerificationCode" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FlickrPhotoset" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Måla med ögonen</Value>
+    </Setting>
+    <Setting Name="FlickrTitle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Målning med ögonen</Value>
+    </Setting>
+    <Setting Name="FlickrDescription" Type="System.String" Scope="User">
+      <Value Profile="(Default)">En målning gjord med ögonen.</Value>
+    </Setting>
+    <Setting Name="FlickrTags" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MegaMindSTHLM, Tekniska museet, Måla med ögonen, Paint with your eyes</Value>
+    </Setting>
+    <Setting Name="MinimumActivePaintTimeBeforeAllowingPublish" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="StrokeSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="PaintBlobLifespan" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="MaximumDetail" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="PaintToolMemory" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="BlurRadius" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="FPS" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="Inertia" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

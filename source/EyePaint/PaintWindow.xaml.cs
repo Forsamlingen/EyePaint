@@ -296,6 +296,7 @@ namespace EyePaint
     Point brushPosition;
     List<Point> brushPositionHistory = new List<Point>();
     PaintStroke stroke;
+    RenderTargetBitmap raster, icon;
     DrawingVisual layer;
     PaintTool tool;
     List<PaintTool> paintToolHistory = new List<PaintTool>();
@@ -312,8 +313,7 @@ namespace EyePaint
         (_, __) =>
         {
           // Render drawing.
-          var drawing = Drawing.Source as RenderTargetBitmap;
-          layer = paint(ref brushPosition, ref tool, ref stroke, ref drawing);
+          paint(ref brushPosition, ref tool, ref stroke, ref raster, ref layer);
 
           // Require a couple of seconds of actively painting before allowing the user to publish the drawing.
           if (activePaintDuration.Seconds > Properties.Settings.Default.MinimumActivePaintTimeBeforeAllowingPublish) PublishButton.IsEnabled = true;
@@ -324,8 +324,11 @@ namespace EyePaint
 
     protected override void OnContentRendered(EventArgs e)
     {
-      // Initialize drawing.
-      Drawing.Source = createCanvas((int)ActualWidth, (int)ActualHeight);
+      // Initialize drawing and paint tool icon and add them to the XAML.
+      Drawing.Source = raster = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
+      PaintToolButtonIcon.Source = icon = new RenderTargetBitmap((int)PaintToolButton.ActualWidth, (int)PaintToolButton.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+      clear(icon);
+      clear(raster);
 
       // Choose initial tool and color by simulating a button click.
       PaintToolButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -412,17 +415,11 @@ namespace EyePaint
       }
 
       // Update GUI button icon by sample drawing with the new tool.
-      var b = s as Button;
-      var drawing = createCanvas((int)(b.ActualWidth), (int)(b.ActualHeight));
-      var center = new Point(b.ActualWidth / 2, b.ActualHeight / 2);
+      clear(icon);
+      var center = new Point(PaintToolButton.ActualWidth / 2, PaintToolButton.ActualHeight / 2);
       var stroke = new PaintStroke(center, tool);
-      for (int i = 0; i < 10; ++i)
-      {
-        paint(ref center, ref this.tool, ref stroke, ref drawing);
-      }
-      var icon = new Image();
-      icon.Source = drawing;
-      b.Content = icon;
+      var layer = new DrawingVisual();
+      for (int i = 0; i < 10; ++i) paint(ref center, ref tool, ref stroke, ref icon, ref layer);
     }
 
     // Begin new paint stroke at center and start rendering drawing.
@@ -446,25 +443,22 @@ namespace EyePaint
       activePaintDuration += strokeDuration;
     }
 
-    RenderTargetBitmap createCanvas(int width, int height)
-    {
-      var drawing = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
-      DrawingVisual dv = new DrawingVisual();
-      using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, drawing.Width, drawing.Height));
-      drawing.Render(dv);
-      return drawing;
-    }
-
-    DrawingVisual paint(ref Point brushPosition, ref PaintTool tool, ref PaintStroke stroke, ref RenderTargetBitmap drawing)
+    void paint(ref Point brushPosition, ref PaintTool tool, ref PaintStroke stroke, ref RenderTargetBitmap drawing, ref DrawingVisual layer)
     {
       stroke.Paint(brushPosition, tool);
       var dv = tool.Draw(stroke);
+      if (!dv.ContentBounds.IsEmpty)
+      {
+        drawing.Render(dv);
+        layer = dv;
+      }
+    }
 
-      if (drawing != null) drawing.Render(dv);
-
-      if (dv.ContentBounds.IsEmpty) return layer; //TODO Structure code better.
-
-      return dv;
+    void clear(RenderTargetBitmap canvas)
+    {
+      DrawingVisual dv = new DrawingVisual();
+      using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, canvas.Width, canvas.Height));
+      canvas.Render(dv);
     }
   }
 }

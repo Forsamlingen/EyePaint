@@ -166,7 +166,7 @@ namespace EyePaint
           // Store calibration offset.
           var expectedPoint = focusedButton.PointToScreen(new Point(focusedButton.ActualWidth / 2, focusedButton.ActualHeight / 2));
           var actualPoint = Mouse.GetPosition(MainWindow);
-          offsets[actualPoint] = expectedPoint - actualPoint;
+          offsets[expectedPoint] = expectedPoint - actualPoint;
 
           // Raise click event.
           focusedButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
